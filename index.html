@@ -59,6 +59,12 @@
             <a href="https://www.genduron.com/" target="_blank" rel="noopener noreferrer" class="text-lg text-blue-400 hover:text-blue-300 transition-colors">GENDURON</a>
         </header>
 
+        <!-- NEU: Statistik-Sektion -->
+        <div id="stats-section" class="mb-8 text-center p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+            <div id="total-games" class="text-2xl text-white mb-4"></div>
+            <div id="category-stats" class="flex flex-wrap justify-center gap-x-4 gap-y-2 text-gray-400"></div>
+        </div>
+
         <div class="bg-gray-800 p-4 rounded-lg mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sticky top-4 z-10 shadow-lg border border-gray-700">
             <div class="lg:col-span-2">
                 <input type="text" id="search-input" placeholder="Spiel suchen oder z.B. <30min" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -222,6 +228,24 @@
             const modalOverlay = document.getElementById('game-modal-overlay');
             const modalCloseBtn = document.getElementById('modal-close-btn');
 
+            function renderStats() {
+                const totalGamesDiv = document.getElementById('total-games');
+                const categoryStatsDiv = document.getElementById('category-stats');
+
+                totalGamesDiv.innerHTML = `Insgesamt <span class="font-bold text-blue-400">${games.length}</span> Spiele in der Sammlung`;
+
+                const categoryCounts = games.reduce((acc, game) => {
+                    acc[game.category] = (acc[game.category] || 0) + 1;
+                    return acc;
+                }, {});
+
+                let statsHTML = '';
+                Object.keys(categoryCounts).sort().forEach(category => {
+                    statsHTML += `<span class="bg-gray-700 px-3 py-1 rounded-full text-sm whitespace-nowrap">${category}: ${categoryCounts[category]}</span>`;
+                });
+                categoryStatsDiv.innerHTML = statsHTML;
+            }
+
             function populateCategories() {
                 const categories = [...new Set(games.map(game => game.category))];
                 categories.sort();
@@ -335,8 +359,10 @@
                 }
             });
 
+            // Initiale Einrichtung
             populateCategories();
             renderTable(games);
+            renderStats(); // NEU: Statistiken beim Laden anzeigen
         });
     </script>
 </body>
