@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genduron Questboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .modal-enter { animation: fadeIn 0.3s ease-out; }
+        .modal-leave { animation: fadeOut 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes fadeOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.95); } }
+        .filter-btn.active { background-color: #06b6d4; color: white; }
+    </style>
+</head>
+<body class="bg-slate-900 text-white antialiased">
+
+    <!-- Header -->
+    <header class="bg-slate-800/70 backdrop-blur-sm sticky top-0 z-20 shadow-lg">
+        <div class="container mx-auto px-4 py-4 max-w-5xl flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-cyan-400">📜🎲 Genduron Questboard</h1>
+                <p class="text-slate-400 mt-1">Finde schnell Mitspieler für eine Runde im LAST.</p>
+            </div>
+            <div id="user-section">
+                <!-- Login/Logout buttons will be inserted here -->
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main-content" class="container mx-auto p-4 max-w-5xl">
+        <!-- Action & Filter Buttons -->
+        <div class="my-6 flex flex-col sm:flex-row justify-center items-center gap-4">
+            <button id="add-game-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105 w-full sm:w-auto">
+                (+) Neues Quest anbieten
+            </button>
+            <div class="flex gap-2 p-1 bg-slate-800 rounded-lg">
+                <button class="filter-btn active px-3 py-1 rounded-md transition" data-day="all">Alle</button>
+                <button class="filter-btn px-3 py-1 rounded-md transition" data-day="3">Mi</button>
+                <button class="filter-btn px-3 py-1 rounded-md transition" data-day="4">Do</button>
+                <button class="filter-btn px-3 py-1 rounded-md transition" data-day="5">Fr</button>
+                <button class="filter-btn px-3 py-1 rounded-md transition" data-day="6">Sa</button>
+            </div>
+        </div>
+        <!-- Game List -->
+        <div id="game-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div id="loading-indicator" class="text-center col-span-full py-10">
+                <p class="text-slate-400 text-lg">Lade verfügbare Quests...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Auth Modal for logged-out users -->
+    <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="bg-slate-800 p-8 rounded-lg shadow-2xl w-full max-w-md m-4 modal-enter relative">
+            <button id="close-auth-modal" class="absolute top-4 right-4 text-slate-500 hover:text-white text-2xl">&times;</button>
+            <div id="auth-tabs" class="flex border-b border-slate-700 mb-6">
+                <button data-tab="login" class="auth-tab flex-1 py-2 font-semibold border-b-2 border-cyan-500 text-white">Login</button>
+                <button data-tab="register" class="auth-tab flex-1 py-2 font-semibold border-b-2 border-transparent text-slate-400">Registrieren</button>
+            </div>
+            <!-- Login Form -->
+            <form id="login-form">
+                <div class="mb-4">
+                    <label for="login-email" class="block text-slate-400 mb-2">E-Mail</label>
+                    <input type="email" id="login-email" class="w-full bg-slate-700 p-2 rounded-md" required>
+                </div>
+                <div class="mb-6">
+                    <label for="login-password" class="block text-slate-400 mb-2">Passwort</label>
+                    <input type="password" id="login-password" class="w-full bg-slate-700 p-2 rounded-md" required>
+                </div>
+                <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 rounded-lg">Einloggen</button>
+            </form>
+            <!-- Register Form -->
+            <form id="register-form" class="hidden">
+                 <div class="mb-4">
+                    <label for="register-name" class="block text-slate-400 mb-2">Dein Anzeigename</label>
+                    <input type="text" id="register-name" class="w-full bg-slate-700 p-2 rounded-md" required>
+                </div>
+                <div class="mb-4">
+                    <label for="register-email" class="block text-slate-400 mb-2">E-Mail</label>
+                    <input type="email" id="register-email" class="w-full bg-slate-700 p-2 rounded-md" required>
+                </div>
+                <div class="mb-6">
+                    <label for="register-password" class="block text-slate-400 mb-2">Passwort</label>
+                    <input type="password" id="register-password" class="w-full bg-slate-700 p-2 rounded-md" required minlength="6">
+                </div>
+                <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 rounded-lg">Registrieren</button>
+            </form>
+            <p id="auth-error" class="text-red-400 mt-4 text-center h-5"></p>
+        </div>
+    </div>
+
+    <!-- Modals (Add/Edit) -->
+    <div id="add-edit-game-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="bg-slate-800 p-8 rounded-lg shadow-2xl w-full max-w-md m-4 modal-enter">
+            <h2 id="modal-title" class="text-2xl font-bold mb-6">Neues Quest erstellen</h2>
+            <form id="add-edit-game-form">
+                <input type="hidden" id="edit-game-id">
+                <div class="mb-4">
+                    <label for="game-name" class="block text-slate-400 mb-2">Spiel (Quest)</label>
+                    <input type="text" id="game-name" class="w-full bg-slate-700 p-2 rounded-md" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div><label for="game-date" class="block text-slate-400 mb-2">Datum</label><input type="date" id="game-date" class="w-full bg-slate-700 p-2 rounded-md" required></div>
+                    <div><label for="game-time" class="block text-slate-400 mb-2">Uhrzeit</label><input type="time" id="game-time" class="w-full bg-slate-700 p-2 rounded-md" required></div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div><label for="total-seats" class="block text-slate-400 mb-2">Plätze</label><input type="number" id="total-seats" min="1" max="20" class="w-full bg-slate-700 p-2 rounded-md" required></div>
+                    <div><label for="game-duration" class="block text-slate-400 mb-2">Dauer (Min.)</label><input type="number" id="game-duration" min="10" step="5" class="w-full bg-slate-700 p-2 rounded-md" placeholder="z.B. 90"></div>
+                </div>
+                <div id="organizer-participates-container" class="mb-4">
+                    <label class="flex items-center text-slate-400"><input type="checkbox" id="organizer-participates" class="h-4 w-4 bg-slate-700 rounded" checked><span class="ml-2">Ich nehme selbst teil</span></label>
+                </div>
+                <div id="opening-hours-warning" class="text-yellow-400 text-sm mb-4 hidden"></div>
+                <div class="flex justify-between items-center">
+                    <div>
+                        <button type="button" id="delete-game-btn" class="bg-red-800 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition hidden">Löschen</button>
+                        <button type="button" id="reactivate-game-btn" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition hidden ml-2">Reaktivieren</button>
+                    </div>
+                    <div class="flex gap-4">
+                        <button type="button" id="cancel-add-game" class="bg-slate-600 hover:bg-slate-700 text-white py-2 px-4 rounded-lg transition">Abbrechen</button>
+                        <button type="submit" id="submit-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg transition">Erstellen</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- Firebase and App Logic -->
+    <script type="module">
+        // --- Firebase Core/Firestore Imports ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, addDoc, doc, getDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, query, where, Timestamp, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // --- Firebase Auth Imports ---
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAm62EYO-knD48Gv_8h4asS_DsdiCVYhAo",
+            authDomain: "spielrunde2.firebaseapp.com",
+            projectId: "spielrunde2",
+            storageBucket: "spielrunde2.firebasestorage.app",
+            messagingSenderId: "718528869080",
+            appId: "1:718528869080:web:28fdf441af5187c0725dad",
+            measurementId: "G-1HPY49Q9DK"
+        };
+
+        // --- Initialize Firebase Services ---
+        let db, auth;
+        let currentUser = null;
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+        } catch (e) {
+            console.error("Error initializing Firebase: ", e);
+            alert('Firebase konnte nicht initialisiert werden.');
+        }
+
+        // --- DOM Elements ---
+        const userSection = document.getElementById('user-section');
+        const gameList = document.getElementById('game-list');
+        const addEditGameModal = document.getElementById('add-edit-game-modal');
+        const addEditGameForm = document.getElementById('add-edit-game-form');
+        const authModal = document.getElementById('auth-modal');
+
+        // --- Auth State Listener ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = { uid: user.uid, displayName: user.displayName, email: user.email };
+                hideModal(authModal);
+                updateUserUI(true);
+            } else {
+                currentUser = null;
+                updateUserUI(false);
+            }
+            // Re-render game list to show correct buttons
+            listenToGames(); 
+        });
+
+        function updateUserUI(isLoggedIn) {
+            if (isLoggedIn) {
+                userSection.innerHTML = `
+                    <div class="text-right">
+                        <p class="text-slate-300">${currentUser.displayName || currentUser.email}</p>
+                        <button id="logout-btn" class="text-sm text-cyan-400 hover:underline">Ausloggen</button>
+                    </div>
+                `;
+                document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
+            } else {
+                userSection.innerHTML = `
+                    <button id="login-register-btn" class="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg">Login / Registrieren</button>
+                `;
+                document.getElementById('login-register-btn').addEventListener('click', () => showModal(authModal));
+            }
+        }
+        
+        // --- Auth Modal Logic ---
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const authError = document.getElementById('auth-error');
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            signInWithEmailAndPassword(auth, loginForm['login-email'].value, loginForm['login-password'].value)
+                .catch(err => authError.textContent = "Falsche E-Mail oder Passwort.");
+        });
+
+        registerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const displayName = registerForm['register-name'].value;
+            const email = registerForm['register-email'].value;
+            const password = registerForm['register-password'].value;
+            createUserWithEmailAndPassword(auth, email, password)
+                .then(userCredential => updateProfile(userCredential.user, { displayName: displayName }))
+                .catch(err => authError.textContent = "Fehler bei der Registrierung.");
+        });
+        
+        document.getElementById('auth-tabs').addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                const tab = e.target.dataset.tab;
+                document.querySelectorAll('.auth-tab').forEach(t => {
+                    t.classList.remove('border-cyan-500', 'text-white');
+                    t.classList.add('border-transparent', 'text-slate-400');
+                });
+                e.target.classList.add('border-cyan-500', 'text-white');
+                if (tab === 'login') {
+                    loginForm.classList.remove('hidden');
+                    registerForm.classList.add('hidden');
+                } else {
+                    loginForm.classList.add('hidden');
+                    registerForm.classList.remove('hidden');
+                }
+            }
+        });
+        document.getElementById('close-auth-modal').addEventListener('click', () => hideModal(authModal));
+
+
+        // --- Game Logic (Public Read, Auth Write) ---
+        let unsubscribeFromGames = null;
+        function listenToGames() {
+            if (unsubscribeFromGames) unsubscribeFromGames();
+
+            const gamesCol = collection(db, "spielrunden");
+            const q = query(gamesCol, where("dateTime", ">=", Timestamp.now()), orderBy("dateTime", "asc"));
+
+            unsubscribeFromGames = onSnapshot(q, (snapshot) => {
+                document.getElementById('loading-indicator').classList.add('hidden');
+                gameList.innerHTML = '';
+                if (snapshot.empty) {
+                     gameList.innerHTML = '<p class="text-slate-400 text-center col-span-full">Keine Quests verfügbar.</p>';
+                } else {
+                    snapshot.docs.forEach(doc => gameList.appendChild(renderGame(doc)));
+                    filterGames(document.querySelector('.filter-btn.active').dataset.day);
+                }
+            });
+        }
+        listenToGames(); // Initial call for all visitors
+
+        function renderGame(doc) {
+            const game = doc.data();
+            const gameId = doc.id;
+            const isCreator = currentUser && currentUser.uid === game.creatorId;
+            const isParticipant = currentUser && game.participants.some(p => p.uid === currentUser.uid);
+
+            const participantsCount = game.participants.length;
+            const freeSeats = game.totalSeats - participantsCount;
+            const isFull = freeSeats <= 0;
+            const isCancelled = game.cancelled || false;
+
+            const gameDate = game.dateTime.toDate();
+            const formattedDate = gameDate.toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: '2-digit' });
+            const formattedTime = gameDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+
+            const card = document.createElement('div');
+            card.className = `bg-slate-800 rounded-lg shadow-lg p-6 flex flex-col relative`;
+            card.dataset.gameDay = gameDate.getDay();
+
+            let participantsHTML = game.participants.map(p => `
+                <span class="bg-slate-700 text-slate-300 text-sm font-medium mr-2 mb-2 px-2.5 py-1 rounded-full flex items-center">
+                    ${p.displayName}
+                    ${isCreator ? `<button class="remove-player-btn ml-2 text-red-400 hover:text-red-200" data-game-id="${gameId}" data-player-uid="${p.uid}" data-player-name="${p.displayName}">×</button>` : ''}
+                </span>`).join('');
+            
+            card.innerHTML = `
+                ${isCancelled ? '<div class="absolute inset-0 bg-red-900/70 flex items-center justify-center rounded-lg z-0"><span class="text-2xl font-bold text-white transform -rotate-12">ABGESAGT</span></div>' : ''}
+                <div class="flex-grow">
+                    <div class="flex justify-between items-start">
+                        <h3 class="text-2xl font-bold text-cyan-400 mb-2">${game.gameName}</h3>
+                        ${isCreator ? `<div class="flex items-center gap-2 text-xl relative z-10">
+                            <button class="edit-game-btn text-slate-500 hover:text-cyan-400" title="Quest bearbeiten" data-game-id="${gameId}">✏️</button>
+                            <button class="cancel-game-btn text-slate-500 hover:text-red-400" title="Quest absagen" data-game-id="${gameId}">⨷</button>
+                        </div>` : ''}
+                    </div>
+                    <p class="text-slate-400 mb-4">von <span class="font-semibold">${game.creatorName}</span></p>
+                    <div class="flex items-center text-slate-300 mb-2"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"></path></svg><span>${formattedDate} um ${formattedTime} Uhr</span></div>
+                    ${game.duration ? `<div class="flex items-center text-slate-400 mb-4"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path></svg><span>ca. ${game.duration} Minuten</span></div>` : ''}
+                    <div class="flex items-center text-slate-300 mb-6"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 1 1 0 5.292M15 21H3v-1a6 6 0 0 1 12 0v1Zm0 0h6v-1a6 6 0 0 0-9-5.197M15 21a6 6 0 0 0-9-5.197m0 0A5.995 5.995 0 0 0 12 12a5.995 5.995 0 0 0-3-5.197M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path></svg><span class="${isFull ? 'text-red-400' : 'text-green-400'} font-semibold">${freeSeats > 0 ? `${freeSeats} Plätze frei` : 'Runde ist voll'}</span></div>
+                    <h4 class="font-semibold text-slate-300 mb-2">Teilnehmer (${participantsCount}/${game.totalSeats}):</h4>
+                    <div class="flex flex-wrap">${participantsHTML}</div>
+                </div>
+                <div class="mt-6">
+                    <button class="join-leave-btn w-full font-bold py-3 px-4 rounded-lg transition ${isCancelled ? 'bg-slate-700 text-slate-500' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull ? 'bg-slate-700 text-slate-500' : 'bg-cyan-500 hover:bg-cyan-600'))}" 
+                            data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>
+                        ${isCancelled ? 'Abgesagt' : (isParticipant ? 'Verlassen' : (isFull ? 'Voll' : 'Ich bin dabei!'))}
+                    </button>
+                </div>
+            `;
+            return card;
+        }
+
+        addEditGameForm.addEventListener('submit', async (e) => { /* ... (form submission logic remains the same) ... */ });
+
+        gameList.addEventListener('click', async (e) => {
+            const target = e.target.closest('button');
+            if (!target) return;
+            if (!currentUser) { // If user is not logged in, prompt to log in
+                showModal(authModal);
+                return;
+            }
+            // ... (rest of the click logic for logged-in users) ...
+        });
+        
+        document.getElementById('add-game-btn').addEventListener('click', () => {
+            if (!currentUser) {
+                showModal(authModal);
+                return;
+            }
+            // ... (rest of the add-game-btn logic) ...
+        });
+
+        // --- Helper functions (Modals, Filters) ---
+        const cancelAddGameBtn = document.getElementById('cancel-add-game');
+        function showModal(modal) { modal.classList.remove('hidden'); }
+        function hideModal(modal) { modal.classList.add('hidden'); }
+        cancelAddGameBtn.addEventListener('click', () => hideModal(addEditGameModal));
+        
+        const filterContainer = document.querySelector('.flex.gap-2');
+        function filterGames(day) { /* ... (filter logic remains the same) ... */ }
+        filterContainer.addEventListener('click', (e) => { /* ... (filter logic remains the same) ... */ });
+
+        // --- Full logic for event listeners that require auth check ---
+        // (This replaces the simplified stubs from above)
+
+        addEditGameForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const gameId = document.getElementById('edit-game-id').value;
+            const gameData = {
+                gameName: addEditGameForm['game-name'].value.trim(),
+                dateTime: Timestamp.fromDate(new Date(`${addEditGameForm['game-date'].value}T${addEditGameForm['game-time'].value}`)),
+                totalSeats: parseInt(addEditGameForm['total-seats'].value),
+                duration: addEditGameForm['game-duration'].value.trim(),
+            };
+
+            try {
+                if (gameId) {
+                    await updateDoc(doc(db, "spielrunden", gameId), gameData);
+                } else {
+                    gameData.creatorId = currentUser.uid;
+                    gameData.creatorName = currentUser.displayName;
+                    gameData.participants = addEditGameForm['organizer-participates'].checked ? [{ uid: currentUser.uid, displayName: currentUser.displayName }] : [];
+                    gameData.cancelled = false;
+                    await addDoc(collection(db, "spielrunden"), gameData);
+                }
+                hideModal(addEditGameModal);
+            } catch (error) { console.error("Error saving document: ", error); }
+        });
+
+        gameList.addEventListener('click', async (e) => {
+            const target = e.target.closest('button');
+            if (!target) return;
+            const gameId = target.dataset.gameId;
+
+            if (!currentUser) {
+                showModal(authModal);
+                return;
+            }
+
+            if (target.classList.contains('join-leave-btn')) {
+                const gameRef = doc(db, "spielrunden", gameId);
+                const isParticipant = (await getDoc(gameRef)).data().participants.some(p => p.uid === currentUser.uid);
+                const participantData = { uid: currentUser.uid, displayName: currentUser.displayName };
+                await updateDoc(gameRef, { participants: isParticipant ? arrayRemove(participantData) : arrayUnion(participantData) });
+            } else if (target.classList.contains('remove-player-btn')) {
+                const playerToRemove = { uid: target.dataset.playerUid, displayName: target.dataset.playerName };
+                await updateDoc(doc(db, "spielrunden", gameId), { participants: arrayRemove(playerToRemove) });
+            } else if (target.classList.contains('edit-game-btn')) {
+                const docSnap = await getDoc(doc(db, "spielrunden", gameId));
+                if (docSnap.exists()) {
+                    const game = docSnap.data();
+                    document.getElementById('edit-game-id').value = gameId;
+                    document.getElementById('game-name').value = game.gameName;
+                    const date = game.dateTime.toDate();
+                    document.getElementById('game-date').value = date.toISOString().split('T')[0];
+                    document.getElementById('game-time').value = date.toTimeString().slice(0,5);
+                    document.getElementById('total-seats').value = game.totalSeats;
+                    document.getElementById('game-duration').value = game.duration || '';
+                    document.getElementById('modal-title').textContent = 'Quest bearbeiten';
+                    document.getElementById('submit-btn').textContent = 'Änderungen speichern';
+                    document.getElementById('delete-game-btn').classList.remove('hidden');
+                    document.getElementById('organizer-participates-container').style.display = 'none';
+                    document.getElementById('reactivate-game-btn').classList.toggle('hidden', !game.cancelled);
+                    showModal(addEditGameModal);
+                }
+            } else if (target.classList.contains('cancel-game-btn')) {
+                if (confirm('Möchtest du dieses Quest wirklich absagen?')) {
+                    await updateDoc(doc(db, "spielrunden", gameId), { cancelled: true });
+                }
+            }
+        });
+        
+        document.getElementById('add-game-btn').addEventListener('click', () => {
+            if (!currentUser) {
+                showModal(authModal);
+                return;
+            }
+            addEditGameForm.reset();
+            document.getElementById('edit-game-id').value = '';
+            document.getElementById('modal-title').textContent = 'Neues Quest erstellen';
+            document.getElementById('submit-btn').textContent = 'Erstellen';
+            document.getElementById('delete-game-btn').classList.add('hidden');
+            document.getElementById('reactivate-game-btn').classList.add('hidden');
+            document.getElementById('organizer-participates-container').style.display = 'block';
+            showModal(addEditGameModal);
+        });
+
+        document.getElementById('delete-game-btn').addEventListener('click', async () => {
+            const gameId = document.getElementById('edit-game-id').value;
+            if (gameId && confirm('Bist du sicher, dass du dieses Quest endgültig löschen möchtest?')) {
+                await deleteDoc(doc(db, "spielrunden", gameId));
+                hideModal(addEditGameModal);
+            }
+        });
+        document.getElementById('reactivate-game-btn').addEventListener('click', async () => {
+            const gameId = document.getElementById('edit-game-id').value;
+            await updateDoc(doc(db, "spielrunden", gameId), { cancelled: false });
+            hideModal(addEditGameModal);
+        });
+        
+        function filterGames(day) {
+            gameList.querySelectorAll('[data-game-day]').forEach(card => {
+                card.style.display = (day === 'all' || card.dataset.gameDay === day) ? 'flex' : 'none';
+            });
+        }
+        filterContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('filter-btn')) {
+                filterContainer.querySelector('.active').classList.remove('active');
+                e.target.classList.add('active');
+                filterGames(e.target.dataset.day);
+            }
+        });
+    </script>
+</body>
+</html>
