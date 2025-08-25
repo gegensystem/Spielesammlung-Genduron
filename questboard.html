@@ -56,24 +56,26 @@
             <button id="add-game-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105 w-full sm:w-auto order-1 sm:order-2">
                 (+) Neues Quest anbieten
             </button>
-            <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto order-2 sm:order-1">
-                <div id="location-quick-filter-container" class="flex gap-2 p-1 bg-slate-800 rounded-lg">
-                    <button class="filter-btn active px-3 py-1 rounded-md transition" data-location="">Alle Orte</button>
-                    <button class="filter-btn px-3 py-1 rounded-md transition" data-location="Genduron">Genduron</button>
-                    <button class="filter-btn px-3 py-1 rounded-md transition" data-location="Linz">Linz</button>
-                    <button class="filter-btn px-3 py-1 rounded-md transition" data-location="Graz">Graz</button>
+            <div class="flex flex-col lg:flex-row gap-4 w-full lg:w-auto order-2 sm:order-1">
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <div id="location-quick-filter-container" class="flex gap-2 p-1 bg-slate-800 rounded-lg">
+                        <button class="filter-btn active px-3 py-1 rounded-md transition" data-location="">Alle Orte</button>
+                        <button class="filter-btn px-3 py-1 rounded-md transition" data-location="Genduron">Genduron</button>
+                        <button class="filter-btn px-3 py-1 rounded-md transition" data-location="Linz">Linz</button>
+                        <button class="filter-btn px-3 py-1 rounded-md transition" data-location="Graz">Graz</button>
+                    </div>
+                    <input type="text" id="location-filter" placeholder="Oder Ort hier suchen..." class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:w-auto">
                 </div>
-                <input type="text" id="location-filter" placeholder="Oder Ort hier suchen..." class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:w-auto">
-                <select id="day-filter" class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:w-auto">
-                    <option value="all">Alle Tage</option>
-                    <option value="1">Montag</option>
-                    <option value="2">Dienstag</option>
-                    <option value="3">Mittwoch</option>
-                    <option value="4">Donnerstag</option>
-                    <option value="5">Freitag</option>
-                    <option value="6">Samstag</option>
-                    <option value="0">Sonntag</option>
-                </select>
+                <div id="day-filter-container" class="flex gap-2 p-1 bg-slate-800 rounded-lg">
+                    <button class="filter-btn day-filter-btn active px-2 py-1 rounded-md transition" data-day="all">Alle</button>
+                    <button class="filter-btn day-filter-btn px-2 py-1 rounded-md transition" data-day="1">Mo</button>
+                    <button class="filter-btn day-filter-btn px-2 py-1 rounded-md transition" data-day="2">Di</button>
+                    <button class="filter-btn day-filter-btn px-2 py-1 rounded-md transition" data-day="3">Mi</button>
+                    <button class="filter-btn day-filter-btn px-2 py-1 rounded-md transition" data-day="4">Do</button>
+                    <button class="filter-btn day-filter-btn px-2 py-1 rounded-md transition" data-day="5">Fr</button>
+                    <button class="filter-btn day-filter-btn px-2 py-1 rounded-md transition" data-day="6">Sa</button>
+                    <button class="filter-btn day-filter-btn px-2 py-1 rounded-md transition" data-day="0">So</button>
+                </div>
             </div>
         </div>
         <!-- Game List -->
@@ -262,21 +264,21 @@
         const locationTypeSelect = document.getElementById('location-type');
         const customLocationContainer = document.getElementById('custom-location-container');
         const locationFilterInput = document.getElementById('location-filter');
-        const dayFilterSelect = document.getElementById('day-filter');
+        const dayFilterContainer = document.getElementById('day-filter-container');
         const locationQuickFilterContainer = document.getElementById('location-quick-filter-container');
 
         function showModal(modal) { modal.classList.remove('hidden'); }
         function hideModal(modal) { modal.classList.add('hidden'); }
 
         function applyFilters() {
-            const day = dayFilterSelect.value;
+            const selectedDays = Array.from(dayFilterContainer.querySelectorAll('.day-filter-btn.active')).map(btn => btn.dataset.day);
             const locationText = locationFilterInput.value.toLowerCase().trim();
 
             gameList.querySelectorAll('.quest-card').forEach(card => {
                 const cardDay = card.dataset.gameDay;
                 const cardLocation = card.dataset.location.toLowerCase();
 
-                const dayMatch = (day === 'all' || cardDay === day);
+                const dayMatch = selectedDays.includes('all') || selectedDays.includes(cardDay);
                 const locationMatch = (locationText === '' || cardLocation.includes(locationText));
 
                 card.style.display = (dayMatch && locationMatch) ? 'flex' : 'none';
@@ -423,7 +425,22 @@
         function renderGame(doc) { const game = doc.data(); const gameId = doc.id; const isCreator = currentUser && currentUser.uid === game.creatorId; const isParticipant = currentUser && game.participants.some(p => p.uid === currentUser.uid); const participantsCount = game.participants.length; const freeSeats = game.totalSeats - participantsCount; const isFull = freeSeats <= 0; const isCancelled = game.cancelled || false; const gameDate = game.dateTime.toDate(); const formattedDate = gameDate.toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: '2-digit' }); const formattedTime = gameDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }); const card = document.createElement('div'); card.className = `quest-card bg-slate-800 rounded-lg shadow-lg p-6 flex flex-col relative`; card.dataset.gameDay = gameDate.getDay(); card.dataset.location = game.location; let participantsHTML = game.participants.map(p => `<span class="bg-slate-700 text-slate-300 text-sm font-medium mr-2 mb-2 px-2.5 py-1 rounded-full flex items-center">${p.displayName}${isCreator ? `<button class="remove-player-btn ml-2 text-red-400 hover:text-red-200" data-game-id="${gameId}" data-player-uid="${p.uid}" data-player-name="${p.displayName}">×</button>` : ''}</span>`).join(''); let tagsHTML = (game.tags && game.tags.length > 0) ? game.tags.map(tag => `<span class="bg-cyan-800 text-cyan-200 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join('') : ''; card.innerHTML = `${isCancelled ? '<div class="absolute inset-0 bg-red-900/70 flex items-center justify-center rounded-lg z-0"><span class="text-2xl font-bold text-white transform -rotate-12">ABGESAGT</span></div>' : ''}<div class="flex-grow"><div class="flex justify-between items-start"><h3 class="text-2xl font-bold text-cyan-400 mb-2">${game.gameName}</h3>${isCreator ? `<div class="flex items-center gap-2 text-xl relative z-10"><button class="edit-game-btn text-slate-500 hover:text-cyan-400" title="Quest bearbeiten" data-game-id="${gameId}">✏️</button><button class="cancel-game-btn text-slate-500 hover:text-red-400" title="Quest absagen" data-game-id="${gameId}">⨷</button></div>` : ''}</div><p class="text-slate-400 mb-2">von <span class="font-semibold">${game.creatorName}</span></p><div class="flex items-center text-slate-400 mb-4 text-sm"><svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg><span>${game.location}</span></div><div class="flex flex-wrap mb-4">${tagsHTML}</div><div class="flex items-center text-slate-300 mb-2"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"></path></svg><span>${formattedDate} um ${formattedTime} Uhr</span></div>${game.duration ? `<div class="flex items-center text-slate-400 mb-4"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path></svg><span>ca. ${game.duration} Minuten</span></div>` : ''}<div class="flex items-center text-slate-300 mb-6"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 1 1 0 5.292M15 21H3v-1a6 6 0 0 1 12 0v1Zm0 0h6v-1a6 6 0 0 0-9-5.197M15 21a6 6 0 0 0-9-5.197m0 0A5.995 5.995 0 0 0 12 12a5.995 5.995 0 0 0-3-5.197M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path></svg><span class="${isFull ? 'text-red-400' : 'text-green-400'} font-semibold">${freeSeats > 0 ? `${freeSeats} Plätze frei` : 'Runde ist voll'}</span></div><h4 class="font-semibold text-slate-300 mb-2">Teilnehmer (${participantsCount}/${game.totalSeats}):</h4><div class="flex flex-wrap">${participantsHTML}</div></div><div class="mt-6"><button class="join-leave-btn w-full font-bold py-3 px-4 rounded-lg transition ${isCancelled ? 'bg-slate-700 text-slate-500' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull ? 'bg-slate-700 text-slate-500' : 'bg-cyan-500 hover:bg-cyan-600'))}" data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>${isCancelled ? 'Abgesagt' : (isParticipant ? 'Verlassen' : (isFull ? 'Voll' : 'Ich bin dabei!'))}</button></div>`; return card; }
         
         cancelAddGameBtn.addEventListener('click', () => hideModal(addEditGameModal));
-        dayFilterSelect.addEventListener('change', applyFilters);
+        dayFilterContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('day-filter-btn')) {
+                const clickedDay = e.target.dataset.day;
+                if (clickedDay === 'all') {
+                    dayFilterContainer.querySelectorAll('.day-filter-btn').forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                } else {
+                    dayFilterContainer.querySelector('[data-day="all"]').classList.remove('active');
+                    e.target.classList.toggle('active');
+                    if (dayFilterContainer.querySelectorAll('.day-filter-btn.active').length === 0) {
+                        dayFilterContainer.querySelector('[data-day="all"]').classList.add('active');
+                    }
+                }
+                applyFilters();
+            }
+        });
         locationFilterInput.addEventListener('input', applyFilters);
         locationQuickFilterContainer.addEventListener('click', (e) => {
             if (e.target.tagName === 'BUTTON') {
