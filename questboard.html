@@ -62,7 +62,7 @@
         </div>
     </main>
 
-    <!-- Auth Modal for logged-out users -->
+    <!-- Auth Modal -->
     <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
         <div class="bg-slate-800 p-8 rounded-lg shadow-2xl w-full max-w-md m-4 modal-enter relative">
             <button id="close-auth-modal" class="absolute top-4 right-4 text-slate-500 hover:text-white text-2xl">&times;</button>
@@ -70,55 +70,36 @@
                 <button data-tab="login" class="auth-tab flex-1 py-2 font-semibold border-b-2 border-cyan-500 text-white">Login</button>
                 <button data-tab="register" class="auth-tab flex-1 py-2 font-semibold border-b-2 border-transparent text-slate-400">Registrieren</button>
             </div>
-            <!-- Login Form -->
             <form id="login-form">
                 <div class="mb-4">
                     <label for="login-email" class="block text-slate-400 mb-2">E-Mail</label>
-                    <input type="email" id="login-email" class="w-full bg-slate-700 p-2 rounded-md" required>
+                    <input type="email" id="login-email" class="w-full bg-slate-700 p-2 rounded-md" required autocomplete="username">
                 </div>
                 <div class="mb-4">
                     <label for="login-password" class="block text-slate-400 mb-2">Passwort</label>
-                    <input type="password" id="login-password" class="w-full bg-slate-700 p-2 rounded-md" required>
+                    <input type="password" id="login-password" class="w-full bg-slate-700 p-2 rounded-md" required autocomplete="current-password">
                 </div>
-                <div class="text-center mb-6">
-                    <a href="#" id="forgot-password-link" class="text-sm text-cyan-400 hover:underline">Passwort vergessen?</a>
-                </div>
+                <div class="text-center mb-6"><a href="#" id="forgot-password-link" class="text-sm text-cyan-400 hover:underline">Passwort vergessen?</a></div>
                 <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 rounded-lg">Einloggen</button>
             </form>
-            <!-- Register Form -->
             <form id="register-form" class="hidden">
-                 <div class="mb-4">
-                    <label for="register-name" class="block text-slate-400 mb-2">Dein Anzeigename</label>
-                    <input type="text" id="register-name" class="w-full bg-slate-700 p-2 rounded-md" required>
-                </div>
-                <div class="mb-4">
-                    <label for="register-email" class="block text-slate-400 mb-2">E-Mail</label>
-                    <input type="email" id="register-email" class="w-full bg-slate-700 p-2 rounded-md" required>
-                </div>
-                <div class="mb-4">
-                    <label for="register-password" class="block text-slate-400 mb-2">Passwort</label>
-                    <input type="password" id="register-password" class="w-full bg-slate-700 p-2 rounded-md" required minlength="6">
-                </div>
-                <div class="mb-6">
-                    <label for="register-password-confirm" class="block text-slate-400 mb-2">Passwort bestätigen</label>
-                    <input type="password" id="register-password-confirm" class="w-full bg-slate-700 p-2 rounded-md" required minlength="6">
-                </div>
+                 <div class="mb-4"><label for="register-name" class="block text-slate-400 mb-2">Dein Anzeigename</label><input type="text" id="register-name" class="w-full bg-slate-700 p-2 rounded-md" required></div>
+                <div class="mb-4"><label for="register-email" class="block text-slate-400 mb-2">E-Mail</label><input type="email" id="register-email" class="w-full bg-slate-700 p-2 rounded-md" required autocomplete="email"></div>
+                <div class="mb-4"><label for="register-password" class="block text-slate-400 mb-2">Passwort</label><input type="password" id="register-password" class="w-full bg-slate-700 p-2 rounded-md" required minlength="6" autocomplete="new-password"></div>
+                <div class="mb-6"><label for="register-password-confirm" class="block text-slate-400 mb-2">Passwort bestätigen</label><input type="password" id="register-password-confirm" class="w-full bg-slate-700 p-2 rounded-md" required minlength="6" autocomplete="new-password"></div>
                 <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 rounded-lg">Registrieren</button>
             </form>
             <p id="auth-error" class="text-red-400 mt-4 text-center h-5"></p>
         </div>
     </div>
 
-    <!-- Modals (Add/Edit) -->
+    <!-- Add/Edit Modal -->
     <div id="add-edit-game-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
         <div class="bg-slate-800 p-8 rounded-lg shadow-2xl w-full max-w-md m-4 modal-enter">
             <h2 id="modal-title" class="text-2xl font-bold mb-6">Neues Quest erstellen</h2>
             <form id="add-edit-game-form">
                 <input type="hidden" id="edit-game-id">
-                <div class="mb-4">
-                    <label for="game-name" class="block text-slate-400 mb-2">Spiel (Quest)</label>
-                    <input type="text" id="game-name" class="w-full bg-slate-700 p-2 rounded-md" required>
-                </div>
+                <div class="mb-4"><label for="game-name" class="block text-slate-400 mb-2">Spiel (Quest)</label><input type="text" id="game-name" class="w-full bg-slate-700 p-2 rounded-md" required></div>
                 <div class="grid grid-cols-2 gap-4 mb-4">
                     <div><label for="game-date" class="block text-slate-400 mb-2">Datum</label><input type="date" id="game-date" class="w-full bg-slate-700 p-2 rounded-md" required></div>
                     <div><label for="game-time" class="block text-slate-400 mb-2">Uhrzeit</label><input type="time" id="game-time" class="w-full bg-slate-700 p-2 rounded-md" required></div>
@@ -127,9 +108,16 @@
                     <div><label for="total-seats" class="block text-slate-400 mb-2">Plätze</label><input type="number" id="total-seats" min="1" max="20" class="w-full bg-slate-700 p-2 rounded-md" required></div>
                     <div><label for="game-duration" class="block text-slate-400 mb-2">Dauer (Min.)</label><input type="number" id="game-duration" min="10" step="5" class="w-full bg-slate-700 p-2 rounded-md" placeholder="z.B. 90"></div>
                 </div>
-                <div id="organizer-participates-container" class="mb-4">
-                    <label class="flex items-center text-slate-400"><input type="checkbox" id="organizer-participates" class="h-4 w-4 bg-slate-700 rounded" checked><span class="ml-2">Ich nehme selbst teil</span></label>
+                <div class="mb-4">
+                    <label class="block text-slate-400 mb-2">Optionale Tags</label>
+                    <div id="tags-container" class="grid grid-cols-2 gap-2 text-sm">
+                        <label class="flex items-center"><input type="checkbox" name="tags" value="für Anfänger:innen geeignet" class="h-4 w-4 bg-slate-700 rounded"><span class="ml-2">für Anfänger:innen geeignet</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="tags" value="Expertenspiel" class="h-4 w-4 bg-slate-700 rounded"><span class="ml-2">Expertenspiel</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="tags" value="Kooperativ" class="h-4 w-4 bg-slate-700 rounded"><span class="ml-2">Kooperativ</span></label>
+                        <label class="flex items-center"><input type="checkbox" name="tags" value="alle spielen gleichzeitig" class="h-4 w-4 bg-slate-700 rounded"><span class="ml-2">alle spielen gleichzeitig</span></label>
+                    </div>
                 </div>
+                <div id="organizer-participates-container" class="mb-4"><label class="flex items-center text-slate-400"><input type="checkbox" id="organizer-participates" class="h-4 w-4 bg-slate-700 rounded" checked><span class="ml-2">Ich nehme selbst teil</span></label></div>
                 <div id="opening-hours-warning" class="text-yellow-400 text-sm mb-4 hidden"></div>
                 <div class="flex justify-between items-center">
                     <div>
@@ -144,14 +132,22 @@
             </form>
         </div>
     </div>
+    
+    <!-- Account Modal -->
+    <div id="account-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="bg-slate-800 p-8 rounded-lg shadow-2xl w-full max-w-md m-4 modal-enter relative">
+             <button id="close-account-modal" class="absolute top-4 right-4 text-slate-500 hover:text-white text-2xl">&times;</button>
+             <h2 class="text-2xl font-bold mb-6">Mein Konto löschen</h2>
+             <p class="text-slate-400 mb-6">Um dein Konto endgültig zu löschen, kontaktiere bitte Andreas Neuhold per E-Mail. Er wird die Löschung für dich vornehmen. Deine erstellten Quests und Teilnahmen bleiben unter deinem Namen bestehen.</p>
+             <a href="mailto:andreas.neuhold@gmail.com" class="w-full text-center block bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 rounded-lg">E-Mail an Andreas senden</a>
+        </div>
+    </div>
 
 
     <!-- Firebase and App Logic -->
     <script type="module">
-        // --- Firebase Core/Firestore Imports ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, onSnapshot, addDoc, doc, getDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, query, where, Timestamp, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        // --- Firebase Auth Imports ---
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, sendEmailVerification, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         const firebaseConfig = {
@@ -164,24 +160,20 @@
             measurementId: "G-1HPY49Q9DK"
         };
 
-        // --- Initialize Firebase Services ---
         let db, auth;
         let currentUser = null;
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
-        } catch (e) {
-            console.error("Error initializing Firebase: ", e);
-            alert('Firebase konnte nicht initialisiert werden.');
-        }
+        } catch (e) { console.error("Error initializing Firebase: ", e); }
 
-        // --- DOM Elements ---
         const userSection = document.getElementById('user-section');
         const gameList = document.getElementById('game-list');
         const addEditGameModal = document.getElementById('add-edit-game-modal');
         const addEditGameForm = document.getElementById('add-edit-game-form');
         const authModal = document.getElementById('auth-modal');
+        const accountModal = document.getElementById('account-modal');
         const loginForm = document.getElementById('login-form');
         const registerForm = document.getElementById('register-form');
         const authError = document.getElementById('auth-error');
@@ -193,7 +185,6 @@
         const gameTimeInput = document.getElementById('game-time');
         const warningDiv = document.getElementById('opening-hours-warning');
 
-        // --- HELPER FUNCTIONS ---
         function showModal(modal) { modal.classList.remove('hidden'); }
         function hideModal(modal) { modal.classList.add('hidden'); }
 
@@ -217,16 +208,18 @@
                 return true;
             }
             const date = new Date(`${gameDateInput.value}T${gameTimeInput.value}`);
-            const day = date.getDay(); // 0=Sun, ..., 3=Wed, 4=Thu, 5=Fri, 6=Sat
+            if (date < new Date()) {
+                warningDiv.textContent = 'Ein Quest kann nicht in der Vergangenheit liegen.';
+                warningDiv.classList.remove('hidden');
+                return false;
+            }
+            const day = date.getDay();
             const hours = date.getHours();
             let isValid = false;
             let message = 'Das LAST ist zu dieser Zeit geschlossen (Mi/Do ab 16, Fr/Sa ab 14 Uhr).';
 
-            if (day === 3 || day === 4) { // Wednesday, Thursday
-                if (hours >= 16) isValid = true;
-            } else if (day === 5 || day === 6) { // Friday, Saturday
-                if (hours >= 14) isValid = true;
-            }
+            if (day === 3 || day === 4) { if (hours >= 16) isValid = true; } 
+            else if (day === 5 || day === 6) { if (hours >= 14) isValid = true; }
             
             if (!isValid) {
                 warningDiv.textContent = message;
@@ -239,7 +232,6 @@
         gameDateInput.addEventListener('change', checkOpeningHours);
         gameTimeInput.addEventListener('change', checkOpeningHours);
 
-        // --- AUTHENTICATION ---
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = { uid: user.uid, displayName: user.displayName, email: user.email, emailVerified: user.emailVerified };
@@ -257,140 +249,33 @@
             if (isLoggedIn) {
                 userSection.innerHTML = `
                     <div class="text-right">
-                        <p class="text-slate-300">${currentUser.displayName || currentUser.email}</p>
-                        <button id="logout-btn" class="text-sm text-cyan-400 hover:underline">Ausloggen</button>
+                        <p class="text-slate-300 font-semibold">${currentUser.displayName || currentUser.email}</p>
+                        <a href="#" id="account-btn" class="text-sm text-cyan-400 hover:underline">Mein Konto</a> | 
+                        <a href="#" id="logout-btn" class="text-sm text-cyan-400 hover:underline">Ausloggen</a>
                     </div>
                 `;
-                document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
+                document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); signOut(auth); });
+                document.getElementById('account-btn').addEventListener('click', (e) => { e.preventDefault(); showModal(accountModal); });
                 if (!currentUser.emailVerified) {
                     verificationBanner.classList.remove('hidden');
                 }
             } else {
-                userSection.innerHTML = `
-                    <button id="login-register-btn" class="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg">Login / Registrieren</button>
-                `;
+                userSection.innerHTML = `<button id="login-register-btn" class="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg">Login / Registrieren</button>`;
                 document.getElementById('login-register-btn').addEventListener('click', () => showModal(authModal));
             }
         }
         
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            authError.textContent = '';
-            signInWithEmailAndPassword(auth, loginForm['login-email'].value, loginForm['login-password'].value)
-                .catch(err => {
-                    console.error("Login Error:", err.code);
-                    authError.textContent = "Falsche E-Mail oder Passwort.";
-                });
-        });
-
-        registerForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            authError.textContent = '';
-            const displayName = registerForm['register-name'].value;
-            const email = registerForm['register-email'].value;
-            const password = registerForm['register-password'].value;
-            const passwordConfirm = registerForm['register-password-confirm'].value;
-
-            if (password !== passwordConfirm) {
-                authError.textContent = 'Die Passwörter stimmen nicht überein.';
-                return;
-            }
-
-            createUserWithEmailAndPassword(auth, email, password)
-                .then(userCredential => {
-                    return updateProfile(userCredential.user, { displayName: displayName })
-                        .then(() => {
-                            sendEmailVerification(userCredential.user);
-                        });
-                })
-                .catch(err => {
-                    console.error("Registration Error:", err.code);
-                    switch (err.code) {
-                        case 'auth/email-already-in-use':
-                            authError.textContent = 'Diese E-Mail-Adresse wird bereits verwendet.';
-                            break;
-                        case 'auth/invalid-email':
-                            authError.textContent = 'Bitte gib eine gültige E-Mail-Adresse ein.';
-                            break;
-                        case 'auth/weak-password':
-                            authError.textContent = 'Das Passwort muss mindestens 6 Zeichen lang sein.';
-                            break;
-                        default:
-                            authError.textContent = 'Fehler bei der Registrierung.';
-                    }
-                });
-        });
-        
-        document.getElementById('forgot-password-link').addEventListener('click', (e) => {
-            e.preventDefault();
-            const email = prompt("Bitte gib deine E-Mail-Adresse ein, um dein Passwort zurückzusetzen:");
-            if (email) {
-                sendPasswordResetEmail(auth, email)
-                    .then(() => {
-                        alert("Eine E-Mail zum Zurücksetzen des Passworts wurde an " + email + " gesendet.");
-                    })
-                    .catch((error) => {
-                        console.error("Password Reset Error:", error.code);
-                        alert("Fehler: Die E-Mail konnte nicht gesendet werden. Bitte prüfe die Adresse.");
-                    });
-            }
-        });
-
-        document.getElementById('resend-verification-btn').addEventListener('click', () => {
-            if (auth.currentUser) {
-                sendEmailVerification(auth.currentUser).then(() => {
-                    const feedback = document.getElementById('resend-feedback');
-                    feedback.textContent = 'Gesendet!';
-                    setTimeout(() => feedback.textContent = '', 3000);
-                });
-            }
-        });
-
-        document.getElementById('auth-tabs').addEventListener('click', (e) => {
-            if (e.target.tagName === 'BUTTON') {
-                const tab = e.target.dataset.tab;
-                document.querySelectorAll('.auth-tab').forEach(t => {
-                    t.classList.remove('border-cyan-500', 'text-white');
-                    t.classList.add('border-transparent', 'text-slate-400');
-                });
-                e.target.classList.add('border-cyan-500', 'text-white');
-                if (tab === 'login') {
-                    loginForm.classList.remove('hidden');
-                    registerForm.classList.add('hidden');
-                } else {
-                    loginForm.classList.add('hidden');
-                    registerForm.classList.remove('hidden');
-                }
-            }
-        });
+        loginForm.addEventListener('submit', (e) => { e.preventDefault(); authError.textContent = ''; signInWithEmailAndPassword(auth, loginForm['login-email'].value, loginForm['login-password'].value).catch(err => { console.error("Login Error:", err.code); authError.textContent = "Falsche E-Mail oder Passwort."; }); });
+        registerForm.addEventListener('submit', (e) => { e.preventDefault(); authError.textContent = ''; const displayName = registerForm['register-name'].value; const email = registerForm['register-email'].value; const password = registerForm['register-password'].value; const passwordConfirm = registerForm['register-password-confirm'].value; if (password !== passwordConfirm) { authError.textContent = 'Die Passwörter stimmen nicht überein.'; return; } createUserWithEmailAndPassword(auth, email, password).then(userCredential => { return updateProfile(userCredential.user, { displayName: displayName }).then(() => { sendEmailVerification(userCredential.user); }); }).catch(err => { console.error("Registration Error:", err.code); switch (err.code) { case 'auth/email-already-in-use': authError.textContent = 'Diese E-Mail-Adresse wird bereits verwendet.'; break; case 'auth/invalid-email': authError.textContent = 'Bitte gib eine gültige E-Mail-Adresse ein.'; break; case 'auth/weak-password': authError.textContent = 'Das Passwort muss mindestens 6 Zeichen lang sein.'; break; default: authError.textContent = 'Fehler bei der Registrierung.'; } }); });
+        document.getElementById('forgot-password-link').addEventListener('click', (e) => { e.preventDefault(); const email = prompt("Bitte gib deine E-Mail-Adresse ein, um dein Passwort zurückzusetzen:"); if (email) { sendPasswordResetEmail(auth, email).then(() => { alert("Eine E-Mail zum Zurücksetzen des Passworts wurde an " + email + " gesendet."); }).catch((error) => { console.error("Password Reset Error:", error.code); alert("Fehler: Die E-Mail konnte nicht gesendet werden. Bitte prüfe die Adresse."); }); } });
+        document.getElementById('resend-verification-btn').addEventListener('click', () => { if (auth.currentUser) { sendEmailVerification(auth.currentUser).then(() => { const feedback = document.getElementById('resend-feedback'); feedback.textContent = 'Gesendet!'; setTimeout(() => feedback.textContent = '', 3000); }); } });
+        document.getElementById('auth-tabs').addEventListener('click', (e) => { if (e.target.tagName === 'BUTTON') { const tab = e.target.dataset.tab; document.querySelectorAll('.auth-tab').forEach(t => { t.classList.remove('border-cyan-500', 'text-white'); t.classList.add('border-transparent', 'text-slate-400'); }); e.target.classList.add('border-cyan-500', 'text-white'); if (tab === 'login') { loginForm.classList.remove('hidden'); registerForm.classList.add('hidden'); } else { loginForm.classList.add('hidden'); registerForm.classList.remove('hidden'); } } });
         document.getElementById('close-auth-modal').addEventListener('click', () => hideModal(authModal));
+        document.getElementById('close-account-modal').addEventListener('click', () => hideModal(accountModal));
 
-        // --- GAME DATA & RENDERING ---
         let unsubscribeFromGames = null;
-        function listenToGames() {
-            if (unsubscribeFromGames) unsubscribeFromGames();
-
-            const gamesCol = collection(db, "spielrunden");
-            const q = query(gamesCol, where("dateTime", ">=", Timestamp.now()), orderBy("dateTime", "asc"));
-
-            unsubscribeFromGames = onSnapshot(q, (snapshot) => {
-                document.getElementById('loading-indicator').classList.add('hidden');
-                gameList.innerHTML = '';
-                if (snapshot.empty) {
-                     gameList.innerHTML = '<p class="text-slate-400 text-center col-span-full">Keine Quests verfügbar.</p>';
-                } else {
-                    snapshot.docs.forEach(doc => gameList.appendChild(renderGame(doc)));
-                    const activeFilter = document.querySelector('.filter-btn.active');
-                    if(activeFilter) {
-                        filterGames(activeFilter.dataset.day);
-                    }
-                }
-            }, (error) => {
-                console.error("Firestore Error:", error);
-                gameList.innerHTML = '<p class="text-red-400 text-center col-span-full">Fehler beim Laden der Quests. Prüfe die Datenbank-Regeln.</p>';
-            });
-        }
-        listenToGames(); // Initial call for all visitors
+        function listenToGames() { if (unsubscribeFromGames) unsubscribeFromGames(); const gamesCol = collection(db, "spielrunden"); const q = query(gamesCol, where("dateTime", ">=", Timestamp.now()), orderBy("dateTime", "asc")); unsubscribeFromGames = onSnapshot(q, (snapshot) => { document.getElementById('loading-indicator').classList.add('hidden'); gameList.innerHTML = ''; if (snapshot.empty) { gameList.innerHTML = '<p class="text-slate-400 text-center col-span-full">Keine Quests verfügbar.</p>'; } else { snapshot.docs.forEach(doc => gameList.appendChild(renderGame(doc))); const activeFilter = document.querySelector('.filter-btn.active'); if(activeFilter) { filterGames(activeFilter.dataset.day); } } }, (error) => { console.error("Firestore Error:", error); gameList.innerHTML = '<p class="text-red-400 text-center col-span-full">Fehler beim Laden der Quests. Prüfe die Datenbank-Regeln.</p>'; }); }
+        listenToGames();
 
         function renderGame(doc) {
             const game = doc.data();
@@ -417,6 +302,10 @@
                     ${isCreator ? `<button class="remove-player-btn ml-2 text-red-400 hover:text-red-200" data-game-id="${gameId}" data-player-uid="${p.uid}" data-player-name="${p.displayName}">×</button>` : ''}
                 </span>`).join('');
             
+            let tagsHTML = (game.tags && game.tags.length > 0) ? game.tags.map(tag => `
+                <span class="bg-cyan-800 text-cyan-200 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full">${tag}</span>
+            `).join('') : '';
+
             card.innerHTML = `
                 ${isCancelled ? '<div class="absolute inset-0 bg-red-900/70 flex items-center justify-center rounded-lg z-0"><span class="text-2xl font-bold text-white transform -rotate-12">ABGESAGT</span></div>' : ''}
                 <div class="flex-grow">
@@ -428,6 +317,7 @@
                         </div>` : ''}
                     </div>
                     <p class="text-slate-400 mb-4">von <span class="font-semibold">${game.creatorName}</span></p>
+                    <div class="flex flex-wrap mb-4">${tagsHTML}</div>
                     <div class="flex items-center text-slate-300 mb-2"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"></path></svg><span>${formattedDate} um ${formattedTime} Uhr</span></div>
                     ${game.duration ? `<div class="flex items-center text-slate-400 mb-4"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path></svg><span>ca. ${game.duration} Minuten</span></div>` : ''}
                     <div class="flex items-center text-slate-300 mb-6"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 1 1 0 5.292M15 21H3v-1a6 6 0 0 1 12 0v1Zm0 0h6v-1a6 6 0 0 0-9-5.197M15 21a6 6 0 0 0-9-5.197m0 0A5.995 5.995 0 0 0 12 12a5.995 5.995 0 0 0-3-5.197M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path></svg><span class="${isFull ? 'text-red-400' : 'text-green-400'} font-semibold">${freeSeats > 0 ? `${freeSeats} Plätze frei` : 'Runde ist voll'}</span></div>
@@ -444,29 +334,21 @@
             return card;
         }
         
-        // --- EVENT LISTENERS ---
         cancelAddGameBtn.addEventListener('click', () => hideModal(addEditGameModal));
-        
-        filterContainer.addEventListener('click', (e) => {
-            if (e.target.classList.contains('filter-btn')) {
-                filterContainer.querySelector('.active').classList.remove('active');
-                e.target.classList.add('active');
-                filterGames(e.target.dataset.day);
-            }
-        });
+        filterContainer.addEventListener('click', (e) => { if (e.target.classList.contains('filter-btn')) { filterContainer.querySelector('.active').classList.remove('active'); e.target.classList.add('active'); filterGames(e.target.dataset.day); } });
 
         addEditGameForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             if (!checkOpeningHours()) return;
-
             const gameId = document.getElementById('edit-game-id').value;
+            const selectedTags = Array.from(document.querySelectorAll('#tags-container input:checked')).map(el => el.value);
             const gameData = {
                 gameName: addEditGameForm['game-name'].value.trim(),
                 dateTime: Timestamp.fromDate(new Date(`${addEditGameForm['game-date'].value}T${addEditGameForm['game-time'].value}`)),
                 totalSeats: parseInt(addEditGameForm['total-seats'].value),
                 duration: addEditGameForm['game-duration'].value.trim(),
+                tags: selectedTags
             };
-
             try {
                 if (gameId) {
                     await updateDoc(doc(db, "spielrunden", gameId), gameData);
@@ -485,87 +367,22 @@
             const target = e.target.closest('button');
             if (!target) return;
             const gameId = target.dataset.gameId;
-
-            if (!currentUser) {
-                showModal(authModal);
-                return;
-            }
-            
-            if (!currentUser.emailVerified) {
-                verificationBanner.classList.remove('hidden');
-                alert("Bitte bestätige zuerst deine E-Mail-Adresse, um Aktionen auszuführen.");
-                return;
-            }
-
-            if (target.classList.contains('join-leave-btn')) {
-                const gameRef = doc(db, "spielrunden", gameId);
-                const isParticipant = (await getDoc(gameRef)).data().participants.some(p => p.uid === currentUser.uid);
-                const participantData = { uid: currentUser.uid, displayName: currentUser.displayName };
-                await updateDoc(gameRef, { participants: isParticipant ? arrayRemove(participantData) : arrayUnion(participantData) });
-            } else if (target.classList.contains('remove-player-btn')) {
-                const playerToRemove = { uid: target.dataset.playerUid, displayName: target.dataset.playerName };
-                await updateDoc(doc(db, "spielrunden", gameId), { participants: arrayRemove(playerToRemove) });
-            } else if (target.classList.contains('edit-game-btn')) {
-                const docSnap = await getDoc(doc(db, "spielrunden", gameId));
-                if (docSnap.exists()) {
-                    const game = docSnap.data();
-                    setMinDate();
-                    document.getElementById('edit-game-id').value = gameId;
-                    document.getElementById('game-name').value = game.gameName;
-                    const date = game.dateTime.toDate();
-                    document.getElementById('game-date').value = date.toISOString().split('T')[0];
-                    document.getElementById('game-time').value = date.toTimeString().slice(0,5);
-                    document.getElementById('total-seats').value = game.totalSeats;
-                    document.getElementById('game-duration').value = game.duration || '';
-                    document.getElementById('modal-title').textContent = 'Quest bearbeiten';
-                    document.getElementById('submit-btn').textContent = 'Änderungen speichern';
-                    document.getElementById('delete-game-btn').classList.remove('hidden');
-                    document.getElementById('organizer-participates-container').style.display = 'none';
-                    document.getElementById('reactivate-game-btn').classList.toggle('hidden', !game.cancelled);
-                    showModal(addEditGameModal);
-                }
-            } else if (target.classList.contains('cancel-game-btn')) {
-                if (confirm('Möchtest du dieses Quest wirklich absagen?')) {
-                    await updateDoc(doc(db, "spielrunden", gameId), { cancelled: true });
-                }
-            }
+            if (!currentUser) { showModal(authModal); return; }
+            if (!currentUser.emailVerified) { verificationBanner.classList.remove('hidden'); alert("Bitte bestätige zuerst deine E-Mail-Adresse, um Aktionen auszuführen."); return; }
+            if (target.classList.contains('join-leave-btn')) { const gameRef = doc(db, "spielrunden", gameId); const isParticipant = (await getDoc(gameRef)).data().participants.some(p => p.uid === currentUser.uid); const participantData = { uid: currentUser.uid, displayName: currentUser.displayName }; await updateDoc(gameRef, { participants: isParticipant ? arrayRemove(participantData) : arrayUnion(participantData) }); } 
+            else if (target.classList.contains('remove-player-btn')) { const playerToRemove = { uid: target.dataset.playerUid, displayName: target.dataset.playerName }; await updateDoc(doc(db, "spielrunden", gameId), { participants: arrayRemove(playerToRemove) }); } 
+            else if (target.classList.contains('edit-game-btn')) { const docSnap = await getDoc(doc(db, "spielrunden", gameId)); if (docSnap.exists()) { const game = docSnap.data(); setMinDate(); document.getElementById('edit-game-id').value = gameId; document.getElementById('game-name').value = game.gameName; const date = game.dateTime.toDate(); document.getElementById('game-date').value = date.toISOString().split('T')[0]; document.getElementById('game-time').value = date.toTimeString().slice(0,5); document.getElementById('total-seats').value = game.totalSeats; document.getElementById('game-duration').value = game.duration || ''; document.querySelectorAll('#tags-container input').forEach(checkbox => checkbox.checked = (game.tags && game.tags.includes(checkbox.value))); document.getElementById('modal-title').textContent = 'Quest bearbeiten'; document.getElementById('submit-btn').textContent = 'Änderungen speichern'; document.getElementById('delete-game-btn').classList.remove('hidden'); document.getElementById('organizer-participates-container').style.display = 'none'; document.getElementById('reactivate-game-btn').classList.toggle('hidden', !game.cancelled); showModal(addEditGameModal); } } 
+            else if (target.classList.contains('cancel-game-btn')) { if (confirm('Möchtest du dieses Quest wirklich absagen?')) { await updateDoc(doc(db, "spielrunden", gameId), { cancelled: true }); } }
         });
         
         addGameBtn.addEventListener('click', () => {
-            if (!currentUser) {
-                showModal(authModal);
-                return;
-            }
-
-            if (!currentUser.emailVerified) {
-                alert("Bitte bestätige zuerst deine E-Mail-Adresse, um ein Quest zu erstellen.");
-                return;
-            }
-
-            addEditGameForm.reset();
-            setMinDate();
-            document.getElementById('edit-game-id').value = '';
-            document.getElementById('modal-title').textContent = 'Neues Quest erstellen';
-            document.getElementById('submit-btn').textContent = 'Erstellen';
-            document.getElementById('delete-game-btn').classList.add('hidden');
-            document.getElementById('reactivate-game-btn').classList.add('hidden');
-            document.getElementById('organizer-participates-container').style.display = 'block';
-            showModal(addEditGameModal);
+            if (!currentUser) { showModal(authModal); return; }
+            if (!currentUser.emailVerified) { alert("Bitte bestätige zuerst deine E-Mail-Adresse, um ein Quest zu erstellen."); return; }
+            addEditGameForm.reset(); setMinDate(); document.getElementById('edit-game-id').value = ''; document.getElementById('modal-title').textContent = 'Neues Quest erstellen'; document.getElementById('submit-btn').textContent = 'Erstellen'; document.getElementById('delete-game-btn').classList.add('hidden'); document.getElementById('reactivate-game-btn').classList.add('hidden'); document.getElementById('organizer-participates-container').style.display = 'block'; showModal(addEditGameModal);
         });
 
-        document.getElementById('delete-game-btn').addEventListener('click', async () => {
-            const gameId = document.getElementById('edit-game-id').value;
-            if (gameId && confirm('Bist du sicher, dass du dieses Quest endgültig löschen möchtest?')) {
-                await deleteDoc(doc(db, "spielrunden", gameId));
-                hideModal(addEditGameModal);
-            }
-        });
-        
-        document.getElementById('reactivate-game-btn').addEventListener('click', async () => {
-            const gameId = document.getElementById('edit-game-id').value;
-            await updateDoc(doc(db, "spielrunden", gameId), { cancelled: false });
-            hideModal(addEditGameModal);
-        });
+        document.getElementById('delete-game-btn').addEventListener('click', async () => { const gameId = document.getElementById('edit-game-id').value; if (gameId && confirm('Bist du sicher, dass du dieses Quest endgültig löschen möchtest?')) { await deleteDoc(doc(db, "spielrunden", gameId)); hideModal(addEditGameModal); } });
+        document.getElementById('reactivate-game-btn').addEventListener('click', async () => { const gameId = document.getElementById('edit-game-id').value; await updateDoc(doc(db, "spielrunden", gameId), { cancelled: false }); hideModal(addEditGameModal); });
     </script>
 </body>
 </html>
