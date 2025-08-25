@@ -34,6 +34,13 @@
 
     <!-- Main Content -->
     <main id="main-content" class="container mx-auto p-4 max-w-5xl">
+        <!-- Verification Banner -->
+        <div id="verification-banner" class="hidden bg-yellow-500/20 border border-yellow-500 text-yellow-300 px-4 py-3 rounded-lg text-center mb-4">
+            Bitte bestätige deine E-Mail-Adresse. Wir haben dir einen Link geschickt. 
+            <button id="resend-verification-btn" class="font-bold underline hover:text-white">Erneut senden</button>
+            <span id="resend-feedback" class="ml-2 text-green-400"></span>
+        </div>
+
         <!-- Action & Filter Buttons -->
         <div class="my-6 flex flex-col sm:flex-row justify-center items-center gap-4">
             <button id="add-game-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105 w-full sm:w-auto">
@@ -85,9 +92,13 @@
                     <label for="register-email" class="block text-slate-400 mb-2">E-Mail</label>
                     <input type="email" id="register-email" class="w-full bg-slate-700 p-2 rounded-md" required>
                 </div>
-                <div class="mb-6">
+                <div class="mb-4">
                     <label for="register-password" class="block text-slate-400 mb-2">Passwort</label>
                     <input type="password" id="register-password" class="w-full bg-slate-700 p-2 rounded-md" required minlength="6">
+                </div>
+                <div class="mb-6">
+                    <label for="register-password-confirm" class="block text-slate-400 mb-2">Passwort bestätigen</label>
+                    <input type="password" id="register-password-confirm" class="w-full bg-slate-700 p-2 rounded-md" required minlength="6">
                 </div>
                 <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 rounded-lg">Registrieren</button>
             </form>
@@ -138,7 +149,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, onSnapshot, addDoc, doc, getDoc, updateDoc, deleteDoc, arrayUnion, arrayRemove, query, where, Timestamp, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         // --- Firebase Auth Imports ---
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, sendEmailVerification } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAm62EYO-knD48Gv_8h4asS_DsdiCVYhAo",
@@ -174,6 +185,7 @@
         const addGameBtn = document.getElementById('add-game-btn');
         const cancelAddGameBtn = document.getElementById('cancel-add-game');
         const filterContainer = document.getElementById('filter-container');
+        const verificationBanner = document.getElementById('verification-banner');
 
         // --- HELPER FUNCTIONS ---
         function showModal(modal) { modal.classList.remove('hidden'); }
@@ -188,7 +200,7 @@
         // --- AUTHENTICATION ---
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                currentUser = { uid: user.uid, displayName: user.displayName, email: user.email };
+                currentUser = { uid: user.uid, displayName: user.displayName, email: user.email, emailVerified: user.emailVerified };
                 hideModal(authModal);
                 updateUserUI(true);
             } else {
@@ -199,6 +211,7 @@
         });
 
         function updateUserUI(isLoggedIn) {
+            verificationBanner.classList.add('hidden');
             if (isLoggedIn) {
                 userSection.innerHTML = `
                     <div class="text-right">
@@ -207,6 +220,9 @@
                     </div>
                 `;
                 document.getElementById('logout-btn').addEventListener('click', () => signOut(auth));
+                if (!currentUser.emailVerified) {
+                    verificationBanner.classList.remove('hidden');
+                }
             } else {
                 userSection.innerHTML = `
                     <button id="login-register-btn" class="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg">Login / Registrieren</button>
@@ -231,8 +247,20 @@
             const displayName = registerForm['register-name'].value;
             const email = registerForm['register-email'].value;
             const password = registerForm['register-password'].value;
+            const passwordConfirm = registerForm['register-password-confirm'].value;
+
+            if (password !== passwordConfirm) {
+                authError.textContent = 'Die Passwörter stimmen nicht überein.';
+                return;
+            }
+
             createUserWithEmailAndPassword(auth, email, password)
-                .then(userCredential => updateProfile(userCredential.user, { displayName: displayName }))
+                .then(userCredential => {
+                    return updateProfile(userCredential.user, { displayName: displayName })
+                        .then(() => {
+                            sendEmailVerification(userCredential.user);
+                        });
+                })
                 .catch(err => {
                     console.error("Registration Error:", err.code);
                     switch (err.code) {
@@ -251,6 +279,16 @@
                 });
         });
         
+        document.getElementById('resend-verification-btn').addEventListener('click', () => {
+            if (auth.currentUser) {
+                sendEmailVerification(auth.currentUser).then(() => {
+                    const feedback = document.getElementById('resend-feedback');
+                    feedback.textContent = 'Gesendet!';
+                    setTimeout(() => feedback.textContent = '', 3000);
+                });
+            }
+        });
+
         document.getElementById('auth-tabs').addEventListener('click', (e) => {
             if (e.target.tagName === 'BUTTON') {
                 const tab = e.target.dataset.tab;
@@ -393,6 +431,12 @@
                 showModal(authModal);
                 return;
             }
+            
+            if (!currentUser.emailVerified) {
+                verificationBanner.classList.remove('hidden');
+                alert("Bitte bestätige zuerst deine E-Mail-Adresse, um Aktionen auszuführen.");
+                return;
+            }
 
             if (target.classList.contains('join-leave-btn')) {
                 const gameRef = doc(db, "spielrunden", gameId);
@@ -432,6 +476,12 @@
                 showModal(authModal);
                 return;
             }
+
+            if (!currentUser.emailVerified) {
+                alert("Bitte bestätige zuerst deine E-Mail-Adresse, um ein Quest zu erstellen.");
+                return;
+            }
+
             addEditGameForm.reset();
             document.getElementById('edit-game-id').value = '';
             document.getElementById('modal-title').textContent = 'Neues Quest erstellen';
