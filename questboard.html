@@ -62,6 +62,14 @@
             </div>
         </div>
     </main>
+    
+    <!-- Footer -->
+    <footer class="text-center py-8 mt-8 text-slate-500 border-t border-slate-800">
+        <div class="container mx-auto px-4 max-w-5xl">
+            <a href="#" id="imprint-link" class="hover:text-cyan-400 transition">Impressum</a> | 
+            <a href="#" id="privacy-link" class="hover:text-cyan-400 transition">Datenschutz</a>
+        </div>
+    </footer>
 
     <!-- Auth Modal -->
     <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
@@ -152,6 +160,35 @@
         </div>
     </div>
 
+    <!-- Imprint Modal -->
+    <div id="imprint-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="bg-slate-800 p-8 rounded-lg shadow-2xl w-full max-w-md m-4 modal-enter relative">
+             <button id="close-imprint-modal" class="absolute top-4 right-4 text-slate-500 hover:text-white text-2xl">&times;</button>
+             <h2 class="text-2xl font-bold mb-6">Impressum</h2>
+             <div class="text-slate-300 space-y-2">
+                <p>Andreas Neuhold</p>
+                <p>andreas.neuhold@gmail.com</p>
+             </div>
+        </div>
+    </div>
+
+    <!-- Privacy Modal -->
+    <div id="privacy-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="bg-slate-800 p-8 rounded-lg shadow-2xl w-full max-w-lg m-4 modal-enter relative">
+             <button id="close-privacy-modal" class="absolute top-4 right-4 text-slate-500 hover:text-white text-2xl">&times;</button>
+             <h2 class="text-2xl font-bold mb-6">Datenschutzerklärung</h2>
+             <div class="text-slate-300 space-y-4 text-sm">
+                <p>Der Schutz deiner persönlichen Daten ist uns wichtig. Nachfolgend informieren wir dich über die Verarbeitung deiner personenbezogenen Daten.</p>
+                <p><strong class="text-slate-100">Verantwortlicher:</strong> Andreas Neuhold, andreas.neuhold@gmail.com</p>
+                <p><strong class="text-slate-100">Zweck der Datenverarbeitung:</strong> Die Verarbeitung deiner Daten (Anzeigename, E-Mail-Adresse) dient ausschließlich der Organisation von Spielrunden über diese Webseite. Dies umfasst das Erstellen von Spielrunden (Quests), die Teilnahme an diesen und die Verwaltung deines Benutzerkontos.</p>
+                <p><strong class="text-slate-100">Datenweitergabe:</strong> Deine Daten werden nicht an Dritte weitergegeben.</p>
+                <p><strong class="text-slate-100">Speicherung:</strong> Die Datenverarbeitung erfolgt mithilfe einer Firebase Datenbank von Google. Der Serverstandort ist Frankfurt (Deutschland). Mit Google wurde ein Auftragsverarbeitungsvertrag abgeschlossen, der den Schutz deiner Daten gewährleistet.</p>
+                <p><strong class="text-slate-100">Deine Rechte:</strong> Du hast das Recht auf Auskunft, Berichtigung und Löschung deiner Daten. Für die Löschung deines Kontos und der damit verbundenen Daten, kontaktiere bitte den oben genannten Verantwortlichen.</p>
+                <p><strong class="text-slate-100">Anwendbares Recht und Gerichtsstand:</strong> Es gilt österreichisches Recht. Der Gerichtsstand ist Linz.</p>
+             </div>
+        </div>
+    </div>
+
 
     <!-- Firebase and App Logic -->
     <script type="module">
@@ -183,6 +220,8 @@
         const addEditGameForm = document.getElementById('add-edit-game-form');
         const authModal = document.getElementById('auth-modal');
         const accountModal = document.getElementById('account-modal');
+        const imprintModal = document.getElementById('imprint-modal');
+        const privacyModal = document.getElementById('privacy-modal');
         const loginForm = document.getElementById('login-form');
         const registerForm = document.getElementById('register-form');
         const authError = document.getElementById('auth-error');
@@ -290,6 +329,10 @@
         document.getElementById('auth-tabs').addEventListener('click', (e) => { if (e.target.tagName === 'BUTTON') { const tab = e.target.dataset.tab; document.querySelectorAll('.auth-tab').forEach(t => { t.classList.remove('border-cyan-500', 'text-white'); t.classList.add('border-transparent', 'text-slate-400'); }); e.target.classList.add('border-cyan-500', 'text-white'); if (tab === 'login') { loginForm.classList.remove('hidden'); registerForm.classList.add('hidden'); } else { loginForm.classList.add('hidden'); registerForm.classList.remove('hidden'); } } });
         document.getElementById('close-auth-modal').addEventListener('click', () => hideModal(authModal));
         document.getElementById('close-account-modal').addEventListener('click', () => hideModal(accountModal));
+        document.getElementById('imprint-link').addEventListener('click', (e) => { e.preventDefault(); showModal(imprintModal); });
+        document.getElementById('privacy-link').addEventListener('click', (e) => { e.preventDefault(); showModal(privacyModal); });
+        document.getElementById('close-imprint-modal').addEventListener('click', () => hideModal(imprintModal));
+        document.getElementById('close-privacy-modal').addEventListener('click', () => hideModal(privacyModal));
 
         document.getElementById('request-deletion-btn').addEventListener('click', async () => {
             if (!currentUser) return;
@@ -304,7 +347,6 @@
                     uid: currentUser.uid,
                     requestDate: new Date().toLocaleString('de-DE')
                 };
-                // WICHTIG: Ersetze diese URL durch deinen eigenen Endpunkt von einem Dienst wie Formspree.io
                 const emailEndpoint = 'https://formspree.io/f/myzdgawa';
                 try {
                     const response = await fetch(emailEndpoint, {
@@ -326,33 +368,7 @@
         });
 
         let unsubscribeFromGames = null;
-        function listenToGames() {
-            if (unsubscribeFromGames) unsubscribeFromGames();
-            const gamesCol = collection(db, "spielrunden");
-            const q = query(gamesCol, where("dateTime", ">=", Timestamp.now()), orderBy("dateTime", "asc"));
-            unsubscribeFromGames = onSnapshot(q, (snapshot) => {
-                try {
-                    const loadingIndicator = document.getElementById('loading-indicator');
-                    if (loadingIndicator) loadingIndicator.classList.add('hidden');
-                    
-                    gameList.innerHTML = '';
-                    if (snapshot.empty) {
-                        gameList.innerHTML = '<p class="text-slate-400 text-center col-span-full">Keine Quests verfügbar.</p>';
-                    } else {
-                        snapshot.docs.forEach(doc => gameList.appendChild(renderGame(doc)));
-                        const activeFilter = document.querySelector('.filter-btn.active');
-                        if (activeFilter) {
-                            filterGames(activeFilter.dataset.day);
-                        }
-                    }
-                } catch (error) {
-                    console.error("Error during snapshot processing:", error);
-                }
-            }, (error) => {
-                console.error("Firestore Error:", error);
-                gameList.innerHTML = '<p class="text-red-400 text-center col-span-full">Fehler beim Laden der Quests. Prüfe die Datenbank-Regeln.</p>';
-            });
-        }
+        function listenToGames() { if (unsubscribeFromGames) unsubscribeFromGames(); const gamesCol = collection(db, "spielrunden"); const q = query(gamesCol, where("dateTime", ">=", Timestamp.now()), orderBy("dateTime", "asc")); unsubscribeFromGames = onSnapshot(q, (snapshot) => { try { const loadingIndicator = document.getElementById('loading-indicator'); if (loadingIndicator) loadingIndicator.classList.add('hidden'); gameList.innerHTML = ''; if (snapshot.empty) { gameList.innerHTML = '<p class="text-slate-400 text-center col-span-full">Keine Quests verfügbar.</p>'; } else { snapshot.docs.forEach(doc => gameList.appendChild(renderGame(doc))); const activeFilter = document.querySelector('.filter-btn.active'); if(activeFilter) { filterGames(activeFilter.dataset.day); } } } catch (error) { console.error("Error during snapshot processing:", error); } }, (error) => { console.error("Firestore Error:", error); gameList.innerHTML = '<p class="text-red-400 text-center col-span-full">Fehler beim Laden der Quests. Prüfe die Datenbank-Regeln.</p>'; }); }
         listenToGames();
 
         function renderGame(doc) { const game = doc.data(); const gameId = doc.id; const isCreator = currentUser && currentUser.uid === game.creatorId; const isParticipant = currentUser && game.participants.some(p => p.uid === currentUser.uid); const participantsCount = game.participants.length; const freeSeats = game.totalSeats - participantsCount; const isFull = freeSeats <= 0; const isCancelled = game.cancelled || false; const gameDate = game.dateTime.toDate(); const formattedDate = gameDate.toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: '2-digit' }); const formattedTime = gameDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }); const card = document.createElement('div'); card.className = `bg-slate-800 rounded-lg shadow-lg p-6 flex flex-col relative`; card.dataset.gameDay = gameDate.getDay(); let participantsHTML = game.participants.map(p => `<span class="bg-slate-700 text-slate-300 text-sm font-medium mr-2 mb-2 px-2.5 py-1 rounded-full flex items-center">${p.displayName}${isCreator ? `<button class="remove-player-btn ml-2 text-red-400 hover:text-red-200" data-game-id="${gameId}" data-player-uid="${p.uid}" data-player-name="${p.displayName}">×</button>` : ''}</span>`).join(''); let tagsHTML = (game.tags && game.tags.length > 0) ? game.tags.map(tag => `<span class="bg-cyan-800 text-cyan-200 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join('') : ''; card.innerHTML = `${isCancelled ? '<div class="absolute inset-0 bg-red-900/70 flex items-center justify-center rounded-lg z-0"><span class="text-2xl font-bold text-white transform -rotate-12">ABGESAGT</span></div>' : ''}<div class="flex-grow"><div class="flex justify-between items-start"><h3 class="text-2xl font-bold text-cyan-400 mb-2">${game.gameName}</h3>${isCreator ? `<div class="flex items-center gap-2 text-xl relative z-10"><button class="edit-game-btn text-slate-500 hover:text-cyan-400" title="Quest bearbeiten" data-game-id="${gameId}">✏️</button><button class="cancel-game-btn text-slate-500 hover:text-red-400" title="Quest absagen" data-game-id="${gameId}">⨷</button></div>` : ''}</div><p class="text-slate-400 mb-4">von <span class="font-semibold">${game.creatorName}</span></p><div class="flex flex-wrap mb-4">${tagsHTML}</div><div class="flex items-center text-slate-300 mb-2"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"></path></svg><span>${formattedDate} um ${formattedTime} Uhr</span></div>${game.duration ? `<div class="flex items-center text-slate-400 mb-4"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path></svg><span>ca. ${game.duration} Minuten</span></div>` : ''}<div class="flex items-center text-slate-300 mb-6"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 1 1 0 5.292M15 21H3v-1a6 6 0 0 1 12 0v1Zm0 0h6v-1a6 6 0 0 0-9-5.197M15 21a6 6 0 0 0-9-5.197m0 0A5.995 5.995 0 0 0 12 12a5.995 5.995 0 0 0-3-5.197M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path></svg><span class="${isFull ? 'text-red-400' : 'text-green-400'} font-semibold">${freeSeats > 0 ? `${freeSeats} Plätze frei` : 'Runde ist voll'}</span></div><h4 class="font-semibold text-slate-300 mb-2">Teilnehmer (${participantsCount}/${game.totalSeats}):</h4><div class="flex flex-wrap">${participantsHTML}</div></div><div class="mt-6"><button class="join-leave-btn w-full font-bold py-3 px-4 rounded-lg transition ${isCancelled ? 'bg-slate-700 text-slate-500' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull ? 'bg-slate-700 text-slate-500' : 'bg-cyan-500 hover:bg-cyan-600'))}" data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>${isCancelled ? 'Abgesagt' : (isParticipant ? 'Verlassen' : (isFull ? 'Voll' : 'Ich bin dabei!'))}</button></div>`; return card; }
