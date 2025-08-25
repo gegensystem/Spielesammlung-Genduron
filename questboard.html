@@ -217,18 +217,38 @@
         
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
+            authError.textContent = '';
             signInWithEmailAndPassword(auth, loginForm['login-email'].value, loginForm['login-password'].value)
-                .catch(err => authError.textContent = "Falsche E-Mail oder Passwort.");
+                .catch(err => {
+                    console.error("Login Error:", err.code);
+                    authError.textContent = "Falsche E-Mail oder Passwort.";
+                });
         });
 
         registerForm.addEventListener('submit', (e) => {
             e.preventDefault();
+            authError.textContent = '';
             const displayName = registerForm['register-name'].value;
             const email = registerForm['register-email'].value;
             const password = registerForm['register-password'].value;
             createUserWithEmailAndPassword(auth, email, password)
                 .then(userCredential => updateProfile(userCredential.user, { displayName: displayName }))
-                .catch(err => authError.textContent = "Fehler bei der Registrierung.");
+                .catch(err => {
+                    console.error("Registration Error:", err.code);
+                    switch (err.code) {
+                        case 'auth/email-already-in-use':
+                            authError.textContent = 'Diese E-Mail-Adresse wird bereits verwendet.';
+                            break;
+                        case 'auth/invalid-email':
+                            authError.textContent = 'Bitte gib eine gültige E-Mail-Adresse ein.';
+                            break;
+                        case 'auth/weak-password':
+                            authError.textContent = 'Das Passwort muss mindestens 6 Zeichen lang sein.';
+                            break;
+                        default:
+                            authError.textContent = 'Fehler bei der Registrierung.';
+                    }
+                });
         });
         
         document.getElementById('auth-tabs').addEventListener('click', (e) => {
@@ -270,6 +290,9 @@
                         filterGames(activeFilter.dataset.day);
                     }
                 }
+            }, (error) => {
+                console.error("Firestore Error:", error);
+                gameList.innerHTML = '<p class="text-red-400 text-center col-span-full">Fehler beim Laden der Quests. Prüfe die Datenbank-Regeln.</p>';
             });
         }
         listenToGames(); // Initial call for all visitors
