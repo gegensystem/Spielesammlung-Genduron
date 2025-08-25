@@ -31,7 +31,7 @@
     <!-- Header -->
     <header class="bg-slate-800/70 backdrop-blur-sm sticky top-0 z-20 shadow-lg">
         <div class="container mx-auto px-4 py-4 max-w-5xl">
-            <h1 class="text-3xl font-bold text-cyan-400">📜 Genduron Questboard</h1>
+            <h1 class="text-3xl font-bold text-cyan-400">📜🎲 Genduron Questboard</h1>
             <p class="text-slate-400 mt-1">Finde schnell Mitspieler für eine Runde im LAST.</p>
             <div class="text-sm text-slate-500 mt-2">Öffnungszeiten: Mi–Do 16–24 Uhr | Fr–Sa 14–24 Uhr</div>
         </div>
@@ -244,11 +244,11 @@
                 </span>`).join('');
 
             card.innerHTML = `
-                ${isCancelled ? '<div class="absolute inset-0 bg-red-900/70 flex items-center justify-center rounded-lg"><span class="text-2xl font-bold text-white transform -rotate-12">ABGESAGT</span></div>' : ''}
+                ${isCancelled ? '<div class="absolute inset-0 bg-red-900/70 flex items-center justify-center rounded-lg z-0"><span class="text-2xl font-bold text-white transform -rotate-12">ABGESAGT</span></div>' : ''}
                 <div class="flex-grow">
                     <div class="flex justify-between items-start">
                         <h3 class="text-2xl font-bold text-cyan-400 mb-2">${game.gameName}</h3>
-                        <div class="flex items-center gap-2 text-xl">
+                        <div class="flex items-center gap-2 text-xl relative z-10">
                             <button class="edit-game-btn text-slate-500 hover:text-cyan-400" title="Quest bearbeiten" data-game-id="${gameId}">✏️</button>
                             <button class="cancel-game-btn text-slate-500 hover:text-red-400" title="Quest absagen" data-game-id="${gameId}">⨷</button>
                         </div>
