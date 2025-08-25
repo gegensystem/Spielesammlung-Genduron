@@ -39,7 +39,7 @@
             <button id="add-game-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105 w-full sm:w-auto">
                 (+) Neues Quest anbieten
             </button>
-            <div class="flex gap-2 p-1 bg-slate-800 rounded-lg">
+            <div id="filter-container" class="flex gap-2 p-1 bg-slate-800 rounded-lg">
                 <button class="filter-btn active px-3 py-1 rounded-md transition" data-day="all">Alle</button>
                 <button class="filter-btn px-3 py-1 rounded-md transition" data-day="3">Mi</button>
                 <button class="filter-btn px-3 py-1 rounded-md transition" data-day="4">Do</button>
@@ -168,8 +168,24 @@
         const addEditGameModal = document.getElementById('add-edit-game-modal');
         const addEditGameForm = document.getElementById('add-edit-game-form');
         const authModal = document.getElementById('auth-modal');
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const authError = document.getElementById('auth-error');
+        const addGameBtn = document.getElementById('add-game-btn');
+        const cancelAddGameBtn = document.getElementById('cancel-add-game');
+        const filterContainer = document.getElementById('filter-container');
 
-        // --- Auth State Listener ---
+        // --- HELPER FUNCTIONS ---
+        function showModal(modal) { modal.classList.remove('hidden'); }
+        function hideModal(modal) { modal.classList.add('hidden'); }
+
+        function filterGames(day) {
+            gameList.querySelectorAll('[data-game-day]').forEach(card => {
+                card.style.display = (day === 'all' || card.dataset.gameDay === day) ? 'flex' : 'none';
+            });
+        }
+
+        // --- AUTHENTICATION ---
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = { uid: user.uid, displayName: user.displayName, email: user.email };
@@ -179,7 +195,6 @@
                 currentUser = null;
                 updateUserUI(false);
             }
-            // Re-render game list to show correct buttons
             listenToGames(); 
         });
 
@@ -200,11 +215,6 @@
             }
         }
         
-        // --- Auth Modal Logic ---
-        const loginForm = document.getElementById('login-form');
-        const registerForm = document.getElementById('register-form');
-        const authError = document.getElementById('auth-error');
-
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
             signInWithEmailAndPassword(auth, loginForm['login-email'].value, loginForm['login-password'].value)
@@ -240,8 +250,7 @@
         });
         document.getElementById('close-auth-modal').addEventListener('click', () => hideModal(authModal));
 
-
-        // --- Game Logic (Public Read, Auth Write) ---
+        // --- GAME DATA & RENDERING ---
         let unsubscribeFromGames = null;
         function listenToGames() {
             if (unsubscribeFromGames) unsubscribeFromGames();
@@ -256,7 +265,10 @@
                      gameList.innerHTML = '<p class="text-slate-400 text-center col-span-full">Keine Quests verfügbar.</p>';
                 } else {
                     snapshot.docs.forEach(doc => gameList.appendChild(renderGame(doc)));
-                    filterGames(document.querySelector('.filter-btn.active').dataset.day);
+                    const activeFilter = document.querySelector('.filter-btn.active');
+                    if(activeFilter) {
+                        filterGames(activeFilter.dataset.day);
+                    }
                 }
             });
         }
@@ -313,39 +325,17 @@
             `;
             return card;
         }
-
-        addEditGameForm.addEventListener('submit', async (e) => { /* ... (form submission logic remains the same) ... */ });
-
-        gameList.addEventListener('click', async (e) => {
-            const target = e.target.closest('button');
-            if (!target) return;
-            if (!currentUser) { // If user is not logged in, prompt to log in
-                showModal(authModal);
-                return;
-            }
-            // ... (rest of the click logic for logged-in users) ...
-        });
         
-        document.getElementById('add-game-btn').addEventListener('click', () => {
-            if (!currentUser) {
-                showModal(authModal);
-                return;
-            }
-            // ... (rest of the add-game-btn logic) ...
-        });
-
-        // --- Helper functions (Modals, Filters) ---
-        const cancelAddGameBtn = document.getElementById('cancel-add-game');
-        function showModal(modal) { modal.classList.remove('hidden'); }
-        function hideModal(modal) { modal.classList.add('hidden'); }
+        // --- EVENT LISTENERS ---
         cancelAddGameBtn.addEventListener('click', () => hideModal(addEditGameModal));
         
-        const filterContainer = document.querySelector('.flex.gap-2');
-        function filterGames(day) { /* ... (filter logic remains the same) ... */ }
-        filterContainer.addEventListener('click', (e) => { /* ... (filter logic remains the same) ... */ });
-
-        // --- Full logic for event listeners that require auth check ---
-        // (This replaces the simplified stubs from above)
+        filterContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('filter-btn')) {
+                filterContainer.querySelector('.active').classList.remove('active');
+                e.target.classList.add('active');
+                filterGames(e.target.dataset.day);
+            }
+        });
 
         addEditGameForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -414,7 +404,7 @@
             }
         });
         
-        document.getElementById('add-game-btn').addEventListener('click', () => {
+        addGameBtn.addEventListener('click', () => {
             if (!currentUser) {
                 showModal(authModal);
                 return;
@@ -436,23 +426,11 @@
                 hideModal(addEditGameModal);
             }
         });
+        
         document.getElementById('reactivate-game-btn').addEventListener('click', async () => {
             const gameId = document.getElementById('edit-game-id').value;
             await updateDoc(doc(db, "spielrunden", gameId), { cancelled: false });
             hideModal(addEditGameModal);
-        });
-        
-        function filterGames(day) {
-            gameList.querySelectorAll('[data-game-day]').forEach(card => {
-                card.style.display = (day === 'all' || card.dataset.gameDay === day) ? 'flex' : 'none';
-            });
-        }
-        filterContainer.addEventListener('click', (e) => {
-            if (e.target.classList.contains('filter-btn')) {
-                filterContainer.querySelector('.active').classList.remove('active');
-                e.target.classList.add('active');
-                filterGames(e.target.dataset.day);
-            }
         });
     </script>
 </body>
