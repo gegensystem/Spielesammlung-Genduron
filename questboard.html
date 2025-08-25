@@ -25,6 +25,7 @@
             <div>
                 <h1 class="text-3xl font-bold text-cyan-400">📜🎲 Genduron Questboard</h1>
                 <p class="text-slate-400 mt-1">Finde schnell Mitspieler für eine Runde im LAST.</p>
+                <div class="text-sm text-slate-500 mt-2">Öffnungszeiten: Mi–Do 16–24 Uhr | Fr–Sa 14–24 Uhr</div>
             </div>
             <div id="user-section">
                 <!-- Login/Logout buttons will be inserted here -->
@@ -144,8 +145,9 @@
              </div>
              <div class="border-t border-slate-700 pt-6">
                 <h3 class="font-semibold text-lg mb-2">Konto löschen</h3>
-                <p class="text-slate-400 mb-4">Um dein Konto endgültig zu löschen, kontaktiere bitte Andreas Neuhold per E-Mail. Er wird die Löschung für dich vornehmen.</p>
-                <a href="mailto:andreas.neuhold@gmail.com" class="w-full text-center block bg-red-800 hover:bg-red-700 text-white font-bold py-3 rounded-lg">Löschung anfragen</a>
+                <p class="text-slate-400 mb-4">Wenn du dein Konto löschen möchtest, klicke auf den Button. Eine Anfrage mit deinen Daten wird an den Administrator gesendet.</p>
+                <button id="request-deletion-btn" class="w-full text-center block bg-red-800 hover:bg-red-700 text-white font-bold py-3 rounded-lg">Löschung anfragen</button>
+                <p id="deletion-feedback" class="text-green-400 mt-4 text-center h-5"></p>
              </div>
         </div>
     </div>
@@ -266,6 +268,10 @@
                     e.preventDefault(); 
                     document.getElementById('account-name').textContent = currentUser.displayName || 'Nicht festgelegt';
                     document.getElementById('account-email').textContent = currentUser.email;
+                    document.getElementById('request-deletion-btn').classList.remove('hidden');
+                    document.getElementById('request-deletion-btn').disabled = false;
+                    document.getElementById('request-deletion-btn').textContent = 'Löschung anfragen';
+                    document.getElementById('deletion-feedback').textContent = '';
                     showModal(accountModal); 
                 });
                 if (!currentUser.emailVerified) {
@@ -285,114 +291,51 @@
         document.getElementById('close-auth-modal').addEventListener('click', () => hideModal(authModal));
         document.getElementById('close-account-modal').addEventListener('click', () => hideModal(accountModal));
 
+        document.getElementById('request-deletion-btn').addEventListener('click', async () => {
+            if (!currentUser) return;
+            if (confirm("Bist du sicher, dass du die Löschung deines Kontos anfragen möchtest?")) {
+                const button = document.getElementById('request-deletion-btn');
+                button.disabled = true;
+                button.textContent = 'Sende Anfrage...';
+                const deletionData = {
+                    subject: `Löschanfrage für Genduron Questboard: ${currentUser.displayName}`,
+                    displayName: currentUser.displayName,
+                    email: currentUser.email,
+                    uid: currentUser.uid,
+                    requestDate: new Date().toLocaleString('de-DE')
+                };
+                // WICHTIG: Ersetze diese URL durch deinen eigenen Endpunkt von einem Dienst wie Formspree.io
+                const emailEndpoint = 'https://formspree.io/f/YOUR_FORM_ID';
+                try {
+                    const response = await fetch(emailEndpoint, {
+                        method: 'POST',
+                        body: JSON.stringify(deletionData),
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                    if (response.ok) {
+                        document.getElementById('deletion-feedback').textContent = "Anfrage wird innerhalb von 6 Tagen ausgeführt.";
+                        button.classList.add('hidden');
+                    } else { throw new Error('Network response was not ok.'); }
+                } catch (error) {
+                    console.error('Error sending deletion request:', error);
+                    alert('Die Löschanfrage konnte nicht gesendet werden. Bitte versuche es später erneut oder kontaktiere Andreas direkt.');
+                    button.disabled = false;
+                    button.textContent = 'Löschung anfragen';
+                }
+            }
+        });
+
         let unsubscribeFromGames = null;
         function listenToGames() { if (unsubscribeFromGames) unsubscribeFromGames(); const gamesCol = collection(db, "spielrunden"); const q = query(gamesCol, where("dateTime", ">=", Timestamp.now()), orderBy("dateTime", "asc")); unsubscribeFromGames = onSnapshot(q, (snapshot) => { document.getElementById('loading-indicator').classList.add('hidden'); gameList.innerHTML = ''; if (snapshot.empty) { gameList.innerHTML = '<p class="text-slate-400 text-center col-span-full">Keine Quests verfügbar.</p>'; } else { snapshot.docs.forEach(doc => gameList.appendChild(renderGame(doc))); const activeFilter = document.querySelector('.filter-btn.active'); if(activeFilter) { filterGames(activeFilter.dataset.day); } } }, (error) => { console.error("Firestore Error:", error); gameList.innerHTML = '<p class="text-red-400 text-center col-span-full">Fehler beim Laden der Quests. Prüfe die Datenbank-Regeln.</p>'; }); }
         listenToGames();
 
-        function renderGame(doc) {
-            const game = doc.data();
-            const gameId = doc.id;
-            const isCreator = currentUser && currentUser.uid === game.creatorId;
-            const isParticipant = currentUser && game.participants.some(p => p.uid === currentUser.uid);
-
-            const participantsCount = game.participants.length;
-            const freeSeats = game.totalSeats - participantsCount;
-            const isFull = freeSeats <= 0;
-            const isCancelled = game.cancelled || false;
-
-            const gameDate = game.dateTime.toDate();
-            const formattedDate = gameDate.toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: '2-digit' });
-            const formattedTime = gameDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
-
-            const card = document.createElement('div');
-            card.className = `bg-slate-800 rounded-lg shadow-lg p-6 flex flex-col relative`;
-            card.dataset.gameDay = gameDate.getDay();
-
-            let participantsHTML = game.participants.map(p => `
-                <span class="bg-slate-700 text-slate-300 text-sm font-medium mr-2 mb-2 px-2.5 py-1 rounded-full flex items-center">
-                    ${p.displayName}
-                    ${isCreator ? `<button class="remove-player-btn ml-2 text-red-400 hover:text-red-200" data-game-id="${gameId}" data-player-uid="${p.uid}" data-player-name="${p.displayName}">×</button>` : ''}
-                </span>`).join('');
-            
-            let tagsHTML = (game.tags && game.tags.length > 0) ? game.tags.map(tag => `
-                <span class="bg-cyan-800 text-cyan-200 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full">${tag}</span>
-            `).join('') : '';
-
-            card.innerHTML = `
-                ${isCancelled ? '<div class="absolute inset-0 bg-red-900/70 flex items-center justify-center rounded-lg z-0"><span class="text-2xl font-bold text-white transform -rotate-12">ABGESAGT</span></div>' : ''}
-                <div class="flex-grow">
-                    <div class="flex justify-between items-start">
-                        <h3 class="text-2xl font-bold text-cyan-400 mb-2">${game.gameName}</h3>
-                        ${isCreator ? `<div class="flex items-center gap-2 text-xl relative z-10">
-                            <button class="edit-game-btn text-slate-500 hover:text-cyan-400" title="Quest bearbeiten" data-game-id="${gameId}">✏️</button>
-                            <button class="cancel-game-btn text-slate-500 hover:text-red-400" title="Quest absagen" data-game-id="${gameId}">⨷</button>
-                        </div>` : ''}
-                    </div>
-                    <p class="text-slate-400 mb-4">von <span class="font-semibold">${game.creatorName}</span></p>
-                    <div class="flex flex-wrap mb-4">${tagsHTML}</div>
-                    <div class="flex items-center text-slate-300 mb-2"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"></path></svg><span>${formattedDate} um ${formattedTime} Uhr</span></div>
-                    ${game.duration ? `<div class="flex items-center text-slate-400 mb-4"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path></svg><span>ca. ${game.duration} Minuten</span></div>` : ''}
-                    <div class="flex items-center text-slate-300 mb-6"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 1 1 0 5.292M15 21H3v-1a6 6 0 0 1 12 0v1Zm0 0h6v-1a6 6 0 0 0-9-5.197M15 21a6 6 0 0 0-9-5.197m0 0A5.995 5.995 0 0 0 12 12a5.995 5.995 0 0 0-3-5.197M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path></svg><span class="${isFull ? 'text-red-400' : 'text-green-400'} font-semibold">${freeSeats > 0 ? `${freeSeats} Plätze frei` : 'Runde ist voll'}</span></div>
-                    <h4 class="font-semibold text-slate-300 mb-2">Teilnehmer (${participantsCount}/${game.totalSeats}):</h4>
-                    <div class="flex flex-wrap">${participantsHTML}</div>
-                </div>
-                <div class="mt-6">
-                    <button class="join-leave-btn w-full font-bold py-3 px-4 rounded-lg transition ${isCancelled ? 'bg-slate-700 text-slate-500' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull ? 'bg-slate-700 text-slate-500' : 'bg-cyan-500 hover:bg-cyan-600'))}" 
-                            data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>
-                        ${isCancelled ? 'Abgesagt' : (isParticipant ? 'Verlassen' : (isFull ? 'Voll' : 'Ich bin dabei!'))}
-                    </button>
-                </div>
-            `;
-            return card;
-        }
+        function renderGame(doc) { const game = doc.data(); const gameId = doc.id; const isCreator = currentUser && currentUser.uid === game.creatorId; const isParticipant = currentUser && game.participants.some(p => p.uid === currentUser.uid); const participantsCount = game.participants.length; const freeSeats = game.totalSeats - participantsCount; const isFull = freeSeats <= 0; const isCancelled = game.cancelled || false; const gameDate = game.dateTime.toDate(); const formattedDate = gameDate.toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: '2-digit' }); const formattedTime = gameDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }); const card = document.createElement('div'); card.className = `bg-slate-800 rounded-lg shadow-lg p-6 flex flex-col relative`; card.dataset.gameDay = gameDate.getDay(); let participantsHTML = game.participants.map(p => `<span class="bg-slate-700 text-slate-300 text-sm font-medium mr-2 mb-2 px-2.5 py-1 rounded-full flex items-center">${p.displayName}${isCreator ? `<button class="remove-player-btn ml-2 text-red-400 hover:text-red-200" data-game-id="${gameId}" data-player-uid="${p.uid}" data-player-name="${p.displayName}">×</button>` : ''}</span>`).join(''); let tagsHTML = (game.tags && game.tags.length > 0) ? game.tags.map(tag => `<span class="bg-cyan-800 text-cyan-200 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join('') : ''; card.innerHTML = `${isCancelled ? '<div class="absolute inset-0 bg-red-900/70 flex items-center justify-center rounded-lg z-0"><span class="text-2xl font-bold text-white transform -rotate-12">ABGESAGT</span></div>' : ''}<div class="flex-grow"><div class="flex justify-between items-start"><h3 class="text-2xl font-bold text-cyan-400 mb-2">${game.gameName}</h3>${isCreator ? `<div class="flex items-center gap-2 text-xl relative z-10"><button class="edit-game-btn text-slate-500 hover:text-cyan-400" title="Quest bearbeiten" data-game-id="${gameId}">✏️</button><button class="cancel-game-btn text-slate-500 hover:text-red-400" title="Quest absagen" data-game-id="${gameId}">⨷</button></div>` : ''}</div><p class="text-slate-400 mb-4">von <span class="font-semibold">${game.creatorName}</span></p><div class="flex flex-wrap mb-4">${tagsHTML}</div><div class="flex items-center text-slate-300 mb-2"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"></path></svg><span>${formattedDate} um ${formattedTime} Uhr</span></div>${game.duration ? `<div class="flex items-center text-slate-400 mb-4"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path></svg><span>ca. ${game.duration} Minuten</span></div>` : ''}<div class="flex items-center text-slate-300 mb-6"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 1 1 0 5.292M15 21H3v-1a6 6 0 0 1 12 0v1Zm0 0h6v-1a6 6 0 0 0-9-5.197M15 21a6 6 0 0 0-9-5.197m0 0A5.995 5.995 0 0 0 12 12a5.995 5.995 0 0 0-3-5.197M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path></svg><span class="${isFull ? 'text-red-400' : 'text-green-400'} font-semibold">${freeSeats > 0 ? `${freeSeats} Plätze frei` : 'Runde ist voll'}</span></div><h4 class="font-semibold text-slate-300 mb-2">Teilnehmer (${participantsCount}/${game.totalSeats}):</h4><div class="flex flex-wrap">${participantsHTML}</div></div><div class="mt-6"><button class="join-leave-btn w-full font-bold py-3 px-4 rounded-lg transition ${isCancelled ? 'bg-slate-700 text-slate-500' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull ? 'bg-slate-700 text-slate-500' : 'bg-cyan-500 hover:bg-cyan-600'))}" data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>${isCancelled ? 'Abgesagt' : (isParticipant ? 'Verlassen' : (isFull ? 'Voll' : 'Ich bin dabei!'))}</button></div>`; return card; }
         
         cancelAddGameBtn.addEventListener('click', () => hideModal(addEditGameModal));
         filterContainer.addEventListener('click', (e) => { if (e.target.classList.contains('filter-btn')) { filterContainer.querySelector('.active').classList.remove('active'); e.target.classList.add('active'); filterGames(e.target.dataset.day); } });
-
-        addEditGameForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            if (!checkOpeningHours()) return;
-            const gameId = document.getElementById('edit-game-id').value;
-            const selectedTags = Array.from(document.querySelectorAll('#tags-container input:checked')).map(el => el.value);
-            const gameData = {
-                gameName: addEditGameForm['game-name'].value.trim(),
-                dateTime: Timestamp.fromDate(new Date(`${addEditGameForm['game-date'].value}T${addEditGameForm['game-time'].value}`)),
-                totalSeats: parseInt(addEditGameForm['total-seats'].value),
-                duration: addEditGameForm['game-duration'].value.trim(),
-                tags: selectedTags
-            };
-            try {
-                if (gameId) {
-                    await updateDoc(doc(db, "spielrunden", gameId), gameData);
-                } else {
-                    gameData.creatorId = currentUser.uid;
-                    gameData.creatorName = currentUser.displayName;
-                    gameData.participants = addEditGameForm['organizer-participates'].checked ? [{ uid: currentUser.uid, displayName: currentUser.displayName }] : [];
-                    gameData.cancelled = false;
-                    await addDoc(collection(db, "spielrunden"), gameData);
-                }
-                hideModal(addEditGameModal);
-            } catch (error) { console.error("Error saving document: ", error); }
-        });
-
-        gameList.addEventListener('click', async (e) => {
-            const target = e.target.closest('button');
-            if (!target) return;
-            const gameId = target.dataset.gameId;
-            if (!currentUser) { showModal(authModal); return; }
-            if (!currentUser.emailVerified) { verificationBanner.classList.remove('hidden'); alert("Bitte bestätige zuerst deine E-Mail-Adresse, um Aktionen auszuführen."); return; }
-            if (target.classList.contains('join-leave-btn')) { const gameRef = doc(db, "spielrunden", gameId); const isParticipant = (await getDoc(gameRef)).data().participants.some(p => p.uid === currentUser.uid); const participantData = { uid: currentUser.uid, displayName: currentUser.displayName }; await updateDoc(gameRef, { participants: isParticipant ? arrayRemove(participantData) : arrayUnion(participantData) }); } 
-            else if (target.classList.contains('remove-player-btn')) { const playerToRemove = { uid: target.dataset.playerUid, displayName: target.dataset.playerName }; await updateDoc(doc(db, "spielrunden", gameId), { participants: arrayRemove(playerToRemove) }); } 
-            else if (target.classList.contains('edit-game-btn')) { const docSnap = await getDoc(doc(db, "spielrunden", gameId)); if (docSnap.exists()) { const game = docSnap.data(); setMinDate(); document.getElementById('edit-game-id').value = gameId; document.getElementById('game-name').value = game.gameName; const date = game.dateTime.toDate(); document.getElementById('game-date').value = date.toISOString().split('T')[0]; document.getElementById('game-time').value = date.toTimeString().slice(0,5); document.getElementById('total-seats').value = game.totalSeats; document.getElementById('game-duration').value = game.duration || ''; document.querySelectorAll('#tags-container input').forEach(checkbox => checkbox.checked = (game.tags && game.tags.includes(checkbox.value))); document.getElementById('modal-title').textContent = 'Quest bearbeiten'; document.getElementById('submit-btn').textContent = 'Änderungen speichern'; document.getElementById('delete-game-btn').classList.remove('hidden'); document.getElementById('organizer-participates-container').style.display = 'none'; document.getElementById('reactivate-game-btn').classList.toggle('hidden', !game.cancelled); showModal(addEditGameModal); } } 
-            else if (target.classList.contains('cancel-game-btn')) { if (confirm('Möchtest du dieses Quest wirklich absagen?')) { await updateDoc(doc(db, "spielrunden", gameId), { cancelled: true }); } }
-        });
-        
-        addGameBtn.addEventListener('click', () => {
-            if (!currentUser) { showModal(authModal); return; }
-            if (!currentUser.emailVerified) { alert("Bitte bestätige zuerst deine E-Mail-Adresse, um ein Quest zu erstellen."); return; }
-            addEditGameForm.reset(); setMinDate(); document.getElementById('edit-game-id').value = ''; document.getElementById('modal-title').textContent = 'Neues Quest erstellen'; document.getElementById('submit-btn').textContent = 'Erstellen'; document.getElementById('delete-game-btn').classList.add('hidden'); document.getElementById('reactivate-game-btn').classList.add('hidden'); document.getElementById('organizer-participates-container').style.display = 'block'; showModal(addEditGameModal);
-        });
-
+        addEditGameForm.addEventListener('submit', async (e) => { e.preventDefault(); if (!checkOpeningHours()) return; const gameId = document.getElementById('edit-game-id').value; const selectedTags = Array.from(document.querySelectorAll('#tags-container input:checked')).map(el => el.value); const gameData = { gameName: addEditGameForm['game-name'].value.trim(), dateTime: Timestamp.fromDate(new Date(`${addEditGameForm['game-date'].value}T${addEditGameForm['game-time'].value}`)), totalSeats: parseInt(addEditGameForm['total-seats'].value), duration: addEditGameForm['game-duration'].value.trim(), tags: selectedTags }; try { if (gameId) { await updateDoc(doc(db, "spielrunden", gameId), gameData); } else { gameData.creatorId = currentUser.uid; gameData.creatorName = currentUser.displayName; gameData.participants = addEditGameForm['organizer-participates'].checked ? [{ uid: currentUser.uid, displayName: currentUser.displayName }] : []; gameData.cancelled = false; await addDoc(collection(db, "spielrunden"), gameData); } hideModal(addEditGameModal); } catch (error) { console.error("Error saving document: ", error); } });
+        gameList.addEventListener('click', async (e) => { const target = e.target.closest('button'); if (!target) return; const gameId = target.dataset.gameId; if (!currentUser) { showModal(authModal); return; } if (!currentUser.emailVerified) { verificationBanner.classList.remove('hidden'); alert("Bitte bestätige zuerst deine E-Mail-Adresse, um Aktionen auszuführen."); return; } if (target.classList.contains('join-leave-btn')) { const gameRef = doc(db, "spielrunden", gameId); const isParticipant = (await getDoc(gameRef)).data().participants.some(p => p.uid === currentUser.uid); const participantData = { uid: currentUser.uid, displayName: currentUser.displayName }; await updateDoc(gameRef, { participants: isParticipant ? arrayRemove(participantData) : arrayUnion(participantData) }); } else if (target.classList.contains('remove-player-btn')) { const playerToRemove = { uid: target.dataset.playerUid, displayName: target.dataset.playerName }; await updateDoc(doc(db, "spielrunden", gameId), { participants: arrayRemove(playerToRemove) }); } else if (target.classList.contains('edit-game-btn')) { const docSnap = await getDoc(doc(db, "spielrunden", gameId)); if (docSnap.exists()) { const game = docSnap.data(); setMinDate(); document.getElementById('edit-game-id').value = gameId; document.getElementById('game-name').value = game.gameName; const date = game.dateTime.toDate(); document.getElementById('game-date').value = date.toISOString().split('T')[0]; document.getElementById('game-time').value = date.toTimeString().slice(0,5); document.getElementById('total-seats').value = game.totalSeats; document.getElementById('game-duration').value = game.duration || ''; document.querySelectorAll('#tags-container input').forEach(checkbox => checkbox.checked = (game.tags && game.tags.includes(checkbox.value))); document.getElementById('modal-title').textContent = 'Quest bearbeiten'; document.getElementById('submit-btn').textContent = 'Änderungen speichern'; document.getElementById('delete-game-btn').classList.remove('hidden'); document.getElementById('organizer-participates-container').style.display = 'none'; document.getElementById('reactivate-game-btn').classList.toggle('hidden', !game.cancelled); showModal(addEditGameModal); } } else if (target.classList.contains('cancel-game-btn')) { if (confirm('Möchtest du dieses Quest wirklich absagen?')) { await updateDoc(doc(db, "spielrunden", gameId), { cancelled: true }); } } });
+        addGameBtn.addEventListener('click', () => { if (!currentUser) { showModal(authModal); return; } if (!currentUser.emailVerified) { alert("Bitte bestätige zuerst deine E-Mail-Adresse, um ein Quest zu erstellen."); return; } addEditGameForm.reset(); setMinDate(); document.getElementById('edit-game-id').value = ''; document.getElementById('modal-title').textContent = 'Neues Quest erstellen'; document.getElementById('submit-btn').textContent = 'Erstellen'; document.getElementById('delete-game-btn').classList.add('hidden'); document.getElementById('reactivate-game-btn').classList.add('hidden'); document.getElementById('organizer-participates-container').style.display = 'block'; showModal(addEditGameModal); });
         document.getElementById('delete-game-btn').addEventListener('click', async () => { const gameId = document.getElementById('edit-game-id').value; if (gameId && confirm('Bist du sicher, dass du dieses Quest endgültig löschen möchtest?')) { await deleteDoc(doc(db, "spielrunden", gameId)); hideModal(addEditGameModal); } });
         document.getElementById('reactivate-game-btn').addEventListener('click', async () => { const gameId = document.getElementById('edit-game-id').value; await updateDoc(doc(db, "spielrunden", gameId), { cancelled: false }); hideModal(addEditGameModal); });
     </script>
