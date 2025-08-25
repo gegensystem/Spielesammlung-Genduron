@@ -345,24 +345,25 @@
             try {
                 if (target.classList.contains('join-leave-btn')) {
                     const docSnap = await getDoc(gameRef);
-                    const participants = docSnap.data().participants;
+                    const participants = docSnap.data().participants || [];
                     const participantIndex = participants.findIndex(p => p.uid === currentUser.uid);
                     
-                    if (participantIndex > -1) { // User is a participant, so remove them
-                        const participantToRemove = participants[participantIndex];
-                        await updateDoc(gameRef, { participants: arrayRemove(participantToRemove) });
-                    } else { // User is not a participant, so add them
+                    let newParticipants;
+                    if (participantIndex > -1) {
+                        newParticipants = participants.filter(p => p.uid !== currentUser.uid);
+                    } else {
                         const participantData = { uid: currentUser.uid, displayName: currentUser.displayName };
-                        await updateDoc(gameRef, { participants: arrayUnion(participantData) });
+                        newParticipants = [...participants, participantData];
                     }
+                    await updateDoc(gameRef, { participants: newParticipants });
+
                 } else if (target.classList.contains('remove-player-btn')) {
                     const docSnap = await getDoc(gameRef);
-                    const participants = docSnap.data().participants;
+                    const participants = docSnap.data().participants || [];
                     const playerUidToRemove = target.dataset.playerUid;
-                    const participantToRemove = participants.find(p => p.uid === playerUidToRemove);
-                    if (participantToRemove) {
-                        await updateDoc(gameRef, { participants: arrayRemove(participantToRemove) });
-                    }
+                    const newParticipants = participants.filter(p => p.uid !== playerUidToRemove);
+                    await updateDoc(gameRef, { participants: newParticipants });
+
                 } else if (target.classList.contains('edit-game-btn')) { 
                     const docSnap = await getDoc(gameRef); 
                     if (docSnap.exists()) { const game = docSnap.data(); setMinDate(); document.getElementById('edit-game-id').value = gameId; document.getElementById('game-name').value = game.gameName; const date = game.dateTime.toDate(); document.getElementById('game-date').value = date.toISOString().split('T')[0]; document.getElementById('game-time').value = date.toTimeString().slice(0,5); document.getElementById('total-seats').value = game.totalSeats; document.getElementById('game-duration').value = game.duration || ''; document.querySelectorAll('#tags-container input').forEach(checkbox => checkbox.checked = (game.tags && game.tags.includes(checkbox.value))); document.getElementById('modal-title').textContent = 'Quest bearbeiten'; document.getElementById('submit-btn').textContent = 'Änderungen speichern'; document.getElementById('delete-game-btn').classList.remove('hidden'); document.getElementById('organizer-participates-container').style.display = 'none'; document.getElementById('reactivate-game-btn').classList.toggle('hidden', !game.cancelled); showModal(addEditGameModal); } 
