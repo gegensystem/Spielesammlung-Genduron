@@ -238,6 +238,7 @@
 
         let db, auth;
         let currentUser = null;
+        let verificationCheckInterval = null;
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
@@ -278,7 +279,7 @@
                 const cardDay = card.dataset.gameDay;
                 const cardLocation = card.dataset.location.toLowerCase();
 
-                const dayMatch = selectedDays.includes('all') || selectedDays.includes(cardDay);
+                const dayMatch = selectedDays.includes('all') || selectedDays.length === 0 || selectedDays.includes(cardDay);
                 const locationMatch = (locationText === '' || cardLocation.includes(locationText));
 
                 card.style.display = (dayMatch && locationMatch) ? 'flex' : 'none';
@@ -332,10 +333,23 @@
         });
 
         onAuthStateChanged(auth, (user) => {
+            if (verificationCheckInterval) clearInterval(verificationCheckInterval);
+            
             if (user) {
                 currentUser = { uid: user.uid, displayName: user.displayName, email: user.email, emailVerified: user.emailVerified };
                 hideModal(authModal);
                 updateUserUI(true);
+
+                if (!user.emailVerified) {
+                    verificationCheckInterval = setInterval(async () => {
+                        await auth.currentUser.reload();
+                        if (auth.currentUser.emailVerified) {
+                            clearInterval(verificationCheckInterval);
+                            currentUser.emailVerified = true;
+                            updateUserUI(true);
+                        }
+                    }, 5000);
+                }
             } else {
                 currentUser = null;
                 updateUserUI(false);
@@ -441,7 +455,10 @@
                 applyFilters();
             }
         });
-        locationFilterInput.addEventListener('input', applyFilters);
+        locationFilterInput.addEventListener('input', () => {
+            locationQuickFilterContainer.querySelector('.active')?.classList.remove('active');
+            applyFilters();
+        });
         locationQuickFilterContainer.addEventListener('click', (e) => {
             if (e.target.tagName === 'BUTTON') {
                 locationQuickFilterContainer.querySelector('.active').classList.remove('active');
