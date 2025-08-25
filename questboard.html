@@ -14,6 +14,7 @@
         .modal-leave { animation: fadeOut 0.3s ease-in; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         @keyframes fadeOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.95); } }
+        .filter-btn.active { background-color: #06b6d4; color: white; }
         select {
             -webkit-appearance: none;
             -moz-appearance: none;
@@ -56,7 +57,13 @@
                 (+) Neues Quest anbieten
             </button>
             <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto order-2 sm:order-1">
-                <input type="text" id="location-filter" placeholder="Nach Ort filtern..." class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:w-auto">
+                <div id="location-quick-filter-container" class="flex gap-2 p-1 bg-slate-800 rounded-lg">
+                    <button class="filter-btn active px-3 py-1 rounded-md transition" data-location="">Alle Orte</button>
+                    <button class="filter-btn px-3 py-1 rounded-md transition" data-location="Genduron">Genduron</button>
+                    <button class="filter-btn px-3 py-1 rounded-md transition" data-location="Linz">Linz</button>
+                    <button class="filter-btn px-3 py-1 rounded-md transition" data-location="Graz">Graz</button>
+                </div>
+                <input type="text" id="location-filter" placeholder="Oder Ort hier suchen..." class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:w-auto">
                 <select id="day-filter" class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:w-auto">
                     <option value="all">Alle Tage</option>
                     <option value="1">Montag</option>
@@ -256,6 +263,7 @@
         const customLocationContainer = document.getElementById('custom-location-container');
         const locationFilterInput = document.getElementById('location-filter');
         const dayFilterSelect = document.getElementById('day-filter');
+        const locationQuickFilterContainer = document.getElementById('location-quick-filter-container');
 
         function showModal(modal) { modal.classList.remove('hidden'); }
         function hideModal(modal) { modal.classList.add('hidden'); }
@@ -417,6 +425,14 @@
         cancelAddGameBtn.addEventListener('click', () => hideModal(addEditGameModal));
         dayFilterSelect.addEventListener('change', applyFilters);
         locationFilterInput.addEventListener('input', applyFilters);
+        locationQuickFilterContainer.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                locationQuickFilterContainer.querySelector('.active').classList.remove('active');
+                e.target.classList.add('active');
+                locationFilterInput.value = e.target.dataset.location;
+                applyFilters();
+            }
+        });
 
         addEditGameForm.addEventListener('submit', async (e) => { e.preventDefault(); if (!checkDateTimeValidity()) return; const gameId = document.getElementById('edit-game-id').value; const selectedTags = Array.from(document.querySelectorAll('#tags-container input:checked')).map(el => el.value); const location = locationTypeSelect.value === 'Genduron' ? 'Genduron' : document.getElementById('custom-location').value.trim(); const gameData = { gameName: addEditGameForm['game-name'].value.trim(), location: location, dateTime: Timestamp.fromDate(new Date(`${addEditGameForm['game-date'].value}T${addEditGameForm['game-time'].value}`)), totalSeats: parseInt(addEditGameForm['total-seats'].value), duration: addEditGameForm['game-duration'].value.trim(), tags: selectedTags }; try { if (gameId) { await updateDoc(doc(db, "spielrunden", gameId), gameData); } else { gameData.creatorId = currentUser.uid; gameData.creatorName = currentUser.displayName; gameData.participants = addEditGameForm['organizer-participates'].checked ? [{ uid: currentUser.uid, displayName: currentUser.displayName }] : []; gameData.cancelled = false; await addDoc(collection(db, "spielrunden"), gameData); } hideModal(addEditGameModal); } catch (error) { console.error("Error saving document: ", error); } });
         gameList.addEventListener('click', async (e) => {
