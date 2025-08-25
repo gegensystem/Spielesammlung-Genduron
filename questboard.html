@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Genduron Questboard</title>
+    <title>Questboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,7 +14,16 @@
         .modal-leave { animation: fadeOut 0.3s ease-in; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         @keyframes fadeOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.95); } }
-        .filter-btn.active { background-color: #06b6d4; color: white; }
+        select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+        }
     </style>
 </head>
 <body class="bg-slate-900 text-white antialiased">
@@ -23,9 +32,8 @@
     <header class="bg-slate-800/70 backdrop-blur-sm sticky top-0 z-20 shadow-lg">
         <div class="container mx-auto px-4 py-4 max-w-5xl flex justify-between items-center">
             <div>
-                <h1 class="text-3xl font-bold text-cyan-400">📜🎲 Genduron Questboard</h1>
-                <p class="text-slate-400 mt-1">Finde schnell Mitspieler für eine Runde im LAST.</p>
-                <div class="text-sm text-slate-500 mt-2">Öffnungszeiten: Mi–Do 16–24 Uhr | Fr–Sa 14–24 Uhr</div>
+                <h1 class="text-3xl font-bold text-cyan-400">📜🎲 Questboard</h1>
+                <p class="text-slate-400 mt-1">Finde Mitspieler für deine nächste Runde.</p>
             </div>
             <div id="user-section">
                 <!-- Login/Logout buttons will be inserted here -->
@@ -44,15 +52,21 @@
 
         <!-- Action & Filter Buttons -->
         <div class="my-6 flex flex-col sm:flex-row justify-center items-center gap-4">
-            <button id="add-game-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105 w-full sm:w-auto">
+            <button id="add-game-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105 w-full sm:w-auto order-1 sm:order-2">
                 (+) Neues Quest anbieten
             </button>
-            <div id="filter-container" class="flex gap-2 p-1 bg-slate-800 rounded-lg">
-                <button class="filter-btn active px-3 py-1 rounded-md transition" data-day="all">Alle</button>
-                <button class="filter-btn px-3 py-1 rounded-md transition" data-day="3">Mi</button>
-                <button class="filter-btn px-3 py-1 rounded-md transition" data-day="4">Do</button>
-                <button class="filter-btn px-3 py-1 rounded-md transition" data-day="5">Fr</button>
-                <button class="filter-btn px-3 py-1 rounded-md transition" data-day="6">Sa</button>
+            <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto order-2 sm:order-1">
+                <input type="text" id="location-filter" placeholder="Nach Ort filtern..." class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:w-auto">
+                <select id="day-filter" class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:w-auto">
+                    <option value="all">Alle Tage</option>
+                    <option value="1">Montag</option>
+                    <option value="2">Dienstag</option>
+                    <option value="3">Mittwoch</option>
+                    <option value="4">Donnerstag</option>
+                    <option value="5">Freitag</option>
+                    <option value="6">Samstag</option>
+                    <option value="0">Sonntag</option>
+                </select>
             </div>
         </div>
         <!-- Game List -->
@@ -80,14 +94,8 @@
                 <button data-tab="register" class="auth-tab flex-1 py-2 font-semibold border-b-2 border-transparent text-slate-400">Registrieren</button>
             </div>
             <form id="login-form">
-                <div class="mb-4">
-                    <label for="login-email" class="block text-slate-400 mb-2">E-Mail</label>
-                    <input type="email" id="login-email" class="w-full bg-slate-700 p-2 rounded-md" required autocomplete="username">
-                </div>
-                <div class="mb-4">
-                    <label for="login-password" class="block text-slate-400 mb-2">Passwort</label>
-                    <input type="password" id="login-password" class="w-full bg-slate-700 p-2 rounded-md" required autocomplete="current-password">
-                </div>
+                <div class="mb-4"><label for="login-email" class="block text-slate-400 mb-2">E-Mail</label><input type="email" id="login-email" class="w-full bg-slate-700 p-2 rounded-md" required autocomplete="username"></div>
+                <div class="mb-4"><label for="login-password" class="block text-slate-400 mb-2">Passwort</label><input type="password" id="login-password" class="w-full bg-slate-700 p-2 rounded-md" required autocomplete="current-password"></div>
                 <div class="text-center mb-6"><a href="#" id="forgot-password-link" class="text-sm text-cyan-400 hover:underline">Passwort vergessen?</a></div>
                 <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 rounded-lg">Einloggen</button>
             </form>
@@ -109,6 +117,19 @@
             <form id="add-edit-game-form">
                 <input type="hidden" id="edit-game-id">
                 <div class="mb-4"><label for="game-name" class="block text-slate-400 mb-2">Spiel (Quest)</label><input type="text" id="game-name" class="w-full bg-slate-700 p-2 rounded-md" required></div>
+                
+                <div class="mb-4">
+                    <label for="location-type" class="block text-slate-400 mb-2">Spielort</label>
+                    <select id="location-type" class="w-full bg-slate-700 p-2 rounded-md">
+                        <option value="Genduron">Genduron</option>
+                        <option value="other">Anderer Ort...</option>
+                    </select>
+                </div>
+                <div id="custom-location-container" class="mb-4 hidden">
+                    <label for="custom-location" class="block text-slate-400 mb-2">Benutzerdefinierter Ort</label>
+                    <input type="text" id="custom-location" class="w-full bg-slate-700 p-2 rounded-md" placeholder="z.B. Spieleverein Graz">
+                </div>
+
                 <div class="grid grid-cols-2 gap-4 mb-4">
                     <div><label for="game-date" class="block text-slate-400 mb-2">Datum</label><input type="date" id="game-date" class="w-full bg-slate-700 p-2 rounded-md" required></div>
                     <div><label for="game-time" class="block text-slate-400 mb-2">Uhrzeit</label><input type="time" id="game-time" class="w-full bg-slate-700 p-2 rounded-md" required></div>
@@ -127,7 +148,7 @@
                     </div>
                 </div>
                 <div id="organizer-participates-container" class="mb-4"><label class="flex items-center text-slate-400"><input type="checkbox" id="organizer-participates" class="h-4 w-4 bg-slate-700 rounded" checked><span class="ml-2">Ich nehme selbst teil</span></label></div>
-                <div id="opening-hours-warning" class="text-yellow-400 text-sm mb-4 hidden"></div>
+                <div id="opening-hours-warning" class="text-yellow-400 text-sm mb-4"></div>
                 <div class="flex justify-between items-center">
                     <div>
                         <button type="button" id="delete-game-btn" class="bg-red-800 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition hidden">Löschen</button>
@@ -227,18 +248,30 @@
         const authError = document.getElementById('auth-error');
         const addGameBtn = document.getElementById('add-game-btn');
         const cancelAddGameBtn = document.getElementById('cancel-add-game');
-        const filterContainer = document.getElementById('filter-container');
         const verificationBanner = document.getElementById('verification-banner');
         const gameDateInput = document.getElementById('game-date');
         const gameTimeInput = document.getElementById('game-time');
         const warningDiv = document.getElementById('opening-hours-warning');
+        const locationTypeSelect = document.getElementById('location-type');
+        const customLocationContainer = document.getElementById('custom-location-container');
+        const locationFilterInput = document.getElementById('location-filter');
+        const dayFilterSelect = document.getElementById('day-filter');
 
         function showModal(modal) { modal.classList.remove('hidden'); }
         function hideModal(modal) { modal.classList.add('hidden'); }
 
-        function filterGames(day) {
-            gameList.querySelectorAll('[data-game-day]').forEach(card => {
-                card.style.display = (day === 'all' || card.dataset.gameDay === day) ? 'flex' : 'none';
+        function applyFilters() {
+            const day = dayFilterSelect.value;
+            const locationText = locationFilterInput.value.toLowerCase().trim();
+
+            gameList.querySelectorAll('.quest-card').forEach(card => {
+                const cardDay = card.dataset.gameDay;
+                const cardLocation = card.dataset.location.toLowerCase();
+
+                const dayMatch = (day === 'all' || cardDay === day);
+                const locationMatch = (locationText === '' || cardLocation.includes(locationText));
+
+                card.style.display = (dayMatch && locationMatch) ? 'flex' : 'none';
             });
         }
 
@@ -250,9 +283,11 @@
             gameDateInput.min = `${yyyy}-${mm}-${dd}`;
         }
 
-        function checkOpeningHours() {
+        function checkDateTimeValidity() {
+            warningDiv.textContent = '';
+            warningDiv.classList.add('hidden');
+
             if (!gameDateInput.value || !gameTimeInput.value) {
-                warningDiv.classList.add('hidden');
                 return true;
             }
             const date = new Date(`${gameDateInput.value}T${gameTimeInput.value}`);
@@ -261,24 +296,30 @@
                 warningDiv.classList.remove('hidden');
                 return false;
             }
-            const day = date.getDay();
-            const hours = date.getHours();
-            let isValid = false;
-            let message = 'Das LAST ist zu dieser Zeit geschlossen (Mi/Do ab 16, Fr/Sa ab 14 Uhr).';
-
-            if (day === 3 || day === 4) { if (hours >= 16) isValid = true; } 
-            else if (day === 5 || day === 6) { if (hours >= 14) isValid = true; }
             
-            if (!isValid) {
-                warningDiv.textContent = message;
-                warningDiv.classList.remove('hidden');
-            } else {
-                warningDiv.classList.add('hidden');
+            if (locationTypeSelect.value === 'Genduron') {
+                const day = date.getDay();
+                const hours = date.getHours();
+                let isValid = false;
+                let message = 'Das Genduron ist zu dieser Zeit geschlossen (Mi/Do ab 16, Fr/Sa ab 14 Uhr).';
+
+                if (day === 3 || day === 4) { if (hours >= 16) isValid = true; } 
+                else if (day === 5 || day === 6) { if (hours >= 14) isValid = true; }
+                
+                if (!isValid) {
+                    warningDiv.textContent = message;
+                    warningDiv.classList.remove('hidden');
+                }
+                return isValid;
             }
-            return isValid;
+            return true;
         }
-        gameDateInput.addEventListener('change', checkOpeningHours);
-        gameTimeInput.addEventListener('change', checkOpeningHours);
+        gameDateInput.addEventListener('change', checkDateTimeValidity);
+        gameTimeInput.addEventListener('change', checkDateTimeValidity);
+        locationTypeSelect.addEventListener('change', () => {
+            customLocationContainer.classList.toggle('hidden', locationTypeSelect.value !== 'other');
+            checkDateTimeValidity();
+        });
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -341,7 +382,7 @@
                 button.disabled = true;
                 button.textContent = 'Sende Anfrage...';
                 const deletionData = {
-                    subject: `Löschanfrage für Genduron Questboard: ${currentUser.displayName}`,
+                    subject: `Löschanfrage für Questboard: ${currentUser.displayName}`,
                     displayName: currentUser.displayName,
                     email: currentUser.email,
                     uid: currentUser.uid,
@@ -368,14 +409,16 @@
         });
 
         let unsubscribeFromGames = null;
-        function listenToGames() { if (unsubscribeFromGames) unsubscribeFromGames(); const gamesCol = collection(db, "spielrunden"); const q = query(gamesCol, where("dateTime", ">=", Timestamp.now()), orderBy("dateTime", "asc")); unsubscribeFromGames = onSnapshot(q, (snapshot) => { try { const loadingIndicator = document.getElementById('loading-indicator'); if (loadingIndicator) loadingIndicator.classList.add('hidden'); gameList.innerHTML = ''; if (snapshot.empty) { gameList.innerHTML = '<p class="text-slate-400 text-center col-span-full">Keine Quests verfügbar.</p>'; } else { snapshot.docs.forEach(doc => gameList.appendChild(renderGame(doc))); const activeFilter = document.querySelector('.filter-btn.active'); if(activeFilter) { filterGames(activeFilter.dataset.day); } } } catch (error) { console.error("Error during snapshot processing:", error); } }, (error) => { console.error("Firestore Error:", error); gameList.innerHTML = '<p class="text-red-400 text-center col-span-full">Fehler beim Laden der Quests. Prüfe die Datenbank-Regeln.</p>'; }); }
+        function listenToGames() { if (unsubscribeFromGames) unsubscribeFromGames(); const gamesCol = collection(db, "spielrunden"); const q = query(gamesCol, where("dateTime", ">=", Timestamp.now()), orderBy("dateTime", "asc")); unsubscribeFromGames = onSnapshot(q, (snapshot) => { try { const loadingIndicator = document.getElementById('loading-indicator'); if (loadingIndicator) loadingIndicator.classList.add('hidden'); gameList.innerHTML = ''; if (snapshot.empty) { gameList.innerHTML = '<p class="text-slate-400 text-center col-span-full">Keine Quests verfügbar.</p>'; } else { snapshot.docs.forEach(doc => gameList.appendChild(renderGame(doc))); applyFilters(); } } catch (error) { console.error("Error during snapshot processing:", error); } }, (error) => { console.error("Firestore Error:", error); gameList.innerHTML = '<p class="text-red-400 text-center col-span-full">Fehler beim Laden der Quests. Prüfe die Datenbank-Regeln.</p>'; }); }
         listenToGames();
 
-        function renderGame(doc) { const game = doc.data(); const gameId = doc.id; const isCreator = currentUser && currentUser.uid === game.creatorId; const isParticipant = currentUser && game.participants.some(p => p.uid === currentUser.uid); const participantsCount = game.participants.length; const freeSeats = game.totalSeats - participantsCount; const isFull = freeSeats <= 0; const isCancelled = game.cancelled || false; const gameDate = game.dateTime.toDate(); const formattedDate = gameDate.toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: '2-digit' }); const formattedTime = gameDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }); const card = document.createElement('div'); card.className = `bg-slate-800 rounded-lg shadow-lg p-6 flex flex-col relative`; card.dataset.gameDay = gameDate.getDay(); let participantsHTML = game.participants.map(p => `<span class="bg-slate-700 text-slate-300 text-sm font-medium mr-2 mb-2 px-2.5 py-1 rounded-full flex items-center">${p.displayName}${isCreator ? `<button class="remove-player-btn ml-2 text-red-400 hover:text-red-200" data-game-id="${gameId}" data-player-uid="${p.uid}" data-player-name="${p.displayName}">×</button>` : ''}</span>`).join(''); let tagsHTML = (game.tags && game.tags.length > 0) ? game.tags.map(tag => `<span class="bg-cyan-800 text-cyan-200 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join('') : ''; card.innerHTML = `${isCancelled ? '<div class="absolute inset-0 bg-red-900/70 flex items-center justify-center rounded-lg z-0"><span class="text-2xl font-bold text-white transform -rotate-12">ABGESAGT</span></div>' : ''}<div class="flex-grow"><div class="flex justify-between items-start"><h3 class="text-2xl font-bold text-cyan-400 mb-2">${game.gameName}</h3>${isCreator ? `<div class="flex items-center gap-2 text-xl relative z-10"><button class="edit-game-btn text-slate-500 hover:text-cyan-400" title="Quest bearbeiten" data-game-id="${gameId}">✏️</button><button class="cancel-game-btn text-slate-500 hover:text-red-400" title="Quest absagen" data-game-id="${gameId}">⨷</button></div>` : ''}</div><p class="text-slate-400 mb-4">von <span class="font-semibold">${game.creatorName}</span></p><div class="flex flex-wrap mb-4">${tagsHTML}</div><div class="flex items-center text-slate-300 mb-2"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"></path></svg><span>${formattedDate} um ${formattedTime} Uhr</span></div>${game.duration ? `<div class="flex items-center text-slate-400 mb-4"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path></svg><span>ca. ${game.duration} Minuten</span></div>` : ''}<div class="flex items-center text-slate-300 mb-6"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 1 1 0 5.292M15 21H3v-1a6 6 0 0 1 12 0v1Zm0 0h6v-1a6 6 0 0 0-9-5.197M15 21a6 6 0 0 0-9-5.197m0 0A5.995 5.995 0 0 0 12 12a5.995 5.995 0 0 0-3-5.197M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path></svg><span class="${isFull ? 'text-red-400' : 'text-green-400'} font-semibold">${freeSeats > 0 ? `${freeSeats} Plätze frei` : 'Runde ist voll'}</span></div><h4 class="font-semibold text-slate-300 mb-2">Teilnehmer (${participantsCount}/${game.totalSeats}):</h4><div class="flex flex-wrap">${participantsHTML}</div></div><div class="mt-6"><button class="join-leave-btn w-full font-bold py-3 px-4 rounded-lg transition ${isCancelled ? 'bg-slate-700 text-slate-500' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull ? 'bg-slate-700 text-slate-500' : 'bg-cyan-500 hover:bg-cyan-600'))}" data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>${isCancelled ? 'Abgesagt' : (isParticipant ? 'Verlassen' : (isFull ? 'Voll' : 'Ich bin dabei!'))}</button></div>`; return card; }
+        function renderGame(doc) { const game = doc.data(); const gameId = doc.id; const isCreator = currentUser && currentUser.uid === game.creatorId; const isParticipant = currentUser && game.participants.some(p => p.uid === currentUser.uid); const participantsCount = game.participants.length; const freeSeats = game.totalSeats - participantsCount; const isFull = freeSeats <= 0; const isCancelled = game.cancelled || false; const gameDate = game.dateTime.toDate(); const formattedDate = gameDate.toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: '2-digit' }); const formattedTime = gameDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }); const card = document.createElement('div'); card.className = `quest-card bg-slate-800 rounded-lg shadow-lg p-6 flex flex-col relative`; card.dataset.gameDay = gameDate.getDay(); card.dataset.location = game.location; let participantsHTML = game.participants.map(p => `<span class="bg-slate-700 text-slate-300 text-sm font-medium mr-2 mb-2 px-2.5 py-1 rounded-full flex items-center">${p.displayName}${isCreator ? `<button class="remove-player-btn ml-2 text-red-400 hover:text-red-200" data-game-id="${gameId}" data-player-uid="${p.uid}" data-player-name="${p.displayName}">×</button>` : ''}</span>`).join(''); let tagsHTML = (game.tags && game.tags.length > 0) ? game.tags.map(tag => `<span class="bg-cyan-800 text-cyan-200 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join('') : ''; card.innerHTML = `${isCancelled ? '<div class="absolute inset-0 bg-red-900/70 flex items-center justify-center rounded-lg z-0"><span class="text-2xl font-bold text-white transform -rotate-12">ABGESAGT</span></div>' : ''}<div class="flex-grow"><div class="flex justify-between items-start"><h3 class="text-2xl font-bold text-cyan-400 mb-2">${game.gameName}</h3>${isCreator ? `<div class="flex items-center gap-2 text-xl relative z-10"><button class="edit-game-btn text-slate-500 hover:text-cyan-400" title="Quest bearbeiten" data-game-id="${gameId}">✏️</button><button class="cancel-game-btn text-slate-500 hover:text-red-400" title="Quest absagen" data-game-id="${gameId}">⨷</button></div>` : ''}</div><p class="text-slate-400 mb-2">von <span class="font-semibold">${game.creatorName}</span></p><div class="flex items-center text-slate-400 mb-4 text-sm"><svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg><span>${game.location}</span></div><div class="flex flex-wrap mb-4">${tagsHTML}</div><div class="flex items-center text-slate-300 mb-2"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"></path></svg><span>${formattedDate} um ${formattedTime} Uhr</span></div>${game.duration ? `<div class="flex items-center text-slate-400 mb-4"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path></svg><span>ca. ${game.duration} Minuten</span></div>` : ''}<div class="flex items-center text-slate-300 mb-6"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 1 1 0 5.292M15 21H3v-1a6 6 0 0 1 12 0v1Zm0 0h6v-1a6 6 0 0 0-9-5.197M15 21a6 6 0 0 0-9-5.197m0 0A5.995 5.995 0 0 0 12 12a5.995 5.995 0 0 0-3-5.197M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path></svg><span class="${isFull ? 'text-red-400' : 'text-green-400'} font-semibold">${freeSeats > 0 ? `${freeSeats} Plätze frei` : 'Runde ist voll'}</span></div><h4 class="font-semibold text-slate-300 mb-2">Teilnehmer (${participantsCount}/${game.totalSeats}):</h4><div class="flex flex-wrap">${participantsHTML}</div></div><div class="mt-6"><button class="join-leave-btn w-full font-bold py-3 px-4 rounded-lg transition ${isCancelled ? 'bg-slate-700 text-slate-500' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull ? 'bg-slate-700 text-slate-500' : 'bg-cyan-500 hover:bg-cyan-600'))}" data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>${isCancelled ? 'Abgesagt' : (isParticipant ? 'Verlassen' : (isFull ? 'Voll' : 'Ich bin dabei!'))}</button></div>`; return card; }
         
         cancelAddGameBtn.addEventListener('click', () => hideModal(addEditGameModal));
-        filterContainer.addEventListener('click', (e) => { if (e.target.classList.contains('filter-btn')) { filterContainer.querySelector('.active').classList.remove('active'); e.target.classList.add('active'); filterGames(e.target.dataset.day); } });
-        addEditGameForm.addEventListener('submit', async (e) => { e.preventDefault(); if (!checkOpeningHours()) return; const gameId = document.getElementById('edit-game-id').value; const selectedTags = Array.from(document.querySelectorAll('#tags-container input:checked')).map(el => el.value); const gameData = { gameName: addEditGameForm['game-name'].value.trim(), dateTime: Timestamp.fromDate(new Date(`${addEditGameForm['game-date'].value}T${addEditGameForm['game-time'].value}`)), totalSeats: parseInt(addEditGameForm['total-seats'].value), duration: addEditGameForm['game-duration'].value.trim(), tags: selectedTags }; try { if (gameId) { await updateDoc(doc(db, "spielrunden", gameId), gameData); } else { gameData.creatorId = currentUser.uid; gameData.creatorName = currentUser.displayName; gameData.participants = addEditGameForm['organizer-participates'].checked ? [{ uid: currentUser.uid, displayName: currentUser.displayName }] : []; gameData.cancelled = false; await addDoc(collection(db, "spielrunden"), gameData); } hideModal(addEditGameModal); } catch (error) { console.error("Error saving document: ", error); } });
+        dayFilterSelect.addEventListener('change', applyFilters);
+        locationFilterInput.addEventListener('input', applyFilters);
+
+        addEditGameForm.addEventListener('submit', async (e) => { e.preventDefault(); if (!checkDateTimeValidity()) return; const gameId = document.getElementById('edit-game-id').value; const selectedTags = Array.from(document.querySelectorAll('#tags-container input:checked')).map(el => el.value); const location = locationTypeSelect.value === 'Genduron' ? 'Genduron' : document.getElementById('custom-location').value.trim(); const gameData = { gameName: addEditGameForm['game-name'].value.trim(), location: location, dateTime: Timestamp.fromDate(new Date(`${addEditGameForm['game-date'].value}T${addEditGameForm['game-time'].value}`)), totalSeats: parseInt(addEditGameForm['total-seats'].value), duration: addEditGameForm['game-duration'].value.trim(), tags: selectedTags }; try { if (gameId) { await updateDoc(doc(db, "spielrunden", gameId), gameData); } else { gameData.creatorId = currentUser.uid; gameData.creatorName = currentUser.displayName; gameData.participants = addEditGameForm['organizer-participates'].checked ? [{ uid: currentUser.uid, displayName: currentUser.displayName }] : []; gameData.cancelled = false; await addDoc(collection(db, "spielrunden"), gameData); } hideModal(addEditGameModal); } catch (error) { console.error("Error saving document: ", error); } });
         gameList.addEventListener('click', async (e) => {
             const target = e.target.closest('button');
             if (!target) return;
@@ -408,7 +451,7 @@
 
                 } else if (target.classList.contains('edit-game-btn')) { 
                     const docSnap = await getDoc(gameRef); 
-                    if (docSnap.exists()) { const game = docSnap.data(); setMinDate(); document.getElementById('edit-game-id').value = gameId; document.getElementById('game-name').value = game.gameName; const date = game.dateTime.toDate(); document.getElementById('game-date').value = date.toISOString().split('T')[0]; document.getElementById('game-time').value = date.toTimeString().slice(0,5); document.getElementById('total-seats').value = game.totalSeats; document.getElementById('game-duration').value = game.duration || ''; document.querySelectorAll('#tags-container input').forEach(checkbox => checkbox.checked = (game.tags && game.tags.includes(checkbox.value))); document.getElementById('modal-title').textContent = 'Quest bearbeiten'; document.getElementById('submit-btn').textContent = 'Änderungen speichern'; document.getElementById('delete-game-btn').classList.remove('hidden'); document.getElementById('organizer-participates-container').style.display = 'none'; document.getElementById('reactivate-game-btn').classList.toggle('hidden', !game.cancelled); showModal(addEditGameModal); } 
+                    if (docSnap.exists()) { const game = docSnap.data(); setMinDate(); document.getElementById('edit-game-id').value = gameId; document.getElementById('game-name').value = game.gameName; if (game.location === 'Genduron') { locationTypeSelect.value = 'Genduron'; customLocationContainer.classList.add('hidden'); } else { locationTypeSelect.value = 'other'; document.getElementById('custom-location').value = game.location; customLocationContainer.classList.remove('hidden'); } const date = game.dateTime.toDate(); document.getElementById('game-date').value = date.toISOString().split('T')[0]; document.getElementById('game-time').value = date.toTimeString().slice(0,5); document.getElementById('total-seats').value = game.totalSeats; document.getElementById('game-duration').value = game.duration || ''; document.querySelectorAll('#tags-container input').forEach(checkbox => checkbox.checked = (game.tags && game.tags.includes(checkbox.value))); document.getElementById('modal-title').textContent = 'Quest bearbeiten'; document.getElementById('submit-btn').textContent = 'Änderungen speichern'; document.getElementById('delete-game-btn').classList.remove('hidden'); document.getElementById('organizer-participates-container').style.display = 'none'; document.getElementById('reactivate-game-btn').classList.toggle('hidden', !game.cancelled); showModal(addEditGameModal); } 
                 } else if (target.classList.contains('cancel-game-btn')) { 
                     if (confirm('Möchtest du dieses Quest wirklich absagen?')) { await updateDoc(gameRef, { cancelled: true }); } 
                 }
@@ -417,7 +460,7 @@
                 alert("Ein Fehler ist aufgetreten. Bitte versuche es erneut.");
             }
         });
-        addGameBtn.addEventListener('click', () => { if (!currentUser) { showModal(authModal); return; } if (!currentUser.emailVerified) { alert("Bitte bestätige zuerst deine E-Mail-Adresse, um ein Quest zu erstellen."); return; } addEditGameForm.reset(); setMinDate(); document.getElementById('edit-game-id').value = ''; document.getElementById('modal-title').textContent = 'Neues Quest erstellen'; document.getElementById('submit-btn').textContent = 'Erstellen'; document.getElementById('delete-game-btn').classList.add('hidden'); document.getElementById('reactivate-game-btn').classList.add('hidden'); document.getElementById('organizer-participates-container').style.display = 'block'; showModal(addEditGameModal); });
+        addGameBtn.addEventListener('click', () => { if (!currentUser) { showModal(authModal); return; } if (!currentUser.emailVerified) { alert("Bitte bestätige zuerst deine E-Mail-Adresse, um ein Quest zu erstellen."); return; } addEditGameForm.reset(); setMinDate(); locationTypeSelect.value = 'Genduron'; customLocationContainer.classList.add('hidden'); checkDateTimeValidity(); document.getElementById('edit-game-id').value = ''; document.getElementById('modal-title').textContent = 'Neues Quest erstellen'; document.getElementById('submit-btn').textContent = 'Erstellen'; document.getElementById('delete-game-btn').classList.add('hidden'); document.getElementById('reactivate-game-btn').classList.add('hidden'); document.getElementById('organizer-participates-container').style.display = 'block'; showModal(addEditGameModal); });
         document.getElementById('delete-game-btn').addEventListener('click', async () => { const gameId = document.getElementById('edit-game-id').value; if (gameId && confirm('Bist du sicher, dass du dieses Quest endgültig löschen möchtest?')) { await deleteDoc(doc(db, "spielrunden", gameId)); hideModal(addEditGameModal); } });
         document.getElementById('reactivate-game-btn').addEventListener('click', async () => { const gameId = document.getElementById('edit-game-id').value; await updateDoc(doc(db, "spielrunden", gameId), { cancelled: false }); hideModal(addEditGameModal); });
     </script>
