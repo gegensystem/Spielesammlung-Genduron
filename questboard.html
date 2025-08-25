@@ -342,11 +342,16 @@
 
                 if (!user.emailVerified) {
                     verificationCheckInterval = setInterval(async () => {
-                        await auth.currentUser.reload();
-                        if (auth.currentUser.emailVerified) {
-                            clearInterval(verificationCheckInterval);
-                            currentUser.emailVerified = true;
-                            updateUserUI(true);
+                        const freshUser = auth.currentUser;
+                        if (freshUser) {
+                            await freshUser.reload();
+                            if (freshUser.emailVerified) {
+                                clearInterval(verificationCheckInterval);
+                                setTimeout(() => {
+                                    alert("Deine E-Mail wurde erfolgreich bestätigt. Bitte logge dich nun ein, um fortzufahren.");
+                                    signOut(auth);
+                                }, 500);
+                            }
                         }
                     }, 5000);
                 }
