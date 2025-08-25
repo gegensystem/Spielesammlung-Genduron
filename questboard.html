@@ -334,7 +334,46 @@
         cancelAddGameBtn.addEventListener('click', () => hideModal(addEditGameModal));
         filterContainer.addEventListener('click', (e) => { if (e.target.classList.contains('filter-btn')) { filterContainer.querySelector('.active').classList.remove('active'); e.target.classList.add('active'); filterGames(e.target.dataset.day); } });
         addEditGameForm.addEventListener('submit', async (e) => { e.preventDefault(); if (!checkOpeningHours()) return; const gameId = document.getElementById('edit-game-id').value; const selectedTags = Array.from(document.querySelectorAll('#tags-container input:checked')).map(el => el.value); const gameData = { gameName: addEditGameForm['game-name'].value.trim(), dateTime: Timestamp.fromDate(new Date(`${addEditGameForm['game-date'].value}T${addEditGameForm['game-time'].value}`)), totalSeats: parseInt(addEditGameForm['total-seats'].value), duration: addEditGameForm['game-duration'].value.trim(), tags: selectedTags }; try { if (gameId) { await updateDoc(doc(db, "spielrunden", gameId), gameData); } else { gameData.creatorId = currentUser.uid; gameData.creatorName = currentUser.displayName; gameData.participants = addEditGameForm['organizer-participates'].checked ? [{ uid: currentUser.uid, displayName: currentUser.displayName }] : []; gameData.cancelled = false; await addDoc(collection(db, "spielrunden"), gameData); } hideModal(addEditGameModal); } catch (error) { console.error("Error saving document: ", error); } });
-        gameList.addEventListener('click', async (e) => { const target = e.target.closest('button'); if (!target) return; const gameId = target.dataset.gameId; if (!currentUser) { showModal(authModal); return; } if (!currentUser.emailVerified) { verificationBanner.classList.remove('hidden'); alert("Bitte bestätige zuerst deine E-Mail-Adresse, um Aktionen auszuführen."); return; } if (target.classList.contains('join-leave-btn')) { const gameRef = doc(db, "spielrunden", gameId); const isParticipant = (await getDoc(gameRef)).data().participants.some(p => p.uid === currentUser.uid); const participantData = { uid: currentUser.uid, displayName: currentUser.displayName }; await updateDoc(gameRef, { participants: isParticipant ? arrayRemove(participantData) : arrayUnion(participantData) }); } else if (target.classList.contains('remove-player-btn')) { const playerToRemove = { uid: target.dataset.playerUid, displayName: target.dataset.playerName }; await updateDoc(doc(db, "spielrunden", gameId), { participants: arrayRemove(playerToRemove) }); } else if (target.classList.contains('edit-game-btn')) { const docSnap = await getDoc(doc(db, "spielrunden", gameId)); if (docSnap.exists()) { const game = docSnap.data(); setMinDate(); document.getElementById('edit-game-id').value = gameId; document.getElementById('game-name').value = game.gameName; const date = game.dateTime.toDate(); document.getElementById('game-date').value = date.toISOString().split('T')[0]; document.getElementById('game-time').value = date.toTimeString().slice(0,5); document.getElementById('total-seats').value = game.totalSeats; document.getElementById('game-duration').value = game.duration || ''; document.querySelectorAll('#tags-container input').forEach(checkbox => checkbox.checked = (game.tags && game.tags.includes(checkbox.value))); document.getElementById('modal-title').textContent = 'Quest bearbeiten'; document.getElementById('submit-btn').textContent = 'Änderungen speichern'; document.getElementById('delete-game-btn').classList.remove('hidden'); document.getElementById('organizer-participates-container').style.display = 'none'; document.getElementById('reactivate-game-btn').classList.toggle('hidden', !game.cancelled); showModal(addEditGameModal); } } else if (target.classList.contains('cancel-game-btn')) { if (confirm('Möchtest du dieses Quest wirklich absagen?')) { await updateDoc(doc(db, "spielrunden", gameId), { cancelled: true }); } } });
+        gameList.addEventListener('click', async (e) => {
+            const target = e.target.closest('button');
+            if (!target) return;
+            const gameId = target.dataset.gameId;
+            if (!currentUser) { showModal(authModal); return; }
+            if (!currentUser.emailVerified) { verificationBanner.classList.remove('hidden'); alert("Bitte bestätige zuerst deine E-Mail-Adresse, um Aktionen auszuführen."); return; }
+            
+            const gameRef = doc(db, "spielrunden", gameId);
+            try {
+                if (target.classList.contains('join-leave-btn')) {
+                    const docSnap = await getDoc(gameRef);
+                    const participants = docSnap.data().participants;
+                    const participantIndex = participants.findIndex(p => p.uid === currentUser.uid);
+                    
+                    if (participantIndex > -1) { // User is a participant, so remove them
+                        const participantToRemove = participants[participantIndex];
+                        await updateDoc(gameRef, { participants: arrayRemove(participantToRemove) });
+                    } else { // User is not a participant, so add them
+                        const participantData = { uid: currentUser.uid, displayName: currentUser.displayName };
+                        await updateDoc(gameRef, { participants: arrayUnion(participantData) });
+                    }
+                } else if (target.classList.contains('remove-player-btn')) {
+                    const docSnap = await getDoc(gameRef);
+                    const participants = docSnap.data().participants;
+                    const playerUidToRemove = target.dataset.playerUid;
+                    const participantToRemove = participants.find(p => p.uid === playerUidToRemove);
+                    if (participantToRemove) {
+                        await updateDoc(gameRef, { participants: arrayRemove(participantToRemove) });
+                    }
+                } else if (target.classList.contains('edit-game-btn')) { 
+                    const docSnap = await getDoc(gameRef); 
+                    if (docSnap.exists()) { const game = docSnap.data(); setMinDate(); document.getElementById('edit-game-id').value = gameId; document.getElementById('game-name').value = game.gameName; const date = game.dateTime.toDate(); document.getElementById('game-date').value = date.toISOString().split('T')[0]; document.getElementById('game-time').value = date.toTimeString().slice(0,5); document.getElementById('total-seats').value = game.totalSeats; document.getElementById('game-duration').value = game.duration || ''; document.querySelectorAll('#tags-container input').forEach(checkbox => checkbox.checked = (game.tags && game.tags.includes(checkbox.value))); document.getElementById('modal-title').textContent = 'Quest bearbeiten'; document.getElementById('submit-btn').textContent = 'Änderungen speichern'; document.getElementById('delete-game-btn').classList.remove('hidden'); document.getElementById('organizer-participates-container').style.display = 'none'; document.getElementById('reactivate-game-btn').classList.toggle('hidden', !game.cancelled); showModal(addEditGameModal); } 
+                } else if (target.classList.contains('cancel-game-btn')) { 
+                    if (confirm('Möchtest du dieses Quest wirklich absagen?')) { await updateDoc(gameRef, { cancelled: true }); } 
+                }
+            } catch (error) {
+                console.error("Fehler bei der Aktion:", error);
+                alert("Ein Fehler ist aufgetreten. Bitte versuche es erneut.");
+            }
+        });
         addGameBtn.addEventListener('click', () => { if (!currentUser) { showModal(authModal); return; } if (!currentUser.emailVerified) { alert("Bitte bestätige zuerst deine E-Mail-Adresse, um ein Quest zu erstellen."); return; } addEditGameForm.reset(); setMinDate(); document.getElementById('edit-game-id').value = ''; document.getElementById('modal-title').textContent = 'Neues Quest erstellen'; document.getElementById('submit-btn').textContent = 'Erstellen'; document.getElementById('delete-game-btn').classList.add('hidden'); document.getElementById('reactivate-game-btn').classList.add('hidden'); document.getElementById('organizer-participates-container').style.display = 'block'; showModal(addEditGameModal); });
         document.getElementById('delete-game-btn').addEventListener('click', async () => { const gameId = document.getElementById('edit-game-id').value; if (gameId && confirm('Bist du sicher, dass du dieses Quest endgültig löschen möchtest?')) { await deleteDoc(doc(db, "spielrunden", gameId)); hideModal(addEditGameModal); } });
         document.getElementById('reactivate-game-btn').addEventListener('click', async () => { const gameId = document.getElementById('edit-game-id').value; await updateDoc(doc(db, "spielrunden", gameId), { cancelled: false }); hideModal(addEditGameModal); });
