@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Genduron Spiel-Finder</title>
+    <title>Genduron Questboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,6 +20,10 @@
             from { opacity: 1; transform: scale(1); }
             to { opacity: 0; transform: scale(0.95); }
         }
+        .filter-btn.active {
+            background-color: #06b6d4;
+            color: white;
+        }
     </style>
 </head>
 <body class="bg-slate-900 text-white antialiased">
@@ -27,41 +31,47 @@
     <!-- Header -->
     <header class="bg-slate-800/70 backdrop-blur-sm sticky top-0 z-20 shadow-lg">
         <div class="container mx-auto px-4 py-4 max-w-5xl">
-            <h1 class="text-3xl font-bold text-cyan-400">🎲 Genduron Spiel-Finder</h1>
+            <h1 class="text-3xl font-bold text-cyan-400">📜 Genduron Questboard</h1>
             <p class="text-slate-400 mt-1">Finde schnell Mitspieler für eine Runde im LAST.</p>
+            <div class="text-sm text-slate-500 mt-2">Öffnungszeiten: Mi–Do 16–24 Uhr | Fr–Sa 14–24 Uhr</div>
         </div>
     </header>
 
     <!-- Main Content -->
     <main class="container mx-auto p-4 max-w-5xl">
-        <!-- Action Button -->
-        <div class="my-6 text-center">
-            <button id="add-game-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105">
-                (+) Neue Spielrunde anbieten
+        <!-- Action & Filter Buttons -->
+        <div class="my-6 flex flex-col sm:flex-row justify-center items-center gap-4">
+            <button id="add-game-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105 w-full sm:w-auto">
+                (+) Neues Quest anbieten
             </button>
+            <div class="flex gap-2 p-1 bg-slate-800 rounded-lg">
+                <button class="filter-btn active px-3 py-1 rounded-md transition" data-day="all">Alle</button>
+                <button class="filter-btn px-3 py-1 rounded-md transition" data-day="3">Mi</button>
+                <button class="filter-btn px-3 py-1 rounded-md transition" data-day="4">Do</button>
+                <button class="filter-btn px-3 py-1 rounded-md transition" data-day="5">Fr</button>
+                <button class="filter-btn px-3 py-1 rounded-md transition" data-day="6">Sa</button>
+            </div>
         </div>
 
         <!-- Game List -->
         <div id="game-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Loading indicator -->
-             <div id="loading-indicator" class="text-center col-span-full py-10">
-                <p class="text-slate-400 text-lg">Lade Spielrunden...</p>
+            <div id="loading-indicator" class="text-center col-span-full py-10">
+                <p class="text-slate-400 text-lg">Lade verfügbare Quests...</p>
             </div>
-            <!-- Game cards will be inserted here by JavaScript -->
         </div>
     </main>
 
     <!-- Add Game Modal -->
     <div id="add-game-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
         <div class="bg-slate-800 p-8 rounded-lg shadow-2xl w-full max-w-md m-4 modal-enter">
-            <h2 class="text-2xl font-bold mb-6">Neue Spielrunde erstellen</h2>
+            <h2 class="text-2xl font-bold mb-6">Neues Quest erstellen</h2>
             <form id="add-game-form">
                 <div class="mb-4">
-                    <label for="organizer-name" class="block text-slate-400 mb-2">Dein Name</label>
+                    <label for="organizer-name" class="block text-slate-400 mb-2">Dein Name (Questgeber)</label>
                     <input type="text" id="organizer-name" class="w-full bg-slate-700 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500" required>
                 </div>
                 <div class="mb-4">
-                    <label for="game-name" class="block text-slate-400 mb-2">Spiel</label>
+                    <label for="game-name" class="block text-slate-400 mb-2">Spiel (Quest)</label>
                     <input type="text" id="game-name" class="w-full bg-slate-700 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500" required>
                 </div>
                 <div class="grid grid-cols-2 gap-4 mb-4">
@@ -74,10 +84,23 @@
                         <input type="time" id="game-time" class="w-full bg-slate-700 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500" required>
                     </div>
                 </div>
-                <div class="mb-6">
-                    <label for="total-seats" class="block text-slate-400 mb-2">Plätze insgesamt</label>
-                    <input type="number" id="total-seats" min="1" max="20" class="w-full bg-slate-700 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500" required>
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label for="total-seats" class="block text-slate-400 mb-2">Plätze insgesamt</label>
+                        <input type="number" id="total-seats" min="1" max="20" class="w-full bg-slate-700 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500" required>
+                    </div>
+                     <div>
+                        <label for="game-duration" class="block text-slate-400 mb-2">Dauer (in Min.)</label>
+                        <input type="number" id="game-duration" min="10" step="5" class="w-full bg-slate-700 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500" placeholder="z.B. 90">
+                    </div>
                 </div>
+                <div class="mb-4">
+                    <label class="flex items-center text-slate-400">
+                        <input type="checkbox" id="organizer-participates" class="h-4 w-4 bg-slate-700 border-slate-600 text-cyan-500 focus:ring-cyan-500 rounded" checked>
+                        <span class="ml-2">Ich nehme selbst teil (erster Platz)</span>
+                    </label>
+                </div>
+                <div id="opening-hours-warning" class="text-yellow-400 text-sm mb-4 hidden"></div>
                 <div class="flex justify-end gap-4">
                     <button type="button" id="cancel-add-game" class="bg-slate-600 hover:bg-slate-700 text-white py-2 px-4 rounded-lg transition">Abbrechen</button>
                     <button type="submit" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg transition">Erstellen</button>
@@ -89,7 +112,7 @@
     <!-- Join Game Modal -->
     <div id="join-game-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
         <div class="bg-slate-800 p-8 rounded-lg shadow-2xl w-full max-w-sm m-4 modal-enter">
-            <h2 class="text-2xl font-bold mb-6">Runde beitreten</h2>
+            <h2 class="text-2xl font-bold mb-6">Quest beitreten</h2>
             <form id="join-game-form">
                 <div class="mb-6">
                     <label for="player-name" class="block text-slate-400 mb-2">Dein Name</label>
@@ -107,9 +130,8 @@
     <!-- Firebase and App Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, arrayUnion, query, where, Timestamp, orderBy, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, arrayUnion, arrayRemove, query, where, Timestamp, orderBy } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- USER PROVIDED FIREBASE CONFIGURATION ---
         const firebaseConfig = {
             apiKey: "AIzaSyDYc51kqFDkNXwjXcO-D4xkdhXvjR-QwU8",
             authDomain: "spielrunden-8c451.firebaseapp.com",
@@ -120,33 +142,27 @@
             measurementId: "G-2S7NE5WSXS"
         };
 
-        // --- FIREBASE INITIALIZATION ---
         let db;
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
-            console.log("Firebase initialized successfully.");
         } catch (e) {
             console.error("Error initializing Firebase: ", e);
             document.getElementById('loading-indicator').innerText = 'Fehler bei der Verbindung zur Datenbank.';
         }
         
-        // --- DOM ELEMENTS ---
         const addGameBtn = document.getElementById('add-game-btn');
         const addGameModal = document.getElementById('add-game-modal');
         const addGameForm = document.getElementById('add-game-form');
         const cancelAddGameBtn = document.getElementById('cancel-add-game');
-        
         const joinGameModal = document.getElementById('join-game-modal');
         const joinGameForm = document.getElementById('join-game-form');
         const cancelJoinGameBtn = document.getElementById('cancel-join-game');
-        
         const gameList = document.getElementById('game-list');
         const loadingIndicator = document.getElementById('loading-indicator');
         
         let currentGameIdToJoin = null;
 
-        // --- MODAL HANDLING ---
         function showModal(modal) {
             modal.classList.remove('hidden');
             modal.firstElementChild.classList.remove('modal-leave');
@@ -176,26 +192,38 @@
             const participantsCount = game.participants.length;
             const freeSeats = game.totalSeats - participantsCount;
             const isFull = freeSeats <= 0;
+            const isCancelled = game.cancelled || false;
 
             const gameDate = game.dateTime.toDate();
-            const isPast = gameDate < new Date();
-
-            const formattedDate = gameDate.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' });
+            const formattedDate = gameDate.toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: '2-digit' });
             const formattedTime = gameDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
 
             const card = document.createElement('div');
-            card.className = `bg-slate-800 rounded-lg shadow-lg p-6 flex flex-col transition-transform transform hover:-translate-y-1 ${isPast ? 'opacity-50' : ''}`;
-            
-            let participantsHTML = game.participants.map(p => `<span class="bg-slate-700 text-slate-300 text-sm font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full">${p}</span>`).join('');
+            card.className = `bg-slate-800 rounded-lg shadow-lg p-6 flex flex-col transition-transform transform hover:-translate-y-1 relative`;
+            card.dataset.gameDay = gameDate.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+
+            let participantsHTML = game.participants.map(p => `
+                <span class="bg-slate-700 text-slate-300 text-sm font-medium mr-2 mb-2 px-2.5 py-1 rounded-full flex items-center">
+                    ${p}
+                    <button class="remove-player-btn ml-2 text-red-400 hover:text-red-200" data-game-id="${gameId}" data-player-name="${p}">×</button>
+                </span>`).join('');
 
             card.innerHTML = `
+                ${isCancelled ? '<div class="absolute inset-0 bg-red-900/70 flex items-center justify-center rounded-lg"><span class="text-2xl font-bold text-white transform -rotate-12">ABGESAGT</span></div>' : ''}
                 <div class="flex-grow">
-                    <h3 class="text-2xl font-bold text-cyan-400 mb-2">${game.gameName}</h3>
+                    <div class="flex justify-between items-start">
+                        <h3 class="text-2xl font-bold text-cyan-400 mb-2">${game.gameName}</h3>
+                        <button class="cancel-game-btn text-slate-500 hover:text-red-400 text-xl" title="Quest absagen" data-game-id="${gameId}">⨷</button>
+                    </div>
                     <p class="text-slate-400 mb-4">von <span class="font-semibold">${game.organizerName}</span></p>
-                    <div class="flex items-center text-slate-300 mb-4">
+                    <div class="flex items-center text-slate-300 mb-2">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"></path></svg>
                         <span>${formattedDate} um ${formattedTime} Uhr</span>
                     </div>
+                    ${game.duration ? `<div class="flex items-center text-slate-400 mb-4">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path></svg>
+                        <span>ca. ${game.duration} Minuten</span>
+                    </div>` : ''}
                     <div class="flex items-center text-slate-300 mb-6">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 1 1 0 5.292M15 21H3v-1a6 6 0 0 1 12 0v1Zm0 0h6v-1a6 6 0 0 0-9-5.197M15 21a6 6 0 0 0-9-5.197m0 0A5.995 5.995 0 0 0 12 12a5.995 5.995 0 0 0-3-5.197M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path></svg>
                         <span class="${isFull ? 'text-red-400' : 'text-green-400'} font-semibold">${freeSeats > 0 ? `${freeSeats} von ${game.totalSeats} Plätzen frei` : 'Runde ist voll'}</span>
@@ -204,67 +232,111 @@
                     <div class="flex flex-wrap">${participantsHTML}</div>
                 </div>
                 <div class="mt-6">
-                    <button class="join-btn w-full font-bold py-3 px-4 rounded-lg transition ${isFull || isPast ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-cyan-500 hover:bg-cyan-600'}" 
-                            data-game-id="${gameId}" ${isFull || isPast ? 'disabled' : ''}>
-                        ${isPast ? 'Vergangen' : (isFull ? 'Voll' : 'Ich bin dabei!')}
+                    <button class="join-btn w-full font-bold py-3 px-4 rounded-lg transition ${isFull || isCancelled ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-cyan-500 hover:bg-cyan-600'}" 
+                            data-game-id="${gameId}" ${isFull || isCancelled ? 'disabled' : ''}>
+                        ${isCancelled ? 'Abgesagt' : (isFull ? 'Voll' : 'Ich bin dabei!')}
                     </button>
                 </div>
             `;
-
             return card;
         }
+        
+        // --- OPENING HOURS VALIDATION ---
+        const gameDateInput = document.getElementById('game-date');
+        const gameTimeInput = document.getElementById('game-time');
+        const warningDiv = document.getElementById('opening-hours-warning');
+
+        function checkOpeningHours() {
+            if (!gameDateInput.value || !gameTimeInput.value) {
+                warningDiv.classList.add('hidden');
+                return true;
+            }
+            const date = new Date(`${gameDateInput.value}T${gameTimeInput.value}`);
+            const day = date.getDay(); // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+            const hours = date.getHours();
+            let isValid = false;
+            let message = 'Das LAST ist zu dieser Zeit geschlossen.';
+
+            if (day === 3 || day === 4) { // Wednesday, Thursday
+                if (hours >= 16) isValid = true;
+            } else if (day === 5 || day === 6) { // Friday, Saturday
+                if (hours >= 14) isValid = true;
+            }
+            
+            if (!isValid) {
+                warningDiv.textContent = message;
+                warningDiv.classList.remove('hidden');
+            } else {
+                warningDiv.classList.add('hidden');
+            }
+            return isValid;
+        }
+        gameDateInput.addEventListener('change', checkOpeningHours);
+        gameTimeInput.addEventListener('change', checkOpeningHours);
         
         // --- FIRESTORE LOGIC ---
         if (db) {
             const gamesCol = collection(db, "spielrunden");
-            const q = query(gamesCol, orderBy("dateTime", "asc"));
+            const q = query(gamesCol, where("dateTime", ">=", Timestamp.now()), orderBy("dateTime", "asc"));
 
             onSnapshot(q, (snapshot) => {
                 loadingIndicator.classList.add('hidden');
                 gameList.innerHTML = '';
                 if (snapshot.empty) {
-                     gameList.innerHTML = '<p class="text-slate-400 text-center col-span-full">Aktuell sind keine Spielrunden geplant. Biete doch eine an!</p>';
+                     gameList.innerHTML = '<p class="text-slate-400 text-center col-span-full">Aktuell sind keine Quests verfügbar. Biete doch eins an!</p>';
                 } else {
                     snapshot.docs.forEach(doc => {
                         const card = renderGame(doc);
                         gameList.appendChild(card);
                     });
+                    // After rendering, apply current filter
+                    const activeFilter = document.querySelector('.filter-btn.active').dataset.day;
+                    filterGames(activeFilter);
                 }
-            }, (error) => {
-                console.error("Error fetching games: ", error);
-                gameList.innerHTML = '<p class="text-red-400 text-center col-span-full">Fehler beim Laden der Spielrunden.</p>';
-            });
+            }, (error) => console.error("Error fetching games: ", error));
 
             addGameForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const organizerName = addGameForm['organizer-name'].value.trim();
-                const gameName = addGameForm['game-name'].value.trim();
-                const gameDate = addGameForm['game-date'].value;
-                const gameTime = addGameForm['game-time'].value;
-                const totalSeats = parseInt(addGameForm['total-seats'].value);
+                if (!checkOpeningHours()) return;
 
-                const dateTime = Timestamp.fromDate(new Date(`${gameDate}T${gameTime}`));
+                const organizerName = addGameForm['organizer-name'].value.trim();
+                const dateTime = Timestamp.fromDate(new Date(`${addGameForm['game-date'].value}T${addGameForm['game-time'].value}`));
+                const participants = addGameForm['organizer-participates'].checked ? [organizerName] : [];
 
                 try {
                     await addDoc(gamesCol, {
                         organizerName,
-                        gameName,
+                        gameName: addGameForm['game-name'].value.trim(),
                         dateTime,
-                        totalSeats,
-                        participants: [organizerName]
+                        totalSeats: parseInt(addGameForm['total-seats'].value),
+                        duration: addGameForm['game-duration'].value.trim(),
+                        participants: participants,
+                        cancelled: false
                     });
                     addGameForm.reset();
                     hideModal(addGameModal);
-                } catch (error) {
-                    console.error("Error adding document: ", error);
-                }
+                } catch (error) { console.error("Error adding document: ", error); }
             });
 
-            gameList.addEventListener('click', (e) => {
-                if (e.target.classList.contains('join-btn')) {
-                    currentGameIdToJoin = e.target.dataset.gameId;
+            gameList.addEventListener('click', async (e) => {
+                const target = e.target;
+                const gameId = target.dataset.gameId;
+
+                if (target.classList.contains('join-btn')) {
+                    currentGameIdToJoin = gameId;
                     showModal(joinGameModal);
                     document.getElementById('player-name').focus();
+                } else if (target.classList.contains('remove-player-btn')) {
+                    const playerName = target.dataset.playerName;
+                    if (gameId && playerName) {
+                        const gameRef = doc(db, "spielrunden", gameId);
+                        await updateDoc(gameRef, { participants: arrayRemove(playerName) });
+                    }
+                } else if (target.classList.contains('cancel-game-btn')) {
+                    if (gameId && confirm('Möchtest du dieses Quest wirklich absagen?')) {
+                        const gameRef = doc(db, "spielrunden", gameId);
+                        await updateDoc(gameRef, { cancelled: true });
+                    }
                 }
             });
 
@@ -275,17 +347,33 @@
                 
                 const gameRef = doc(db, "spielrunden", currentGameIdToJoin);
                 try {
-                    await updateDoc(gameRef, {
-                        participants: arrayUnion(playerName)
-                    });
+                    await updateDoc(gameRef, { participants: arrayUnion(playerName) });
                     joinGameForm.reset();
                     hideModal(joinGameModal);
                     currentGameIdToJoin = null;
-                } catch (error) {
-                    console.error("Error joining game: ", error);
+                } catch (error) { console.error("Error joining game: ", error); }
+            });
+        }
+
+        // --- FILTER LOGIC ---
+        const filterContainer = document.querySelector('.flex.gap-2');
+        function filterGames(day) {
+            const cards = gameList.querySelectorAll('[data-game-day]');
+            cards.forEach(card => {
+                if (day === 'all' || card.dataset.gameDay === day) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
                 }
             });
         }
+        filterContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('filter-btn')) {
+                filterContainer.querySelector('.active').classList.remove('active');
+                e.target.classList.add('active');
+                filterGames(e.target.dataset.day);
+            }
+        });
     </script>
 </body>
 </html>
