@@ -137,9 +137,16 @@
     <div id="account-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
         <div class="bg-slate-800 p-8 rounded-lg shadow-2xl w-full max-w-md m-4 modal-enter relative">
              <button id="close-account-modal" class="absolute top-4 right-4 text-slate-500 hover:text-white text-2xl">&times;</button>
-             <h2 class="text-2xl font-bold mb-6">Mein Konto löschen</h2>
-             <p class="text-slate-400 mb-6">Um dein Konto endgültig zu löschen, kontaktiere bitte Andreas Neuhold per E-Mail. Er wird die Löschung für dich vornehmen. Deine erstellten Quests und Teilnahmen bleiben unter deinem Namen bestehen.</p>
-             <a href="mailto:andreas.neuhold@gmail.com" class="w-full text-center block bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 rounded-lg">E-Mail an Andreas senden</a>
+             <h2 class="text-2xl font-bold mb-6">Mein Konto</h2>
+             <div class="mb-6 space-y-2">
+                <p><span class="font-semibold text-slate-400">Name:</span> <span id="account-name"></span></p>
+                <p><span class="font-semibold text-slate-400">E-Mail:</span> <span id="account-email"></span></p>
+             </div>
+             <div class="border-t border-slate-700 pt-6">
+                <h3 class="font-semibold text-lg mb-2">Konto löschen</h3>
+                <p class="text-slate-400 mb-4">Um dein Konto endgültig zu löschen, kontaktiere bitte Andreas Neuhold per E-Mail. Er wird die Löschung für dich vornehmen.</p>
+                <a href="mailto:andreas.neuhold@gmail.com" class="w-full text-center block bg-red-800 hover:bg-red-700 text-white font-bold py-3 rounded-lg">Löschung anfragen</a>
+             </div>
         </div>
     </div>
 
@@ -255,7 +262,12 @@
                     </div>
                 `;
                 document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); signOut(auth); });
-                document.getElementById('account-btn').addEventListener('click', (e) => { e.preventDefault(); showModal(accountModal); });
+                document.getElementById('account-btn').addEventListener('click', (e) => { 
+                    e.preventDefault(); 
+                    document.getElementById('account-name').textContent = currentUser.displayName || 'Nicht festgelegt';
+                    document.getElementById('account-email').textContent = currentUser.email;
+                    showModal(accountModal); 
+                });
                 if (!currentUser.emailVerified) {
                     verificationBanner.classList.remove('hidden');
                 }
