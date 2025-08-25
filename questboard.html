@@ -189,6 +189,9 @@
         const cancelAddGameBtn = document.getElementById('cancel-add-game');
         const filterContainer = document.getElementById('filter-container');
         const verificationBanner = document.getElementById('verification-banner');
+        const gameDateInput = document.getElementById('game-date');
+        const gameTimeInput = document.getElementById('game-time');
+        const warningDiv = document.getElementById('opening-hours-warning');
 
         // --- HELPER FUNCTIONS ---
         function showModal(modal) { modal.classList.remove('hidden'); }
@@ -199,6 +202,42 @@
                 card.style.display = (day === 'all' || card.dataset.gameDay === day) ? 'flex' : 'none';
             });
         }
+
+        function setMinDate() {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            gameDateInput.min = `${yyyy}-${mm}-${dd}`;
+        }
+
+        function checkOpeningHours() {
+            if (!gameDateInput.value || !gameTimeInput.value) {
+                warningDiv.classList.add('hidden');
+                return true;
+            }
+            const date = new Date(`${gameDateInput.value}T${gameTimeInput.value}`);
+            const day = date.getDay(); // 0=Sun, ..., 3=Wed, 4=Thu, 5=Fri, 6=Sat
+            const hours = date.getHours();
+            let isValid = false;
+            let message = 'Das LAST ist zu dieser Zeit geschlossen (Mi/Do ab 16, Fr/Sa ab 14 Uhr).';
+
+            if (day === 3 || day === 4) { // Wednesday, Thursday
+                if (hours >= 16) isValid = true;
+            } else if (day === 5 || day === 6) { // Friday, Saturday
+                if (hours >= 14) isValid = true;
+            }
+            
+            if (!isValid) {
+                warningDiv.textContent = message;
+                warningDiv.classList.remove('hidden');
+            } else {
+                warningDiv.classList.add('hidden');
+            }
+            return isValid;
+        }
+        gameDateInput.addEventListener('change', checkOpeningHours);
+        gameTimeInput.addEventListener('change', checkOpeningHours);
 
         // --- AUTHENTICATION ---
         onAuthStateChanged(auth, (user) => {
@@ -418,6 +457,8 @@
 
         addEditGameForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (!checkOpeningHours()) return;
+
             const gameId = document.getElementById('edit-game-id').value;
             const gameData = {
                 gameName: addEditGameForm['game-name'].value.trim(),
@@ -468,6 +509,7 @@
                 const docSnap = await getDoc(doc(db, "spielrunden", gameId));
                 if (docSnap.exists()) {
                     const game = docSnap.data();
+                    setMinDate();
                     document.getElementById('edit-game-id').value = gameId;
                     document.getElementById('game-name').value = game.gameName;
                     const date = game.dateTime.toDate();
@@ -501,6 +543,7 @@
             }
 
             addEditGameForm.reset();
+            setMinDate();
             document.getElementById('edit-game-id').value = '';
             document.getElementById('modal-title').textContent = 'Neues Quest erstellen';
             document.getElementById('submit-btn').textContent = 'Erstellen';
