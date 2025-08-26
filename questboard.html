@@ -15,16 +15,6 @@
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         @keyframes fadeOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.95); } }
         .filter-btn.active { background-color: #06b6d4; color: white; }
-        select {
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
-            background-position: right 0.5rem center;
-            background-repeat: no-repeat;
-            background-size: 1.5em 1.5em;
-            padding-right: 2.5rem;
-        }
     </style>
 </head>
 <body class="bg-slate-900 text-white antialiased">
@@ -37,13 +27,13 @@
                 <p class="text-slate-400 mt-1">Finde Mitspieler für deine nächste Runde.</p>
             </div>
             <div class="flex items-center gap-4">
-                <div id="user-section">
-                    <!-- Login/Logout buttons will be inserted here -->
-                </div>
                 <a href="https://www.paypal.com/ncp/payment/Q47XPP7KQQVLQ" target="_blank" rel="noopener noreferrer" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 transition-transform transform hover:scale-105">
                     <span>☕</span>
                     <span class="hidden sm:inline">Kaffee ausgeben</span>
                 </a>
+                <button id="menu-btn" class="p-2 rounded-md hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 z-50">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
             </div>
         </div>
     </header>
@@ -100,6 +90,14 @@
             <a href="#" id="privacy-link" class="hover:text-cyan-400 transition">Datenschutz</a>
         </div>
     </footer>
+
+    <!-- Hamburger Menu -->
+    <div id="menu-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden"></div>
+    <div id="hamburger-menu" class="fixed top-0 right-0 h-full w-72 bg-slate-800 shadow-lg z-40 transform translate-x-full transition-transform duration-300 ease-in-out">
+        <nav id="menu-nav" class="p-6 pt-20">
+            <!-- Links will be dynamically inserted here by JS -->
+        </nav>
+    </div>
 
     <!-- Auth Modal -->
     <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
@@ -300,9 +298,20 @@
         const locationFilterInput = document.getElementById('location-filter');
         const dayFilterContainer = document.getElementById('day-filter-container');
         const locationQuickFilterContainer = document.getElementById('location-quick-filter-container');
+        const menuBtn = document.getElementById('menu-btn');
+        const menuOverlay = document.getElementById('menu-overlay');
+        const hamburgerMenu = document.getElementById('hamburger-menu');
+        const menuNav = document.getElementById('menu-nav');
 
         function showModal(modal) { modal.classList.remove('hidden'); }
         function hideModal(modal) { modal.classList.add('hidden'); }
+
+        function toggleMenu() {
+            hamburgerMenu.classList.toggle('translate-x-full');
+            menuOverlay.classList.toggle('hidden');
+        }
+        menuBtn.addEventListener('click', toggleMenu);
+        menuOverlay.addEventListener('click', toggleMenu);
 
         function applyFilters() {
             const selectedDays = Array.from(dayFilterContainer.querySelectorAll('.day-filter-btn.active')).map(btn => btn.dataset.day);
@@ -397,15 +406,26 @@
 
         function updateUserUI(isLoggedIn) {
             verificationBanner.classList.add('hidden');
+            
+            let menuHTML = `
+                <a href="./anleitung.html" target="_blank" class="block py-2 px-4 text-lg text-slate-300 hover:bg-slate-700 rounded-md">Anleitung</a>
+                <a href="./faq.html" target="_blank" class="block py-2 px-4 text-lg text-slate-300 hover:bg-slate-700 rounded-md">FAQ</a>
+            `;
+
             if (isLoggedIn) {
-                userSection.innerHTML = `
-                    <div class="text-right">
-                        <p class="text-slate-300 font-semibold">${currentUser.displayName || currentUser.email}</p>
-                        <a href="#" id="account-btn" class="text-sm text-cyan-400 hover:underline">Mein Konto</a> | 
-                        <a href="#" id="logout-btn" class="text-sm text-cyan-400 hover:underline">Ausloggen</a>
+                menuNav.innerHTML = `
+                    <div class="px-4 pb-2">
+                        <p class="text-slate-400 text-sm">Eingeloggt als</p>
+                        <p class="text-lg text-slate-100 font-semibold truncate">${currentUser.displayName || currentUser.email}</p>
                     </div>
+                    <a href="#" id="account-btn" class="block py-2 px-4 text-lg text-slate-300 hover:bg-slate-700 rounded-md">Mein Konto</a>
+                    <hr class="border-slate-700 my-2">
+                    ${menuHTML}
+                    <hr class="border-slate-700 my-2">
+                    <a href="#" id="logout-btn" class="block py-2 px-4 text-lg text-slate-300 hover:bg-slate-700 rounded-md">Ausloggen</a>
                 `;
-                document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); signOut(auth); });
+                
+                document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); signOut(auth); toggleMenu(); });
                 document.getElementById('account-btn').addEventListener('click', (e) => { 
                     e.preventDefault(); 
                     document.getElementById('account-name').textContent = currentUser.displayName || 'Nicht festgelegt';
@@ -414,14 +434,20 @@
                     document.getElementById('request-deletion-btn').disabled = false;
                     document.getElementById('request-deletion-btn').textContent = 'Löschung anfragen';
                     document.getElementById('deletion-feedback').textContent = '';
+                    toggleMenu();
                     showModal(accountModal); 
                 });
+
                 if (!currentUser.emailVerified) {
                     verificationBanner.classList.remove('hidden');
                 }
             } else {
-                userSection.innerHTML = `<button id="login-register-btn" class="bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg">Login / Registrieren</button>`;
-                document.getElementById('login-register-btn').addEventListener('click', () => showModal(authModal));
+                menuNav.innerHTML = `
+                    <a href="#" id="login-register-btn" class="block py-2 px-4 text-lg text-slate-300 hover:bg-slate-700 rounded-md">Login / Registrieren</a>
+                    <hr class="border-slate-700 my-2">
+                    ${menuHTML}
+                `;
+                document.getElementById('login-register-btn').addEventListener('click', (e) => { e.preventDefault(); toggleMenu(); showModal(authModal); });
             }
         }
         
