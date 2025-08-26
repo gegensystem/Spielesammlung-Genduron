@@ -36,8 +36,14 @@
                 <h1 class="text-3xl font-bold text-cyan-400">📜🎲 Questboard</h1>
                 <p class="text-slate-400 mt-1">Finde Mitspieler für deine nächste Runde.</p>
             </div>
-            <div id="user-section">
-                <!-- Login/Logout buttons will be inserted here -->
+            <div class="flex items-center gap-4">
+                <div id="user-section">
+                    <!-- Login/Logout buttons will be inserted here -->
+                </div>
+                <a href="https://www.paypal.com/ncp/payment/Q47XPP7KQQVLQ" target="_blank" rel="noopener noreferrer" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 transition-transform transform hover:scale-105">
+                    <span>☕</span>
+                    <span class="hidden sm:inline">Unterstützen</span>
+                </a>
             </div>
         </div>
     </header>
@@ -88,8 +94,9 @@
     
     <!-- Footer -->
     <footer class="text-center py-8 mt-8 text-slate-500 border-t border-slate-800">
-        <div class="container mx-auto px-4 max-w-5xl">
-            <a href="#" id="imprint-link" class="hover:text-cyan-400 transition">Impressum</a> | 
+        <div class="container mx-auto px-4 max-w-5xl space-x-4">
+            <a href="#" id="imprint-link" class="hover:text-cyan-400 transition">Impressum</a>
+            <span>|</span>
             <a href="#" id="privacy-link" class="hover:text-cyan-400 transition">Datenschutz</a>
         </div>
     </footer>
@@ -190,67 +197,60 @@
         </div>
     </div>
 
-<!-- START: Impressum Modal -->
-<!-- ANLEITUNG: Kopiere diesen gesamten Block und ersetze damit den bestehenden Block, der mit <div id="imprint-modal" ...> beginnt. -->
-<div id="imprint-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
-    <div class="bg-slate-800 p-8 rounded-lg shadow-2xl w-full max-w-lg m-4 modal-enter relative flex flex-col">
-         <button id="close-imprint-modal" class="absolute top-4 right-4 text-slate-500 hover:text-white text-2xl z-10">&times;</button>
-         <h2 class="text-2xl font-bold mb-6 flex-shrink-0">Impressum</h2>
-         <div class="text-slate-300 space-y-4 text-sm max-h-[60vh] overflow-y-auto pr-4">
-            <h3 class="font-semibold text-slate-100 text-base">Angaben gemäß § 5 ECG</h3>
-            <p>
-                Dipl.-Ing. Ing. Andreas E. Neuhold, BSc.<br>
-                Haushoferstraße 25<br>
-                4020 Linz<br>
-                Österreich
-            </p>
-            
-            <h3 class="font-semibold text-slate-100 text-base mt-4">Kontakt</h3>
-            <p>
-                Telefon: +43 677 624 639 01<br>
-                E-Mail: andreas.neuhold@gmail.com
-            </p>
+    <!-- Imprint Modal -->
+    <div id="imprint-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="bg-slate-800 p-8 rounded-lg shadow-2xl w-full max-w-lg m-4 modal-enter relative flex flex-col">
+             <button id="close-imprint-modal" class="absolute top-4 right-4 text-slate-500 hover:text-white text-2xl z-10">&times;</button>
+             <h2 class="text-2xl font-bold mb-6 flex-shrink-0">Impressum</h2>
+             <div class="text-slate-300 space-y-4 text-sm max-h-[60vh] overflow-y-auto pr-4">
+                <h3 class="font-semibold text-slate-100 text-base">Angaben gemäß § 5 ECG</h3>
+                <p>
+                    Dipl.-Ing. Ing. Andreas E. Neuhold, BSc.<br>
+                    Haushoferstraße 25<br>
+                    4020 Linz<br>
+                    Österreich
+                </p>
+                
+                <h3 class="font-semibold text-slate-100 text-base mt-4">Kontakt</h3>
+                <p>
+                    Telefon: +43 677 624 639 01<br>
+                    E-Mail: andreas.neuhold@gmail.com
+                </p>
 
-            <h3 class="font-semibold text-slate-100 text-base mt-4">Ausrichtung der Webseite</h3>
-            <p>
-                Plattform zur Organisation von Spieletreffen. Die Nutzung der Seite ist kostenlos. Es besteht die Möglichkeit, das Projekt durch freiwillige Zuwendungen (Trinkgelder) zu unterstützen, die über externe Zahlungsdienstleister abgewickelt werden.
-            </p>
+                <h3 class="font-semibold text-slate-100 text-base mt-4">Ausrichtung der Webseite</h3>
+                <p>
+                    Plattform zur Organisation von Spieletreffen. Die Nutzung der Seite ist kostenlos. Es besteht die Möglichkeit, das Projekt durch freiwillige Zuwendungen (Trinkgelder) zu unterstützen, die über externe Zahlungsdienstleister abgewickelt werden.
+                </p>
 
-            <h3 class="font-semibold text-slate-100 text-base mt-4">Online-Streitbeilegung</h3>
-            <p>
-                Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: 
-                <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:underline">
-                    https://ec.europa.eu/consumers/odr
-                </a>. 
-                Unsere E-Mail-Adresse findest du oben im Impressum. Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.
-            </p>
-         </div>
+                <h3 class="font-semibold text-slate-100 text-base mt-4">Online-Streitbeilegung</h3>
+                <p>
+                    Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: 
+                    <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:underline">
+                        https://ec.europa.eu/consumers/odr
+                    </a>. 
+                    Unsere E-Mail-Adresse findest du oben im Impressum. Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.
+                </p>
+             </div>
+        </div>
     </div>
-</div>
-<!-- END: Impressum Modal -->
 
-
-<!-- START: Privacy Modal -->
-<!-- ANLEITUNG: Kopiere diesen gesamten Block und ersetze damit den bestehenden Block, der mit <div id="privacy-modal" ...> beginnt. -->
-<div id="privacy-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
-    <div class="bg-slate-800 p-8 rounded-lg shadow-2xl w-full max-w-lg m-4 modal-enter relative flex flex-col">
-         <button id="close-privacy-modal" class="absolute top-4 right-4 text-slate-500 hover:text-white text-2xl z-10">&times;</button>
-         <h2 class="text-2xl font-bold mb-6 flex-shrink-0">Datenschutzerklärung</h2>
-         <div class="text-slate-300 space-y-4 text-sm max-h-[60vh] overflow-y-auto pr-4">
-            <p>Der Schutz deiner persönlichen Daten ist uns wichtig. Nachfolgend informieren wir dich über die Verarbeitung deiner personenbezogenen Daten.</p>
-            <p><strong class="text-slate-100">Verantwortlicher:</strong> Andreas Neuhold, andreas.neuhold@gmail.com</p>
-            <p><strong class="text-slate-100">Zweck der Datenverarbeitung:</strong> Die Verarbeitung deiner Daten (Anzeigename, E-Mail-Adresse) dient ausschließlich der Organisation von Spielrunden über diese Webseite. Dies umfasst das Erstellen von Spielrunden (Quests), die Teilnahme an diesen und die Verwaltung deines Benutzerkontos.</p>
-            <p><strong class="text-slate-100">Datenweitergabe:</strong> Deine Daten werden grundsätzlich nicht an Dritte weitergegeben.</p>
-            <p><strong class="text-slate-100">Freiwillige Zuwendungen (Trinkgelder):</strong> Auf unserer Webseite besteht die Möglichkeit, das Projekt durch freiwillige Zuwendungen zu unterstützen. Wenn du dich dafür entscheidest, wirst du zu einem externen Zahlungsdienstleister (z.B. PayPal) weitergeleitet. Wir selbst erheben oder speichern keine Zahlungsdaten wie Kreditkartennummern oder Bankverbindungen. Die gesamte Zahlungsabwicklung erfolgt ausschließlich über die sicheren Server des jeweiligen Anbieters. Es gelten die Datenschutzbestimmungen des jeweiligen Zahlungsdienstleisters.</p>
-            <p><strong class="text-slate-100">Speicherung:</strong> Die Datenverarbeitung erfolgt mithilfe einer Firebase Datenbank von Google. Der Serverstandort ist Frankfurt (Deutschland). Mit Google wurde ein Auftragsverarbeitungsvertrag abgeschlossen, der den Schutz deiner Daten gewährleistet.</p>
-            <p><strong class="text-slate-100">Deine Rechte:</strong> Du hast das Recht auf Auskunft, Berichtigung und Löschung deiner Daten. Für die Löschung deines Kontos und der damit verbundenen Daten, kontaktiere bitte den oben genannten Verantwortlichen.</p>
-            <p><strong class="text-slate-100">Anwendbares Recht und Gerichtsstand:</strong> Es gilt österreichisches Recht. Der Gerichtsstand ist Linz.</p>
-         </div>
+    <!-- Privacy Modal -->
+    <div id="privacy-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="bg-slate-800 p-8 rounded-lg shadow-2xl w-full max-w-lg m-4 modal-enter relative flex flex-col">
+             <button id="close-privacy-modal" class="absolute top-4 right-4 text-slate-500 hover:text-white text-2xl z-10">&times;</button>
+             <h2 class="text-2xl font-bold mb-6 flex-shrink-0">Datenschutzerklärung</h2>
+             <div class="text-slate-300 space-y-4 text-sm max-h-[60vh] overflow-y-auto pr-4">
+                <p>Der Schutz deiner persönlichen Daten ist uns wichtig. Nachfolgend informieren wir dich über die Verarbeitung deiner personenbezogenen Daten.</p>
+                <p><strong class="text-slate-100">Verantwortlicher:</strong> Andreas Neuhold, andreas.neuhold@gmail.com</p>
+                <p><strong class="text-slate-100">Zweck der Datenverarbeitung:</strong> Die Verarbeitung deiner Daten (Anzeigename, E-Mail-Adresse) dient ausschließlich der Organisation von Spielrunden über diese Webseite. Dies umfasst das Erstellen von Spielrunden (Quests), die Teilnahme an diesen und die Verwaltung deines Benutzerkontos.</p>
+                <p><strong class="text-slate-100">Datenweitergabe:</strong> Deine Daten werden grundsätzlich nicht an Dritte weitergegeben.</p>
+                <p><strong class="text-slate-100">Freiwillige Zuwendungen (Trinkgelder):</strong> Auf unserer Webseite besteht die Möglichkeit, das Projekt durch freiwillige Zuwendungen zu unterstützen. Wenn du dich dafür entscheidest, wirst du zu einem externen Zahlungsdienstleister (z.B. PayPal) weitergeleitet. Wir selbst erheben oder speichern keine Zahlungsdaten wie Kreditkartennummern oder Bankverbindungen. Die gesamte Zahlungsabwicklung erfolgt ausschließlich über die sicheren Server des jeweiligen Anbieters. Es gelten die Datenschutzbestimmungen des jeweiligen Zahlungsdienstleisters.</p>
+                <p><strong class="text-slate-100">Speicherung:</strong> Die Datenverarbeitung erfolgt mithilfe einer Firebase Datenbank von Google. Der Serverstandort ist Frankfurt (Deutschland). Mit Google wurde ein Auftragsverarbeitungsvertrag abgeschlossen, der den Schutz deiner Daten gewährleistet.</p>
+                <p><strong class="text-slate-100">Deine Rechte:</strong> Du hast das Recht auf Auskunft, Berichtigung und Löschung deiner Daten. Für die Löschung deines Kontos und der damit verbundenen Daten, kontaktiere bitte den oben genannten Verantwortlichen.</p>
+                <p><strong class="text-slate-100">Anwendbares Recht und Gerichtsstand:</strong> Es gilt österreichisches Recht. Der Gerichtsstand ist Linz.</p>
+             </div>
+        </div>
     </div>
-</div>
-<!-- END: Privacy Modal -->
-
-
 
 
     <!-- Firebase and App Logic -->
