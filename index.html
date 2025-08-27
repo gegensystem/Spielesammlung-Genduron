@@ -59,19 +59,15 @@
             <a href="https://www.genduron.com/" target="_blank" rel="noopener noreferrer" class="text-lg text-blue-400 hover:text-blue-300 transition-colors">GENDURON</a>
         </header>
 
-        <div id="stats-section" class="mb-8 text-center p-4 bg-gray-800/50 rounded-lg border border-gray-700">
-            <div id="total-games" class="text-2xl text-white mb-4"></div>
-            <div id="category-stats" class="flex flex-wrap justify-center gap-x-4 gap-y-2 text-gray-400"></div>
+        <!-- Überarbeitete Sektion für Statistiken und Kategorie-Buttons -->
+        <div id="stats-section" class="mb-8 p-4 bg-gray-800/50 rounded-lg border border-gray-700">
+            <div id="total-games" class="text-2xl text-white mb-4 text-center"></div>
+            <div id="category-buttons" class="flex flex-wrap justify-center gap-2"></div>
         </div>
 
-        <div class="bg-gray-800 p-4 rounded-lg mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sticky top-4 z-10 shadow-lg border border-gray-700">
-            <div class="lg:col-span-2">
+        <div class="bg-gray-800 p-4 rounded-lg mb-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sticky top-4 z-10 shadow-lg border border-gray-700">
+            <div class="lg:col-span-1">
                 <input type="text" id="search-input" placeholder="Spiel suchen oder z.B. <30min" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
-            <div>
-                 <select id="category-filter" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none">
-                    <option value="all">Alle Kategorien</option>
-                </select>
             </div>
             <div>
                  <select id="players-filter" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none">
@@ -274,9 +270,10 @@
         games.sort((a, b) => a.name.localeCompare(b.name)); // Sortiert die Spiele alphabetisch
 
         // --- ANWENDUNGSLOGIK ---
+        let selectedCategories = [];
+
         document.addEventListener('DOMContentLoaded', () => {
             const searchInput = document.getElementById('search-input');
-            const categoryFilter = document.getElementById('category-filter');
             const playersFilter = document.getElementById('players-filter');
             const durationFilter = document.getElementById('duration-filter');
             const tableBody = document.getElementById('game-table-body');
@@ -286,32 +283,77 @@
 
             function renderStats() {
                 const totalGamesDiv = document.getElementById('total-games');
-                const categoryStatsDiv = document.getElementById('category-stats');
-
                 totalGamesDiv.innerHTML = `Insgesamt <span class="font-bold text-blue-400">${games.length}</span> Spiele in der Sammlung`;
-
-                const categoryCounts = games.reduce((acc, game) => {
-                    acc[game.category] = (acc[game.category] || 0) + 1;
-                    return acc;
-                }, {});
-
-                let statsHTML = '';
-                Object.keys(categoryCounts).sort().forEach(category => {
-                    statsHTML += `<span class="bg-gray-700 px-3 py-1 rounded-full text-sm whitespace-nowrap">${category}: ${categoryCounts[category]}</span>`;
-                });
-                categoryStatsDiv.innerHTML = statsHTML;
             }
 
-            function populateCategories() {
+            function populateCategoryButtons() {
+                const categoryButtonsDiv = document.getElementById('category-buttons');
                 const categories = [...new Set(games.map(game => game.category))];
                 categories.sort();
+
+                // "Alle" Button
+                const allButton = document.createElement('button');
+                allButton.textContent = 'Alle';
+                allButton.className = 'px-3 py-1 rounded-full text-sm font-semibold transition-colors bg-blue-600 text-white'; // Active by default
+                allButton.dataset.category = 'all';
+                allButton.addEventListener('click', handleCategoryClick);
+                categoryButtonsDiv.appendChild(allButton);
+
                 categories.forEach(category => {
-                    const option = document.createElement('option');
-                    option.value = category;
-                    option.textContent = category;
-                    categoryFilter.appendChild(option);
+                    const button = document.createElement('button');
+                    const count = games.filter(g => g.category === category).length;
+                    button.textContent = `${category} (${count})`;
+                    button.className = 'px-3 py-1 rounded-full text-sm font-semibold transition-colors bg-gray-700 text-gray-300 hover:bg-gray-600';
+                    button.dataset.category = category;
+                    button.addEventListener('click', handleCategoryClick);
+                    categoryButtonsDiv.appendChild(button);
                 });
             }
+
+            function handleCategoryClick(event) {
+                const clickedCategory = event.target.dataset.category;
+                
+                if (clickedCategory === 'all') {
+                    selectedCategories = [];
+                } else {
+                    const index = selectedCategories.indexOf(clickedCategory);
+                    if (index > -1) {
+                        selectedCategories.splice(index, 1); // Remove category
+                    } else {
+                        selectedCategories.push(clickedCategory); // Add category
+                    }
+                }
+                
+                updateCategoryButtonsStyle();
+                filterAndRender();
+            }
+
+            function updateCategoryButtonsStyle() {
+                const buttons = document.querySelectorAll('#category-buttons button');
+                buttons.forEach(button => {
+                    const category = button.dataset.category;
+                    if (category === 'all') {
+                        if (selectedCategories.length === 0) {
+                            button.className = 'px-3 py-1 rounded-full text-sm font-semibold transition-colors bg-blue-600 text-white';
+                        } else {
+                            button.className = 'px-3 py-1 rounded-full text-sm font-semibold transition-colors bg-gray-700 text-gray-300 hover:bg-gray-600';
+                        }
+                    } else {
+                        if (selectedCategories.includes(category)) {
+                            button.className = 'px-3 py-1 rounded-full text-sm font-semibold transition-colors bg-blue-600 text-white';
+                        } else {
+                            button.className = 'px-3 py-1 rounded-full text-sm font-semibold transition-colors bg-gray-700 text-gray-300 hover:bg-gray-600';
+                        }
+                    }
+                });
+
+                 // Wenn eine spezifische Kategorie ausgewählt wird, deaktiviere "Alle"
+                const allButton = document.querySelector('#category-buttons button[data-category="all"]');
+                if (selectedCategories.length > 0) {
+                    allButton.className = 'px-3 py-1 rounded-full text-sm font-semibold transition-colors bg-gray-700 text-gray-300 hover:bg-gray-600';
+                }
+            }
+
 
             function renderTable(filteredGames) {
                 tableBody.innerHTML = '';
@@ -360,7 +402,6 @@
 
             function filterAndRender() {
                 const searchTerm = searchInput.value.toLowerCase();
-                const selectedCategory = categoryFilter.value;
                 const selectedPlayers = parseInt(playersFilter.value, 10);
                 const selectedDuration = parseInt(durationFilter.value, 10);
 
@@ -377,14 +418,13 @@
 
                 const filteredGames = games.filter(game => {
                     const nameMatch = game.name.toLowerCase().includes(searchTerm);
-                    const categoryMatch = selectedCategory === 'all' || game.category === selectedCategory;
+                    const categoryMatch = selectedCategories.length === 0 || selectedCategories.includes(game.category);
                     
-                    // Angepasste Logik für Spielerzahl
                     let playersMatch = true;
                     if (selectedPlayers > 0) {
                         if (selectedPlayers < 7) {
                             playersMatch = game.minPlayers <= selectedPlayers && game.maxPlayers >= selectedPlayers;
-                        } else { // Für "7+ Spieler"
+                        } else {
                             playersMatch = game.maxPlayers >= 7;
                         }
                     }
@@ -406,7 +446,7 @@
                 renderTable(filteredGames);
             }
 
-            [searchInput, categoryFilter, playersFilter, durationFilter].forEach(el => {
+            [searchInput, playersFilter, durationFilter].forEach(el => {
                 el.addEventListener('input', filterAndRender);
                 el.addEventListener('change', filterAndRender);
             });
@@ -419,7 +459,7 @@
             });
 
             // Initiale Einrichtung
-            populateCategories();
+            populateCategoryButtons();
             renderTable(games);
             renderStats();
         });
