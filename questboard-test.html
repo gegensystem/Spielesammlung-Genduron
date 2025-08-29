@@ -331,6 +331,7 @@
         // --- Auth State & UI ---
         onAuthStateChanged(auth, async (user) => {
             if (verificationCheckInterval) clearInterval(verificationCheckInterval);
+            const wasJustLoggedIn = !currentUser && user;
             currentUser = user ? { uid: user.uid, displayName: user.displayName, email: user.email, emailVerified: user.emailVerified } : null;
             
             updateUserUI(!!user);
@@ -338,23 +339,35 @@
             listenToGames(); // Start listening to all games for the main page view
 
             const urlParams = new URLSearchParams(window.location.search);
-            const sharedQuestId = urlParams.get('quest');
-            if (sharedQuestId) {
-                const newUrl = new URL(window.location.href);
-                newUrl.searchParams.delete('quest');
-                window.history.replaceState({}, document.title, newUrl.href);
+            const sharedQuestId = urlParams.get('quest') || sharedQuestContent.dataset.questId;
 
-                const questRef = doc(db, "spielrunden", sharedQuestId);
-                try {
+            if (sharedQuestId) {
+                if(wasJustLoggedIn && !sharedQuestModal.classList.contains('hidden')) {
+                    // User just logged in from the shared modal, so we need to refresh it.
+                    const questRef = doc(db, "spielrunden", sharedQuestId);
                     const docSnap = await getDoc(questRef);
                     if (docSnap.exists()) {
                         renderSharedQuestModal(docSnap.data(), docSnap.id);
-                        showModal(sharedQuestModal);
                     }
-                } catch (error) {
-                    console.error("Error fetching shared quest:", error);
+                } else if (!wasJustLoggedIn && sharedQuestId && sharedQuestModal.classList.contains('hidden')) {
+                    // New page load with a shared quest ID
+                    const newUrl = new URL(window.location.href);
+                    newUrl.searchParams.delete('quest');
+                    window.history.replaceState({}, document.title, newUrl.href);
+
+                    const questRef = doc(db, "spielrunden", sharedQuestId);
+                    try {
+                        const docSnap = await getDoc(questRef);
+                        if (docSnap.exists()) {
+                            renderSharedQuestModal(docSnap.data(), docSnap.id);
+                            showModal(sharedQuestModal);
+                        }
+                    } catch (error) {
+                        console.error("Error fetching shared quest:", error);
+                    }
                 }
             }
+
 
             if (user && !user.emailVerified) {
                 verificationCheckInterval = setInterval(async () => {
@@ -485,6 +498,7 @@
         }
 
         function renderSharedQuestModal(game, gameId) {
+            sharedQuestContent.dataset.questId = gameId; // Store quest ID for refresh
             const isCreator = currentUser && currentUser.uid === game.creatorId;
             const isParticipant = currentUser && game.participants.some(p => p.uid === currentUser.uid); 
             const participantsCount = game.participants.length; 
@@ -503,7 +517,7 @@
                 <div class="flex justify-between items-start">
                     <h3 class="text-3xl font-bold text-cyan-400 mb-2">${game.gameName}</h3>
                      <div class="flex items-center gap-2 text-xl relative z-10">
-                        ${isCreator ? `<button class="edit-game-btn text-slate-500 hover:text-cyan-400" title="Quest bearbeiten" data-game-id="${gameId}">✏️</button><button class="cancel-game-btn text-slate-500 hover:text-red-400" title="Quest absagen" data-game-id="${gameId}">⨷</button>` : ''}
+                        ${isCreator ? `<button class="edit-game-btn text-slate-500 hover:text-cyan-400" title="Quest bearbeiten" data-game-id="${gameId}">✏️</button>` : ''}
                     </div>
                 </div>
                 <p class="text-slate-400 mb-2">von <span class="font-semibold">${game.creatorName}</span></p>
@@ -561,12 +575,7 @@
                     hideModal(sharedQuestModal);
                     const docSnap = await getDoc(gameRef);
                     if (docSnap.exists()) { openEditModalWithData(docSnap.data(), docSnap.id); }
-                } else if (target.classList.contains('cancel-game-btn')) {
-                    if (confirm('Möchtest du dieses Quest wirklich absagen?')) {
-                        await updateDoc(gameRef, { cancelled: true });
-                        hideModal(sharedQuestModal);
-                    }
-                }
+                } 
             } catch (error) {
                 console.error("Fehler bei der Aktion im geteilten Quest:", error);
                 alert("Ein Fehler ist aufgetreten.");
