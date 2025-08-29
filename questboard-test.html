@@ -68,7 +68,6 @@
                 <div class="flex flex-col sm:flex-row gap-4">
                      <div class="flex gap-4">
                         <input type="text" id="name-filter" placeholder="Nach Spiel suchen..." class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:w-auto">
-                        <input type="text" id="location-filter" placeholder="Nach Ort suchen..." class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:w-auto">
                     </div>
                 </div>
                 <div id="day-filter-container" class="flex gap-2 p-1 bg-slate-800 rounded-lg">
@@ -82,6 +81,15 @@
                     <button class="filter-btn day-filter-btn px-2 py-1 rounded-md transition" data-day="0">So</button>
                 </div>
             </div>
+        </div>
+         <!-- Location Filter -->
+        <div id="location-filter-container" class="mb-6 flex flex-wrap justify-center gap-2 p-2 bg-slate-800/50 rounded-lg">
+            <button class="filter-btn location-filter-btn active px-3 py-1 rounded-md transition" data-location="all">Alle Orte</button>
+            <button class="filter-btn location-filter-btn px-3 py-1 rounded-md transition" data-location="Genduron">Genduron</button>
+            <button class="filter-btn location-filter-btn px-3 py-1 rounded-md transition" data-location="Knobelritter">Knobelritter</button>
+            <button class="filter-btn location-filter-btn px-3 py-1 rounded-md transition" data-location="Spieleversum">Spieleversum</button>
+            <button class="filter-btn location-filter-btn px-3 py-1 rounded-md transition" data-location="Games Toys and more">Games Toys and more</button>
+            <button class="filter-btn location-filter-btn px-3 py-1 rounded-md transition" data-location="Hausruck">Hausruck</button>
         </div>
         <!-- Game List -->
         <div id="game-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -101,6 +109,12 @@
     </footer>
 
     <!-- All Modals -->
+    <!-- Shared Quest Modal -->
+    <div id="shared-quest-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div id="shared-quest-content" class="bg-slate-800 p-8 rounded-lg shadow-2xl w-full max-w-lg m-4 modal-enter relative">
+            <!-- Content will be injected here -->
+        </div>
+    </div>
     <!-- Auth Modal -->
     <div id="auth-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
         <div class="bg-slate-800 p-8 rounded-lg shadow-2xl w-full max-w-md m-4 modal-enter relative">
@@ -136,6 +150,10 @@
                     <label for="location-type" class="block text-slate-400 mb-2">Spielort</label>
                     <select id="location-type" class="w-full bg-slate-700 p-2 rounded-md">
                         <option value="Genduron">Genduron</option>
+                        <option value="Knobelritter">Knobelritter</option>
+                        <option value="Spieleversum">Spieleversum</option>
+                        <option value="Games Toys and more">Games Toys and more</option>
+                        <option value="Hausruck">Hausruck</option>
                         <option value="other">Anderer Ort...</option>
                     </select>
                 </div>
@@ -218,17 +236,13 @@
         let db, auth;
         let currentUser = null;
         let verificationCheckInterval = null;
-        let sharedQuestId = null;
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
-            const urlParams = new URLSearchParams(window.location.search);
-            sharedQuestId = urlParams.get('quest');
         } catch (e) { console.error("Error initializing Firebase: ", e); }
 
         // --- DOM Elements ---
-        const userSection = document.getElementById('user-section');
         const gameList = document.getElementById('game-list');
         const addEditGameModal = document.getElementById('add-edit-game-modal');
         const addEditGameForm = document.getElementById('add-edit-game-form');
@@ -247,30 +261,21 @@
         const warningDiv = document.getElementById('opening-hours-warning');
         const locationTypeSelect = document.getElementById('location-type');
         const customLocationContainer = document.getElementById('custom-location-container');
-        const locationFilterInput = document.getElementById('location-filter');
         const nameFilterInput = document.getElementById('name-filter');
         const dayFilterContainer = document.getElementById('day-filter-container');
+        const locationFilterContainer = document.getElementById('location-filter-container');
         const sideMenu = document.getElementById('side-menu');
         const menuOverlay = document.getElementById('menu-overlay');
         const menuToggleBtn = document.getElementById('menu-toggle-btn');
         const sideMenuContent = document.getElementById('side-menu-content');
+        const sharedQuestModal = document.getElementById('shared-quest-modal');
+        const sharedQuestContent = document.getElementById('shared-quest-content');
 
         // --- Helper Functions ---
         function showModal(modal) { modal.classList.remove('hidden'); }
         function hideModal(modal) { modal.classList.add('hidden'); }
         function openMenu() { sideMenu.classList.remove('translate-x-full'); menuOverlay.classList.remove('hidden'); }
         function closeMenu() { sideMenu.classList.add('translate-x-full'); menuOverlay.classList.add('hidden'); }
-
-        function highlightAndScrollToQuest(questId) {
-            const card = document.querySelector(`.quest-card[data-id='${questId}']`);
-            if (card) {
-                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                card.classList.add('highlight-quest');
-                setTimeout(() => {
-                    card.classList.remove('highlight-quest');
-                }, 2500);
-            }
-        }
 
         // --- Event Listeners ---
         menuToggleBtn.addEventListener('click', openMenu);
@@ -279,32 +284,68 @@
         // --- Filter Logic ---
         function applyFilters() {
             const selectedDays = Array.from(dayFilterContainer.querySelectorAll('.day-filter-btn.active')).map(btn => btn.dataset.day);
-            const locationText = locationFilterInput.value.toLowerCase().trim();
+            const selectedLocations = Array.from(locationFilterContainer.querySelectorAll('.location-filter-btn.active')).map(btn => btn.dataset.location);
             const nameText = nameFilterInput.value.toLowerCase().trim();
 
             gameList.querySelectorAll('.quest-card').forEach(card => {
                 const cardDay = card.dataset.gameDay;
-                const cardLocation = card.dataset.location.toLowerCase();
+                const cardLocation = card.dataset.location;
                 const cardName = card.dataset.questName.toLowerCase();
 
                 const dayMatch = selectedDays.includes('all') || selectedDays.length === 0 || selectedDays.includes(cardDay);
-                const locationMatch = (locationText === '' || cardLocation.includes(locationText));
+                const locationMatch = selectedLocations.includes('all') || selectedLocations.length === 0 || selectedLocations.includes(cardLocation);
                 const nameMatch = (nameText === '' || cardName.includes(nameText));
 
                 card.style.display = (dayMatch && locationMatch && nameMatch) ? 'flex' : 'none';
             });
         }
         dayFilterContainer.addEventListener('click', (e) => { if (e.target.classList.contains('day-filter-btn')) { const clickedDay = e.target.dataset.day; if (clickedDay === 'all') { dayFilterContainer.querySelectorAll('.day-filter-btn').forEach(btn => btn.classList.remove('active')); e.target.classList.add('active'); } else { dayFilterContainer.querySelector('[data-day="all"]').classList.remove('active'); e.target.classList.toggle('active'); if (dayFilterContainer.querySelectorAll('.day-filter-btn.active').length === 0) { dayFilterContainer.querySelector('[data-day="all"]').classList.add('active'); } } applyFilters(); } });
-        locationFilterInput.addEventListener('input', applyFilters);
+        locationFilterContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('location-filter-btn')) {
+                const clickedLocation = e.target.dataset.location;
+                if (clickedLocation === 'all') {
+                    locationFilterContainer.querySelectorAll('.location-filter-btn').forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                } else {
+                    locationFilterContainer.querySelector('[data-location="all"]').classList.remove('active');
+                    e.target.classList.toggle('active');
+                    if (locationFilterContainer.querySelectorAll('.location-filter-btn.active').length === 0) {
+                        locationFilterContainer.querySelector('[data-location="all"]').classList.add('active');
+                    }
+                }
+                applyFilters();
+            }
+        });
         nameFilterInput.addEventListener('input', applyFilters);
 
         // --- Auth State & UI ---
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
             if (verificationCheckInterval) clearInterval(verificationCheckInterval);
             currentUser = user ? { uid: user.uid, displayName: user.displayName, email: user.email, emailVerified: user.emailVerified } : null;
+            
             updateUserUI(!!user);
             updateSideMenu(!!user);
-            listenToGames();
+            listenToGames(); // Start listening to all games for the main page view
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const sharedQuestId = urlParams.get('quest');
+            if (sharedQuestId) {
+                const newUrl = new URL(window.location.href);
+                newUrl.searchParams.delete('quest');
+                window.history.replaceState({}, document.title, newUrl.href);
+
+                const questRef = doc(db, "spielrunden", sharedQuestId);
+                try {
+                    const docSnap = await getDoc(questRef);
+                    if (docSnap.exists()) {
+                        renderSharedQuestModal(docSnap.data(), docSnap.id);
+                        showModal(sharedQuestModal);
+                    }
+                } catch (error) {
+                    console.error("Error fetching shared quest:", error);
+                }
+            }
+
             if (user && !user.emailVerified) {
                 verificationCheckInterval = setInterval(async () => {
                     const freshUser = auth.currentUser;
@@ -353,7 +394,6 @@
             }
             sideMenuContent.innerHTML = menuHTML;
 
-            // Re-attach event listeners for dynamically created elements
             document.getElementById('close-menu-btn').addEventListener('click', closeMenu);
             if(isLoggedIn) {
                 document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); signOut(auth); closeMenu(); });
@@ -379,10 +419,6 @@
                     } else { 
                         snapshot.docs.forEach(doc => gameList.appendChild(renderGame(doc))); 
                         applyFilters(); 
-                        if (sharedQuestId) {
-                            highlightAndScrollToQuest(sharedQuestId);
-                            sharedQuestId = null; // Clear after first use
-                        }
                     } 
                 } catch (error) { console.error("Error during snapshot processing:", error); } 
             }, (error) => { console.error("Firestore Error:", error); gameList.innerHTML = '<p class="text-red-400 text-center col-span-full">Fehler beim Laden der Quests. Prüfe die Datenbank-Regeln.</p>'; }); 
@@ -438,15 +474,69 @@
             return card;
         }
 
+        function renderSharedQuestModal(game, gameId) {
+            const isParticipant = currentUser && game.participants.some(p => p.uid === currentUser.uid); 
+            const participantsCount = game.participants.length; 
+            const freeSeats = game.totalSeats - participantsCount; 
+            const isFull = freeSeats <= 0; 
+            const isCancelled = game.cancelled || false; 
+            const gameDate = game.dateTime.toDate(); 
+            const formattedDate = gameDate.toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: '2-digit' }); 
+            const formattedTime = gameDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }); 
+            let participantsHTML = game.participants.map(p => `<span class="bg-slate-700 text-slate-300 text-sm font-medium mr-2 mb-2 px-2.5 py-1 rounded-full">${p.displayName}</span>`).join(''); 
+            let tagsHTML = (game.tags && game.tags.length > 0) ? game.tags.map(tag => `<span class="bg-cyan-800 text-cyan-200 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join('') : ''; 
+            
+            sharedQuestContent.innerHTML = `
+                <button id="close-shared-quest-modal" class="absolute top-4 right-4 text-slate-500 hover:text-white text-2xl">&times;</button>
+                ${isCancelled ? '<div class="absolute inset-0 bg-red-900/70 flex items-center justify-center rounded-lg z-10"><span class="text-2xl font-bold text-white transform -rotate-12">ABGESAGT</span></div>' : ''}
+                <div class="flex justify-between items-start">
+                    <h3 class="text-3xl font-bold text-cyan-400 mb-2">${game.gameName}</h3>
+                </div>
+                <p class="text-slate-400 mb-2">von <span class="font-semibold">${game.creatorName}</span></p>
+                <div class="flex items-center text-slate-400 mb-4 text-base"><svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg><span>${game.location}</span></div>
+                <div class="flex flex-wrap my-4">${tagsHTML}</div>
+                <div class="space-y-2 text-slate-300 my-4">
+                    <div class="flex items-center"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"></path></svg><span>${formattedDate} um ${formattedTime} Uhr</span></div>
+                    ${game.duration ? `<div class="flex items-center"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path></svg><span>ca. ${game.duration} Minuten</span></div>` : ''}
+                    <div class="flex items-center"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 1 1 0 5.292M15 21H3v-1a6 6 0 0 1 12 0v1Zm0 0h6v-1a6 6 0 0 0-9-5.197M15 21a6 6 0 0 0-9-5.197m0 0A5.995 5.995 0 0 0 12 12a5.995 5.995 0 0 0-3-5.197M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path></svg><span class="${isFull ? 'text-red-400' : 'text-green-400'} font-semibold">${freeSeats > 0 ? `${freeSeats} Plätze frei` : 'Runde ist voll'}</span></div>
+                </div>
+                <h4 class="font-semibold text-slate-300 mb-2 mt-6">Teilnehmer (${participantsCount}/${game.totalSeats}):</h4>
+                <div class="flex flex-wrap">${participantsHTML}</div>
+                <div class="mt-8">
+                    <button class="join-leave-btn w-full font-bold py-3 px-4 rounded-lg transition ${isCancelled ? 'bg-slate-700 text-slate-500' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull ? 'bg-slate-700 text-slate-500' : 'bg-cyan-500 hover:bg-cyan-600'))}" data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>
+                        ${isCancelled ? 'Abgesagt' : (isParticipant ? 'Verlassen' : (isFull ? 'Voll' : 'Ich bin dabei!'))}
+                    </button>
+                </div>
+            `;
+            document.getElementById('close-shared-quest-modal').addEventListener('click', () => hideModal(sharedQuestModal));
+        }
+
         // --- All other event listeners ---
-        // (This includes logic for modals, forms, game actions etc.)
-        // This structure remains largely the same as the previous stable version.
-        // Key changes are in filter logic and share button logic.
+        
+        sharedQuestModal.addEventListener('click', async (e) => {
+            const target = e.target.closest('button.join-leave-btn');
+            if (!target) return;
 
-        // ... [The rest of the JS code for handling modals, forms, and game actions goes here, unchanged from the previous stable version to ensure stability] ...
-        // I will paste the full, verified JS block to ensure no mistakes are made.
+            const gameId = target.dataset.gameId;
+            if (!currentUser) { showModal(authModal); return; }
+            if (!currentUser.emailVerified) { alert("Bitte bestätige zuerst deine E-Mail-Adresse."); return; }
+            
+            const gameRef = doc(db, "spielrunden", gameId);
+            try {
+                const docSnap = await getDoc(gameRef);
+                const participants = docSnap.data().participants || [];
+                const participantIndex = participants.findIndex(p => p.uid === currentUser.uid);
+                let newParticipants;
+                if (participantIndex > -1) { newParticipants = participants.filter(p => p.uid !== currentUser.uid); } 
+                else { const participantData = { uid: currentUser.uid, displayName: currentUser.displayName }; newParticipants = [...participants, participantData]; }
+                await updateDoc(gameRef, { participants: newParticipants });
+                hideModal(sharedQuestModal); // Close modal after action
+            } catch (error) {
+                console.error("Fehler bei der Aktion:", error);
+                alert("Ein Fehler ist aufgetreten. Bitte versuche es erneut.");
+            }
+        });
 
-        // --- Full JS Logic Block ---
 
         // Helper functions for modals
         document.getElementById('close-auth-modal').addEventListener('click', () => hideModal(authModal));
@@ -480,7 +570,7 @@
             const gameId = target.dataset.gameId;
             
             if (target.classList.contains('share-quest-btn')) {
-                const url = new URL(window.location.href);
+                const url = new URL(window.location.href.split('?')[0]);
                 url.searchParams.set('quest', gameId);
                 try {
                     await navigator.clipboard.writeText(url.href);
@@ -512,7 +602,17 @@
                     await updateDoc(gameRef, { participants: newParticipants });
                 } else if (target.classList.contains('edit-game-btn')) { 
                     const docSnap = await getDoc(gameRef); 
-                    if (docSnap.exists()) { const game = docSnap.data(); setMinDate(); document.getElementById('edit-game-id').value = gameId; document.getElementById('game-name').value = game.gameName; if (game.location === 'Genduron') { locationTypeSelect.value = 'Genduron'; customLocationContainer.classList.add('hidden'); } else { locationTypeSelect.value = 'other'; document.getElementById('custom-location').value = game.location; customLocationContainer.classList.remove('hidden'); } const date = game.dateTime.toDate(); document.getElementById('game-date').value = date.toISOString().split('T')[0]; document.getElementById('game-time').value = date.toTimeString().slice(0,5); document.getElementById('total-seats').value = game.totalSeats; document.getElementById('game-duration').value = game.duration || ''; document.querySelectorAll('#tags-container input').forEach(checkbox => checkbox.checked = (game.tags && game.tags.includes(checkbox.value))); document.getElementById('modal-title').textContent = 'Quest bearbeiten'; document.getElementById('submit-btn').textContent = 'Änderungen speichern'; document.getElementById('delete-game-btn').classList.remove('hidden'); document.getElementById('organizer-participates-container').style.display = 'none'; document.getElementById('reactivate-game-btn').classList.toggle('hidden', !game.cancelled); showModal(addEditGameModal); } 
+                    if (docSnap.exists()) { const game = docSnap.data(); setMinDate(); document.getElementById('edit-game-id').value = gameId; document.getElementById('game-name').value = game.gameName; 
+                        const predefinedLocations = ["Genduron", "Knobelritter", "Spieleversum", "Games Toys and more", "Hausruck"];
+                        if (predefinedLocations.includes(game.location)) {
+                            locationTypeSelect.value = game.location;
+                            customLocationContainer.classList.add('hidden');
+                        } else {
+                            locationTypeSelect.value = 'other';
+                            document.getElementById('custom-location').value = game.location;
+                            customLocationContainer.classList.remove('hidden');
+                        }
+                    const date = game.dateTime.toDate(); document.getElementById('game-date').value = date.toISOString().split('T')[0]; document.getElementById('game-time').value = date.toTimeString().slice(0,5); document.getElementById('total-seats').value = game.totalSeats; document.getElementById('game-duration').value = game.duration || ''; document.querySelectorAll('#tags-container input').forEach(checkbox => checkbox.checked = (game.tags && game.tags.includes(checkbox.value))); document.getElementById('modal-title').textContent = 'Quest bearbeiten'; document.getElementById('submit-btn').textContent = 'Änderungen speichern'; document.getElementById('delete-game-btn').classList.remove('hidden'); document.getElementById('organizer-participates-container').style.display = 'none'; document.getElementById('reactivate-game-btn').classList.toggle('hidden', !game.cancelled); showModal(addEditGameModal); } 
                 } else if (target.classList.contains('cancel-game-btn')) { 
                     if (confirm('Möchtest du dieses Quest wirklich absagen?')) { await updateDoc(gameRef, { cancelled: true }); } 
                 }
@@ -520,7 +620,14 @@
         });
 
         // Add/Edit form submission
-        addEditGameForm.addEventListener('submit', async (e) => { e.preventDefault(); if (!checkDateTimeValidity()) return; const gameId = document.getElementById('edit-game-id').value; const selectedTags = Array.from(document.querySelectorAll('#tags-container input:checked')).map(el => el.value); const location = locationTypeSelect.value === 'Genduron' ? 'Genduron' : document.getElementById('custom-location').value.trim(); const gameData = { gameName: addEditGameForm['game-name'].value.trim(), location: location, dateTime: Timestamp.fromDate(new Date(`${addEditGameForm['game-date'].value}T${addEditGameForm['game-time'].value}`)), totalSeats: parseInt(addEditGameForm['total-seats'].value), duration: addEditGameForm['game-duration'].value.trim(), tags: selectedTags }; try { if (gameId) { await updateDoc(doc(db, "spielrunden", gameId), gameData); } else { gameData.creatorId = currentUser.uid; gameData.creatorName = currentUser.displayName; gameData.participants = addEditGameForm['organizer-participates'].checked ? [{ uid: currentUser.uid, displayName: currentUser.displayName }] : []; gameData.cancelled = false; await addDoc(collection(db, "spielrunden"), gameData); } hideModal(addEditGameModal); } catch (error) { console.error("Error saving document: ", error); } });
+        addEditGameForm.addEventListener('submit', async (e) => { e.preventDefault(); if (!checkDateTimeValidity()) return; const gameId = document.getElementById('edit-game-id').value; const selectedTags = Array.from(document.querySelectorAll('#tags-container input:checked')).map(el => el.value); 
+            let location;
+            if (locationTypeSelect.value === 'other') {
+                location = document.getElementById('custom-location').value.trim();
+            } else {
+                location = locationTypeSelect.value;
+            }
+        const gameData = { gameName: addEditGameForm['game-name'].value.trim(), location: location, dateTime: Timestamp.fromDate(new Date(`${addEditGameForm['game-date'].value}T${addEditGameForm['game-time'].value}`)), totalSeats: parseInt(addEditGameForm['total-seats'].value), duration: addEditGameForm['game-duration'].value.trim(), tags: selectedTags }; try { if (gameId) { await updateDoc(doc(db, "spielrunden", gameId), gameData); } else { gameData.creatorId = currentUser.uid; gameData.creatorName = currentUser.displayName; gameData.participants = addEditGameForm['organizer-participates'].checked ? [{ uid: currentUser.uid, displayName: currentUser.displayName }] : []; gameData.cancelled = false; await addDoc(collection(db, "spielrunden"), gameData); } hideModal(addEditGameModal); } catch (error) { console.error("Error saving document: ", error); } });
         addGameBtn.addEventListener('click', () => { if (!currentUser) { showModal(authModal); return; } if (!currentUser.emailVerified) { alert("Bitte bestätige zuerst deine E-Mail-Adresse, um ein Quest zu erstellen."); return; } addEditGameForm.reset(); setMinDate(); locationTypeSelect.value = 'Genduron'; customLocationContainer.classList.add('hidden'); checkDateTimeValidity(); document.getElementById('edit-game-id').value = ''; document.getElementById('modal-title').textContent = 'Neues Quest erstellen'; document.getElementById('submit-btn').textContent = 'Erstellen'; document.getElementById('delete-game-btn').classList.add('hidden'); document.getElementById('reactivate-game-btn').classList.add('hidden'); document.getElementById('organizer-participates-container').style.display = 'block'; showModal(addEditGameModal); });
         cancelAddGameBtn.addEventListener('click', () => hideModal(addEditGameModal));
         document.getElementById('delete-game-btn').addEventListener('click', async () => { const gameId = document.getElementById('edit-game-id').value; if (gameId && confirm('Bist du sicher, dass du dieses Quest endgültig löschen möchtest?')) { await deleteDoc(doc(db, "spielrunden", gameId)); hideModal(addEditGameModal); } });
