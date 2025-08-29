@@ -27,7 +27,7 @@
     <header class="bg-slate-800/70 backdrop-blur-sm sticky top-0 z-20 shadow-lg">
         <div class="container mx-auto px-4 py-4 max-w-5xl flex justify-between items-center">
             <div>
-                <h1 class="text-3xl font-bold text-cyan-400">🎲 Questboard</h1>
+                <h1 class="text-3xl font-bold text-cyan-400">📜🎲 Questboard</h1>
                 <p class="text-slate-400 mt-1">Finde Mitspieler für deine nächste Runde.</p>
             </div>
             <div class="flex items-center gap-4">
@@ -271,6 +271,7 @@
         const sideMenuContent = document.getElementById('side-menu-content');
         const sharedQuestModal = document.getElementById('shared-quest-modal');
         const sharedQuestContent = document.getElementById('shared-quest-content');
+        const locationFilterInput = document.getElementById('location-filter');
 
         // --- Helper Functions ---
         function showModal(modal) { modal.classList.remove('hidden'); }
@@ -287,7 +288,7 @@
             const selectedDays = Array.from(dayFilterContainer.querySelectorAll('.day-filter-btn.active')).map(btn => btn.dataset.day);
             const selectedLocations = Array.from(locationFilterContainer.querySelectorAll('.location-filter-btn.active')).map(btn => btn.dataset.location);
             const nameText = nameFilterInput.value.toLowerCase().trim();
-            const locationText = document.getElementById('location-filter') ? document.getElementById('location-filter').value.toLowerCase().trim() : "";
+            const locationText = locationFilterInput ? locationFilterInput.value.toLowerCase().trim() : "";
 
 
             gameList.querySelectorAll('.quest-card').forEach(card => {
@@ -322,8 +323,8 @@
             }
         });
         nameFilterInput.addEventListener('input', applyFilters);
-        if (document.getElementById('location-filter')) {
-            document.getElementById('location-filter').addEventListener('input', applyFilters);
+        if (locationFilterInput) {
+            locationFilterInput.addEventListener('input', applyFilters);
         }
 
 
@@ -544,7 +545,9 @@
                     if (participantIndex > -1) { newParticipants = participants.filter(p => p.uid !== currentUser.uid); } 
                     else { const participantData = { uid: currentUser.uid, displayName: currentUser.displayName }; newParticipants = [...participants, participantData]; }
                     await updateDoc(gameRef, { participants: newParticipants });
-                    hideModal(sharedQuestModal);
+                    // Re-render modal to show updated participants
+                    const updatedDoc = await getDoc(gameRef);
+                    renderSharedQuestModal(updatedDoc.data(), updatedDoc.id);
                 } else if (target.classList.contains('remove-player-btn')) {
                     const playerUidToRemove = target.dataset.playerUid;
                     const docSnap = await getDoc(gameRef);
