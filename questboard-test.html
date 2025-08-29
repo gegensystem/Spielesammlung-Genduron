@@ -237,10 +237,13 @@
         let db, auth;
         let currentUser = null;
         let verificationCheckInterval = null;
+        let initialSharedQuestId = null;
         try {
             const app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
+            const urlParams = new URLSearchParams(window.location.search);
+            initialSharedQuestId = urlParams.get('quest');
         } catch (e) { console.error("Error initializing Firebase: ", e); }
 
         // --- DOM Elements ---
@@ -340,34 +343,33 @@
 
             updateUserUI(!!user);
             updateSideMenu(!!user);
-            listenToGames(); // Start listening to all games for the main page view
+            listenToGames(); 
 
-            const urlParams = new URLSearchParams(window.location.search);
-            const sharedQuestId = urlParams.get('quest') || sharedQuestContent.dataset.questId;
+             if (initialSharedQuestId) {
+                const questId = initialSharedQuestId;
+                initialSharedQuestId = null; 
 
-            if (sharedQuestId) {
-                if(wasJustLoggedIn && !sharedQuestModal.classList.contains('hidden')) {
-                    // User just logged in from the shared modal, so we need to refresh it.
-                    const questRef = doc(db, "spielrunden", sharedQuestId);
+                const newUrl = new URL(window.location.href);
+                newUrl.searchParams.delete('quest');
+                window.history.replaceState({}, document.title, newUrl.href);
+
+                const questRef = doc(db, "spielrunden", questId);
+                try {
                     const docSnap = await getDoc(questRef);
                     if (docSnap.exists()) {
                         renderSharedQuestModal(docSnap.data(), docSnap.id);
+                        showModal(sharedQuestModal);
                     }
-                } else if (!wasJustLoggedIn && sharedQuestId && sharedQuestModal.classList.contains('hidden')) {
-                    // New page load with a shared quest ID
-                    const newUrl = new URL(window.location.href);
-                    newUrl.searchParams.delete('quest');
-                    window.history.replaceState({}, document.title, newUrl.href);
-
-                    const questRef = doc(db, "spielrunden", sharedQuestId);
-                    try {
-                        const docSnap = await getDoc(questRef);
-                        if (docSnap.exists()) {
-                            renderSharedQuestModal(docSnap.data(), docSnap.id);
-                            showModal(sharedQuestModal);
-                        }
-                    } catch (error) {
-                        console.error("Error fetching shared quest:", error);
+                } catch (error) {
+                    console.error("Error fetching shared quest on load:", error);
+                }
+            } else if (wasJustLoggedIn && !sharedQuestModal.classList.contains('hidden')) {
+                const questId = sharedQuestContent.dataset.questId;
+                if (questId) {
+                    const questRef = doc(db, "spielrunden", questId);
+                    const docSnap = await getDoc(questRef);
+                    if (docSnap.exists()) {
+                        renderSharedQuestModal(docSnap.data(), docSnap.id);
                     }
                 }
             }
