@@ -68,6 +68,7 @@
                 <div class="flex flex-col sm:flex-row gap-4">
                      <div class="flex gap-4">
                         <input type="text" id="name-filter" placeholder="Nach Spiel suchen..." class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:w-auto">
+                        <input type="text" id="location-filter" placeholder="Nach Ort suchen..." class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:w-auto">
                     </div>
                 </div>
                 <div id="day-filter-container" class="flex gap-2 p-1 bg-slate-800 rounded-lg">
@@ -286,17 +287,21 @@
             const selectedDays = Array.from(dayFilterContainer.querySelectorAll('.day-filter-btn.active')).map(btn => btn.dataset.day);
             const selectedLocations = Array.from(locationFilterContainer.querySelectorAll('.location-filter-btn.active')).map(btn => btn.dataset.location);
             const nameText = nameFilterInput.value.toLowerCase().trim();
+            const locationText = document.getElementById('location-filter') ? document.getElementById('location-filter').value.toLowerCase().trim() : "";
+
 
             gameList.querySelectorAll('.quest-card').forEach(card => {
                 const cardDay = card.dataset.gameDay;
                 const cardLocation = card.dataset.location;
+                const cardLocationLower = cardLocation.toLowerCase();
                 const cardName = card.dataset.questName.toLowerCase();
 
                 const dayMatch = selectedDays.includes('all') || selectedDays.length === 0 || selectedDays.includes(cardDay);
-                const locationMatch = selectedLocations.includes('all') || selectedLocations.length === 0 || selectedLocations.includes(cardLocation);
+                const locationButtonMatch = selectedLocations.includes('all') || selectedLocations.length === 0 || selectedLocations.includes(cardLocation);
+                const locationTextMatch = locationText === '' || cardLocationLower.includes(locationText);
                 const nameMatch = (nameText === '' || cardName.includes(nameText));
 
-                card.style.display = (dayMatch && locationMatch && nameMatch) ? 'flex' : 'none';
+                card.style.display = (dayMatch && locationButtonMatch && locationTextMatch && nameMatch) ? 'flex' : 'none';
             });
         }
         dayFilterContainer.addEventListener('click', (e) => { if (e.target.classList.contains('day-filter-btn')) { const clickedDay = e.target.dataset.day; if (clickedDay === 'all') { dayFilterContainer.querySelectorAll('.day-filter-btn').forEach(btn => btn.classList.remove('active')); e.target.classList.add('active'); } else { dayFilterContainer.querySelector('[data-day="all"]').classList.remove('active'); e.target.classList.toggle('active'); if (dayFilterContainer.querySelectorAll('.day-filter-btn.active').length === 0) { dayFilterContainer.querySelector('[data-day="all"]').classList.add('active'); } } applyFilters(); } });
@@ -317,6 +322,10 @@
             }
         });
         nameFilterInput.addEventListener('input', applyFilters);
+        if (document.getElementById('location-filter')) {
+            document.getElementById('location-filter').addEventListener('input', applyFilters);
+        }
+
 
         // --- Auth State & UI ---
         onAuthStateChanged(auth, async (user) => {
@@ -475,6 +484,7 @@
         }
 
         function renderSharedQuestModal(game, gameId) {
+            const isCreator = currentUser && currentUser.uid === game.creatorId;
             const isParticipant = currentUser && game.participants.some(p => p.uid === currentUser.uid); 
             const participantsCount = game.participants.length; 
             const freeSeats = game.totalSeats - participantsCount; 
@@ -483,7 +493,7 @@
             const gameDate = game.dateTime.toDate(); 
             const formattedDate = gameDate.toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: '2-digit' }); 
             const formattedTime = gameDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }); 
-            let participantsHTML = game.participants.map(p => `<span class="bg-slate-700 text-slate-300 text-sm font-medium mr-2 mb-2 px-2.5 py-1 rounded-full">${p.displayName}</span>`).join(''); 
+            let participantsHTML = game.participants.map(p => `<span class="bg-slate-700 text-slate-300 text-sm font-medium mr-2 mb-2 px-2.5 py-1 rounded-full flex items-center">${p.displayName}${isCreator ? `<button class="remove-player-btn ml-2 text-red-400 hover:text-red-200" data-game-id="${gameId}" data-player-uid="${p.uid}">×</button>` : ''}</span>`).join(''); 
             let tagsHTML = (game.tags && game.tags.length > 0) ? game.tags.map(tag => `<span class="bg-cyan-800 text-cyan-200 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join('') : ''; 
             
             sharedQuestContent.innerHTML = `
@@ -491,6 +501,9 @@
                 ${isCancelled ? '<div class="absolute inset-0 bg-red-900/70 flex items-center justify-center rounded-lg z-10"><span class="text-2xl font-bold text-white transform -rotate-12">ABGESAGT</span></div>' : ''}
                 <div class="flex justify-between items-start">
                     <h3 class="text-3xl font-bold text-cyan-400 mb-2">${game.gameName}</h3>
+                     <div class="flex items-center gap-2 text-xl relative z-10">
+                        ${isCreator ? `<button class="edit-game-btn text-slate-500 hover:text-cyan-400" title="Quest bearbeiten" data-game-id="${gameId}">✏️</button><button class="cancel-game-btn text-slate-500 hover:text-red-400" title="Quest absagen" data-game-id="${gameId}">⨷</button>` : ''}
+                    </div>
                 </div>
                 <p class="text-slate-400 mb-2">von <span class="font-semibold">${game.creatorName}</span></p>
                 <div class="flex items-center text-slate-400 mb-4 text-base"><svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg><span>${game.location}</span></div>
@@ -514,26 +527,46 @@
         // --- All other event listeners ---
         
         sharedQuestModal.addEventListener('click', async (e) => {
-            const target = e.target.closest('button.join-leave-btn');
+            const target = e.target.closest('button');
             if (!target) return;
-
+            
             const gameId = target.dataset.gameId;
             if (!currentUser) { showModal(authModal); return; }
             if (!currentUser.emailVerified) { alert("Bitte bestätige zuerst deine E-Mail-Adresse."); return; }
-            
+
             const gameRef = doc(db, "spielrunden", gameId);
             try {
-                const docSnap = await getDoc(gameRef);
-                const participants = docSnap.data().participants || [];
-                const participantIndex = participants.findIndex(p => p.uid === currentUser.uid);
-                let newParticipants;
-                if (participantIndex > -1) { newParticipants = participants.filter(p => p.uid !== currentUser.uid); } 
-                else { const participantData = { uid: currentUser.uid, displayName: currentUser.displayName }; newParticipants = [...participants, participantData]; }
-                await updateDoc(gameRef, { participants: newParticipants });
-                hideModal(sharedQuestModal); // Close modal after action
+                if (target.classList.contains('join-leave-btn')) {
+                    const docSnap = await getDoc(gameRef);
+                    const participants = docSnap.data().participants || [];
+                    const participantIndex = participants.findIndex(p => p.uid === currentUser.uid);
+                    let newParticipants;
+                    if (participantIndex > -1) { newParticipants = participants.filter(p => p.uid !== currentUser.uid); } 
+                    else { const participantData = { uid: currentUser.uid, displayName: currentUser.displayName }; newParticipants = [...participants, participantData]; }
+                    await updateDoc(gameRef, { participants: newParticipants });
+                    hideModal(sharedQuestModal);
+                } else if (target.classList.contains('remove-player-btn')) {
+                    const playerUidToRemove = target.dataset.playerUid;
+                    const docSnap = await getDoc(gameRef);
+                    const participants = docSnap.data().participants || [];
+                    const newParticipants = participants.filter(p => p.uid !== playerUidToRemove);
+                    await updateDoc(gameRef, { participants: newParticipants });
+                    // Re-render modal to show updated participants
+                    const updatedDoc = await getDoc(gameRef);
+                    renderSharedQuestModal(updatedDoc.data(), updatedDoc.id);
+                } else if (target.classList.contains('edit-game-btn')) {
+                    hideModal(sharedQuestModal);
+                    const docSnap = await getDoc(gameRef);
+                    if (docSnap.exists()) { openEditModalWithData(docSnap.data(), docSnap.id); }
+                } else if (target.classList.contains('cancel-game-btn')) {
+                    if (confirm('Möchtest du dieses Quest wirklich absagen?')) {
+                        await updateDoc(gameRef, { cancelled: true });
+                        hideModal(sharedQuestModal);
+                    }
+                }
             } catch (error) {
-                console.error("Fehler bei der Aktion:", error);
-                alert("Ein Fehler ist aufgetreten. Bitte versuche es erneut.");
+                console.error("Fehler bei der Aktion im geteilten Quest:", error);
+                alert("Ein Fehler ist aufgetreten.");
             }
         });
 
@@ -562,6 +595,33 @@
 
         // Account deletion request
         document.getElementById('request-deletion-btn').addEventListener('click', async () => { if (!currentUser) return; if (confirm("Bist du sicher, dass du die Löschung deines Kontos anfragen möchtest?")) { const button = document.getElementById('request-deletion-btn'); button.disabled = true; button.textContent = 'Sende Anfrage...'; const deletionData = { subject: `Löschanfrage für Questboard: ${currentUser.displayName}`, displayName: currentUser.displayName, email: currentUser.email, uid: currentUser.uid, requestDate: new Date().toLocaleString('de-DE') }; const emailEndpoint = 'https://formspree.io/f/myzdgawa'; try { const response = await fetch(emailEndpoint, { method: 'POST', body: JSON.stringify(deletionData), headers: { 'Content-Type': 'application/json' } }); if (response.ok) { document.getElementById('deletion-feedback').textContent = "Anfrage wird innerhalb von 6 Tagen ausgeführt."; button.classList.add('hidden'); } else { throw new Error('Network response was not ok.'); } } catch (error) { console.error('Error sending deletion request:', error); alert('Die Löschanfrage konnte nicht gesendet werden. Bitte versuche es später erneut oder kontaktiere Andreas direkt.'); button.disabled = false; button.textContent = 'Löschung anfragen'; } } });
+        
+        function openEditModalWithData(game, gameId) {
+            setMinDate(); 
+            document.getElementById('edit-game-id').value = gameId; 
+            document.getElementById('game-name').value = game.gameName; 
+            const predefinedLocations = ["Genduron", "Knobelritter", "Spieleversum", "Games Toys and more", "Hausruck"];
+            if (predefinedLocations.includes(game.location)) {
+                locationTypeSelect.value = game.location;
+                customLocationContainer.classList.add('hidden');
+            } else {
+                locationTypeSelect.value = 'other';
+                document.getElementById('custom-location').value = game.location;
+                customLocationContainer.classList.remove('hidden');
+            }
+            const date = game.dateTime.toDate(); 
+            document.getElementById('game-date').value = date.toISOString().split('T')[0]; 
+            document.getElementById('game-time').value = date.toTimeString().slice(0,5); 
+            document.getElementById('total-seats').value = game.totalSeats; 
+            document.getElementById('game-duration').value = game.duration || ''; 
+            document.querySelectorAll('#tags-container input').forEach(checkbox => checkbox.checked = (game.tags && game.tags.includes(checkbox.value))); 
+            document.getElementById('modal-title').textContent = 'Quest bearbeiten'; 
+            document.getElementById('submit-btn').textContent = 'Änderungen speichern'; 
+            document.getElementById('delete-game-btn').classList.remove('hidden'); 
+            document.getElementById('organizer-participates-container').style.display = 'none'; 
+            document.getElementById('reactivate-game-btn').classList.toggle('hidden', !game.cancelled); 
+            showModal(addEditGameModal);
+        }
 
         // Main action handler for game cards
         gameList.addEventListener('click', async (e) => {
@@ -602,17 +662,7 @@
                     await updateDoc(gameRef, { participants: newParticipants });
                 } else if (target.classList.contains('edit-game-btn')) { 
                     const docSnap = await getDoc(gameRef); 
-                    if (docSnap.exists()) { const game = docSnap.data(); setMinDate(); document.getElementById('edit-game-id').value = gameId; document.getElementById('game-name').value = game.gameName; 
-                        const predefinedLocations = ["Genduron", "Knobelritter", "Spieleversum", "Games Toys and more", "Hausruck"];
-                        if (predefinedLocations.includes(game.location)) {
-                            locationTypeSelect.value = game.location;
-                            customLocationContainer.classList.add('hidden');
-                        } else {
-                            locationTypeSelect.value = 'other';
-                            document.getElementById('custom-location').value = game.location;
-                            customLocationContainer.classList.remove('hidden');
-                        }
-                    const date = game.dateTime.toDate(); document.getElementById('game-date').value = date.toISOString().split('T')[0]; document.getElementById('game-time').value = date.toTimeString().slice(0,5); document.getElementById('total-seats').value = game.totalSeats; document.getElementById('game-duration').value = game.duration || ''; document.querySelectorAll('#tags-container input').forEach(checkbox => checkbox.checked = (game.tags && game.tags.includes(checkbox.value))); document.getElementById('modal-title').textContent = 'Quest bearbeiten'; document.getElementById('submit-btn').textContent = 'Änderungen speichern'; document.getElementById('delete-game-btn').classList.remove('hidden'); document.getElementById('organizer-participates-container').style.display = 'none'; document.getElementById('reactivate-game-btn').classList.toggle('hidden', !game.cancelled); showModal(addEditGameModal); } 
+                    if (docSnap.exists()) { openEditModalWithData(docSnap.data(), docSnap.id); } 
                 } else if (target.classList.contains('cancel-game-btn')) { 
                     if (confirm('Möchtest du dieses Quest wirklich absagen?')) { await updateDoc(gameRef, { cancelled: true }); } 
                 }
