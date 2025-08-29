@@ -27,7 +27,7 @@
     <header class="bg-slate-800/70 backdrop-blur-sm sticky top-0 z-20 shadow-lg">
         <div class="container mx-auto px-4 py-4 max-w-5xl flex justify-between items-center">
             <div>
-                <h1 class="text-3xl font-bold text-cyan-400">🎲 Questboard</h1>
+                <h1 class="text-3xl font-bold text-cyan-400">📜🎲 Questboard</h1>
                 <p class="text-slate-400 mt-1">Finde Mitspieler für deine nächste Runde.</p>
             </div>
             <div class="flex items-center gap-4">
@@ -482,7 +482,7 @@
                     <div class="flex justify-between items-start">
                         <h3 class="text-2xl font-bold text-cyan-400 mb-2">${game.gameName}</h3>
                         <div class="flex items-center gap-2 text-xl relative z-10">
-                            <button class="share-quest-btn text-slate-500 hover:text-cyan-400" title="Quest teilen" data-game-id="${gameId}">🔗</button>
+                            <button class="share-quest-btn ${isCancelled ? 'text-slate-700 cursor-not-allowed' : 'text-slate-500 hover:text-cyan-400'}" title="Quest teilen" data-game-id="${gameId}" ${isCancelled ? 'disabled' : ''}>🔗</button>
                             ${isCreator ? `<button class="edit-game-btn text-slate-500 hover:text-cyan-400" title="Quest bearbeiten" data-game-id="${gameId}">✏️</button><button class="cancel-game-btn text-slate-500 hover:text-red-400" title="Quest absagen" data-game-id="${gameId}">⨷</button>` : ''}
                         </div>
                     </div>
@@ -612,7 +612,7 @@
         locationTypeSelect.addEventListener('change', () => { customLocationContainer.classList.toggle('hidden', locationTypeSelect.value !== 'other'); checkDateTimeValidity(); });
 
         // Account deletion request
-        document.getElementById('request-deletion-btn').addEventListener('click', async () => { if (!currentUser) return; if (confirm("Bist du sicher, dass du die Löschung deines Kontos anfragen möchtest?")) { const button = document.getElementById('request-deletion-btn'); button.disabled = true; button.textContent = 'Sende Anfrage...'; const deletionData = { subject: `Löschanfrage für Questboard: ${currentUser.displayName}`, displayName: currentUser.displayName, email: currentUser.email, uid: currentUser.uid, requestDate: new Date().toLocaleString('de-DE') }; const emailEndpoint = 'https://formspree.io/f/myzdgawa'; try { const response = await fetch(emailEndpoint, { method: 'POST', body: JSON.stringify(deletionData), headers: { 'Content-Type': 'application/json' } }); if (response.ok) { document.getElementById('deletion-feedback').textContent = "Anfrage wird innerhalb von 6 Tagen ausgeführt."; button.classList.add('hidden'); } else { throw new Error('Network response was not ok.'); } } catch (error) { console.error('Error sending deletion request:', error); alert('Die Löschanfrage konnte nicht gesendet werden. Bitte versuche es später erneut oder kontaktiere Andreas direkt.'); button.disabled = false; button.textContent = 'Löschung anfragen'; } } });
+        document.getElementById('request-deletion-btn').addEventListener('click', async () => { if (!currentUser) return; if (confirm("Bist du sicher, dass du die Löschung deines Kontos anfragen möchtest?")) { const button = document.getElementById('request-deletion-btn'); button.disabled = true; button.textContent = 'Sende Anfrage...'; const deletionData = { subject: `Löschanfrage für Questboard: ${currentUser.displayName}`, displayName: currentUser.displayName, email: currentUser.email, uid: currentUser.uid, requestDate: new Date().toLocaleString('de-DE') }; const emailEndpoint = 'https://formspree.io/f/myzdgawa'; try { const response = await fetch(emailEndpoint, { method: 'POST', body: JSON.stringify(deletionData), headers: { 'Content-Type': 'application-json' } }); if (response.ok) { document.getElementById('deletion-feedback').textContent = "Anfrage wird innerhalb von 6 Tagen ausgeführt."; button.classList.add('hidden'); } else { throw new Error('Network response was not ok.'); } } catch (error) { console.error('Error sending deletion request:', error); alert('Die Löschanfrage konnte nicht gesendet werden. Bitte versuche es später erneut oder kontaktiere Andreas direkt.'); button.disabled = false; button.textContent = 'Löschung anfragen'; } } });
         
         function openEditModalWithData(game, gameId) {
             setMinDate(); 
