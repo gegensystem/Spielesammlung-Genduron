@@ -334,6 +334,10 @@
             const wasJustLoggedIn = !currentUser && user;
             currentUser = user ? { uid: user.uid, displayName: user.displayName, email: user.email, emailVerified: user.emailVerified } : null;
             
+            if (wasJustLoggedIn) {
+                hideModal(authModal);
+            }
+
             updateUserUI(!!user);
             updateSideMenu(!!user);
             listenToGames(); // Start listening to all games for the main page view
