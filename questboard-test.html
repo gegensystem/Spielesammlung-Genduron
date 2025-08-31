@@ -762,11 +762,8 @@
                         }
                         questData.participants = participants;
 
-                        // Preserve original creator info and creation date on update
-                        questData.creatorId = existingData.creatorId;
-                        questData.creatorName = existingData.creatorName;
-                        questData.createdAt = existingData.createdAt;
-
+                        // DO NOT update/preserve creatorId, creatorName, or createdAt on update.
+                        // These fields should be immutable after creation.
                         await updateDoc(gameRef, questData);
                     }
                 } else {
