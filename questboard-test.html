@@ -44,6 +44,12 @@
         .sortable.desc::after {
             border-top: 5px solid;
         }
+        .table-game-name {
+            cursor: pointer;
+        }
+        .table-game-name:hover {
+            color: #06b6d4;
+        }
     </style>
 </head>
 <body class="bg-slate-900 text-white antialiased">
@@ -135,7 +141,6 @@
                             <th scope="col" class="px-6 py-3 sortable" data-sort="dateTime">Datum</th>
                             <th scope="col" class="px-6 py-3">Dauer</th>
                             <th scope="col" class="px-6 py-3">Plätze</th>
-                            <th scope="col" class="px-6 py-3">Teilnehmer</th>
                             <th scope="col" class="px-6 py-3 text-center">Aktion</th>
                         </tr>
                     </thead>
@@ -569,11 +574,10 @@
         function renderGameTableRow(doc) {
             const game = doc.data();
             const gameId = doc.id;
-            const isCreator = currentUser && currentUser.uid === game.creatorId; 
             const isParticipant = currentUser && game.participants.some(p => p.uid === currentUser.uid); 
             const participantsCount = game.participants.length; 
-            const freeSeats = game.totalSeats - participantsCount; 
-            const isFull = freeSeats <= 0; 
+            const freeSeats = game.totalSeats - participantsCount;
+            const isFull = freeSeats <= 0;
             const isCancelled = game.cancelled || false; 
             const gameDate = game.dateTime.toDate(); 
             const formattedDate = gameDate.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' }); 
@@ -583,7 +587,7 @@
             row.className = `border-b border-slate-700 ${isCancelled ? 'opacity-50' : ''}`;
             row.dataset.id = gameId;
             
-            row.innerHTML = `<td class="px-6 py-4 font-bold text-white">${game.gameName}</td><td class="px-6 py-4">${game.location}</td><td class="px-6 py-4">${formattedDate} ${formattedTime}</td><td class="px-6 py-4">${game.duration || '-'} Min.</td><td class="px-6 py-4">${participantsCount}/${game.totalSeats}</td><td class="px-6 py-4 truncate max-w-xs">${game.participants.map(p=>p.displayName).join(', ')}</td><td class="px-6 py-4 text-center"><button class="join-leave-btn font-bold py-2 px-4 rounded-lg transition ${isCancelled ? 'bg-slate-700 text-slate-500' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull ? 'bg-slate-700 text-slate-500' : 'bg-cyan-500 hover:bg-cyan-600'))}" data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>${isCancelled ? 'Abgesagt' : (isParticipant ? 'Verlassen' : (isFull ? 'Voll' : 'Beitreten'))}</button></td>`;
+            row.innerHTML = `<td class="px-6 py-4 font-bold text-white"><button class="table-game-name" data-game-id="${gameId}">${game.gameName}</button></td><td class="px-6 py-4">${game.location}</td><td class="px-6 py-4">${formattedDate} ${formattedTime}</td><td class="px-6 py-4">${game.duration || '-'} Min.</td><td class="px-6 py-4">${participantsCount}/${game.totalSeats}</td><td class="px-6 py-4 text-center"><button class="join-leave-btn font-bold py-2 px-4 rounded-lg transition ${isCancelled ? 'bg-slate-700 text-slate-500' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull && !isParticipant ? 'bg-slate-700 text-slate-500' : 'bg-cyan-500 hover:bg-cyan-600'))}" data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>${isCancelled ? 'Abgesagt' : (isParticipant ? 'Verlassen' : (isFull ? 'Voll' : 'Beitreten'))}</button></td>`;
             return row;
         }
 
