@@ -170,7 +170,6 @@
     </footer>
 
     <!-- All Modals -->
-    <!-- (Modals remain the same) -->
     <div id="shared-quest-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
         <div id="shared-quest-content" class="bg-slate-800 p-8 rounded-lg shadow-2xl w-full max-w-lg m-4 modal-enter relative"></div>
     </div>
@@ -335,6 +334,7 @@
         const accountModal = document.getElementById('account-modal');
         const imprintModal = document.getElementById('imprint-modal');
         const privacyModal = document.getElementById('privacy-modal');
+        const questListContainer = document.getElementById('quest-list-container');
         
         // --- Helper Functions ---
         const showModal = (modal) => modal.classList.remove('hidden');
