@@ -396,10 +396,10 @@
             gameListTableBody.innerHTML = '';
             if (quests.length === 0 && allQuests.length > 0) {
                  gameListCards.innerHTML = '<p class="text-slate-400 text-center col-span-full">Keine Quests für diese Filter gefunden.</p>';
-                 gameListTableBody.innerHTML = '<tr><td colspan="7" class="text-center py-10 text-slate-400">Keine Quests für diese Filter gefunden.</td></tr>';
+                 gameListTableBody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-slate-400">Keine Quests für diese Filter gefunden.</td></tr>';
             } else if (quests.length === 0 && allQuests.length === 0) {
                  gameListCards.innerHTML = '<p class="text-slate-400 text-center col-span-full">Aktuell sind keine Quests verfügbar. Erstelle das erste!</p>';
-                 gameListTableBody.innerHTML = '<tr><td colspan="7" class="text-center py-10 text-slate-400">Aktuell sind keine Quests verfügbar. Erstelle das erste!</td></tr>';
+                 gameListTableBody.innerHTML = '<tr><td colspan="6" class="text-center py-10 text-slate-400">Aktuell sind keine Quests verfügbar. Erstelle das erste!</td></tr>';
             }
             else {
                 quests.forEach(quest => {
@@ -620,8 +620,7 @@
             row.className = `border-b border-slate-700 ${isCancelled ? 'opacity-50' : ''}`;
             row.dataset.id = gameId;
             
-            row.innerHTML = `
-                <td class="px-6 py-4 font-bold text-white">
+            row.innerHTML = `<td class="px-6 py-4 font-bold text-white">
                     <div class="flex items-center gap-3">
                         <button class="table-game-name text-left" data-game-id="${gameId}">${game.gameName}</button>
                         <div class="flex items-center gap-2 text-lg">
@@ -629,17 +628,7 @@
                             ${isCreator ? `<button class="edit-game-btn text-slate-500 hover:text-cyan-400" title="Quest bearbeiten" data-game-id="${gameId}">✏️</button>` : ''}
                         </div>
                     </div>
-                </td>
-                <td class="px-6 py-4">${game.location}</td>
-                <td class="px-6 py-4">${formattedDate} ${formattedTime}</td>
-                <td class="px-6 py-4">${game.duration || '-'} Min.</td>
-                <td class="px-6 py-4">${participantsCount}/${game.totalSeats}</td>
-                <td class="px-6 py-4 text-center">
-                    <div class="flex items-center justify-center gap-2">
-                        <button class="join-leave-btn font-bold py-2 px-4 rounded-lg transition ${isCancelled ? 'bg-slate-700 text-slate-500' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull && !isParticipant ? 'bg-slate-700 text-slate-500' : 'bg-cyan-500 hover:bg-cyan-600'))}" data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>${isCancelled ? 'Abgesagt' : (isParticipant ? 'Verlassen' : (isFull ? 'Voll' : 'Beitreten'))}</button>
-                        ${isCreator ? `<button class="cancel-game-btn text-slate-500 hover:text-red-400 text-xl" title="Quest absagen" data-game-id="${gameId}">⨷</button>` : ''}
-                    </div>
-                </td>`;
+                </td><td class="px-6 py-4">${game.location}</td><td class="px-6 py-4">${formattedDate} ${formattedTime}</td><td class="px-6 py-4">${game.duration || '-'} Min.</td><td class="px-6 py-4">${participantsCount}/${game.totalSeats}</td><td class="px-6 py-4 text-center"><div class="flex items-center justify-center gap-2"><button class="join-leave-btn font-bold py-2 px-4 rounded-lg transition ${isCancelled ? 'bg-slate-700 text-slate-500' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull && !isParticipant ? 'bg-slate-700 text-slate-500' : 'bg-cyan-500 hover:bg-cyan-600'))}" data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>${isCancelled ? 'Abgesagt' : (isParticipant ? 'Verlassen' : (isFull ? 'Voll' : 'Beitreten'))}</button>${isCreator ? `<button class="cancel-game-btn text-slate-500 hover:text-red-400 text-xl" title="Quest absagen" data-game-id="${gameId}">⨷</button>` : ''}</div></td>`;
             return row;
         }
 
