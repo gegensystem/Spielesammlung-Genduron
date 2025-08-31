@@ -50,6 +50,13 @@
         .table-game-name:hover {
             color: #06b6d4;
         }
+        /* New styles for expandable rows */
+        .expandable-row {
+            cursor: pointer;
+        }
+        .details-row > td {
+            background-color: rgba(15, 23, 42, 0.5); /* bg-slate-900/50 */
+        }
     </style>
 </head>
 <body class="bg-slate-900 text-white antialiased">
@@ -424,6 +431,19 @@
                     const gameRef = doc(db, "spielrunden", gameId);
                     await updateDoc(gameRef, { cancelled: true });
                 }
+            } else {
+                 const expandableRow = e.target.closest('.expandable-row');
+                if (expandableRow) {
+                    const targetId = expandableRow.dataset.targetId;
+                    const detailsRow = document.getElementById(targetId);
+                    if (detailsRow) {
+                        const isCurrentlyOpen = !detailsRow.classList.contains('hidden');
+                        document.querySelectorAll('.details-row').forEach(row => row.classList.add('hidden'));
+                        if (!isCurrentlyOpen) {
+                            detailsRow.classList.remove('hidden');
+                        }
+                    }
+                }
             }
         });
 
@@ -771,7 +791,9 @@
                 quests.forEach(quest => {
                     const docWrapper = { id: quest.id, data: () => quest };
                     gameListCards.appendChild(renderGameCard(docWrapper));
-                    gameListTableBody.appendChild(renderGameTableRow(docWrapper));
+                    const [mainRow, detailsRow] = renderGameTableRow(docWrapper);
+                    gameListTableBody.appendChild(mainRow);
+                    gameListTableBody.appendChild(detailsRow);
                 });
             }
         }
@@ -984,8 +1006,9 @@
             const formattedTime = gameDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }); 
 
             const row = document.createElement('tr');
-            row.className = `border-b border-slate-700 ${isCancelled ? 'opacity-60 bg-red-900/20' : 'hover:bg-slate-700/50'}`;
+            row.className = `expandable-row border-b border-slate-700 ${isCancelled ? 'opacity-60 bg-red-900/20' : 'hover:bg-slate-700/50'}`;
             row.dataset.id = gameId;
+            row.dataset.targetId = `details-${gameId}`;
             
             row.innerHTML = `<td class="px-6 py-4 font-bold text-white">
                     <div class="flex items-center gap-3">
@@ -996,7 +1019,17 @@
                         </div>
                     </div>
                 </td><td class="px-6 py-4">${game.location}</td><td class="px-6 py-4">${formattedDate} ${formattedTime}</td><td class="px-6 py-4">${game.duration || '-'} Min.</td><td class="px-6 py-4">${participantsCount}/${game.totalSeats}</td><td class="px-6 py-4 text-center"><div class="flex items-center justify-center gap-2"><button class="join-leave-btn font-bold py-2 px-4 rounded-lg transition ${isCancelled ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull && !isParticipant ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-cyan-500 hover:bg-cyan-600'))}" data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>${isCancelled ? 'Abgesagt' : (isParticipant ? 'Verlassen' : (isFull ? 'Voll' : 'Beitreten'))}</button>${isCreator && !isCancelled ? `<button class="cancel-game-btn text-slate-500 hover:text-red-400 text-xl" title="Quest absagen" data-game-id="${gameId}">⨷</button>` : ''}</div></td>`;
-            return row;
+            
+            const detailsRow = document.createElement('tr');
+            detailsRow.id = `details-${gameId}`;
+            detailsRow.className = 'details-row hidden';
+
+            let participantsHTML = game.participants.map(p => `<span class="bg-slate-700 text-slate-300 text-sm font-medium px-2.5 py-1 rounded-full">${p.displayName}</span>`).join('');
+            if (!participantsHTML) participantsHTML = '<p class="text-slate-500 text-sm">Noch keine Teilnehmer.</p>';
+
+            detailsRow.innerHTML = `<td colspan="6" class="p-4"><h4 class="font-semibold text-slate-300 mb-2">Teilnehmer (${participantsCount}/${game.totalSeats}):</h4><div class="flex flex-wrap gap-2">${participantsHTML}</div></td>`;
+
+            return [row, detailsRow];
         }
 
         function openEditModal(doc) {
