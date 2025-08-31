@@ -98,8 +98,8 @@
             <div class="flex flex-col lg:flex-row gap-4 w-full lg:w-auto order-2 sm:order-1">
                 <div class="flex flex-col sm:flex-row gap-4">
                      <div class="flex gap-4">
-                        <input type="text" id="name-filter" placeholder="Nach Spiel suchen..." class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:w-auto">
-                        <input type="text" id="location-filter" placeholder="Nach Ort suchen..." class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:w-auto">
+                        <input type="text" id="name-filter" placeholder="Nach Spiel suchen..." class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:w-auto" autocomplete="off" readonly onfocus="this.removeAttribute('readonly');">
+                        <input type="text" id="location-filter" placeholder="Nach Ort suchen..." class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:w-auto" autocomplete="off" readonly onfocus="this.removeAttribute('readonly');">
                     </div>
                 </div>
                 <div id="day-filter-container" class="flex gap-2 p-1 bg-slate-800 rounded-lg">
@@ -144,7 +144,7 @@
                             <th scope="col" class="px-6 py-3 text-center">Aktion</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="game-list-table-body">
                         <!-- Table rows will be rendered here -->
                     </tbody>
                 </table>
@@ -184,7 +184,7 @@
                 <div class="mb-4"><label for="login-email" class="block text-slate-400 mb-2">E-Mail</label><input type="email" id="login-email" class="w-full bg-slate-700 p-2 rounded-md" required autocomplete="username"></div>
                 <div class="mb-4"><label for="login-password" class="block text-slate-400 mb-2">Passwort</label><input type="password" id="login-password" class="w-full bg-slate-700 p-2 rounded-md" required autocomplete="current-password"></div>
                 <div class="text-center mb-6"><a href="#" id="forgot-password-link" class="text-sm text-cyan-400 hover:underline">Passwort vergessen?</a></div>
-                <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 rounded-lg">Einloggen</button>
+                <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 rounded-lg transition-colors disabled:bg-slate-600">Einloggen</button>
             </form>
             <form id="register-form" class="hidden">
                  <div class="mb-4"><label for="register-name" class="block text-slate-400 mb-2">Dein Anzeigename</label><input type="text" id="register-name" class="w-full bg-slate-700 p-2 rounded-md" required></div>
@@ -305,7 +305,7 @@
 
         // --- DOM Elements ---
         const gameListCards = document.getElementById('game-list-cards');
-        const gameListTableBody = document.querySelector('#game-list-table tbody');
+        const gameListTableBody = document.getElementById('game-list-table-body');
         const authModal = document.getElementById('auth-modal');
         const nameFilterInput = document.getElementById('name-filter');
         const dayFilterContainer = document.getElementById('day-filter-container');
@@ -341,10 +341,376 @@
         const hideModal = (modal) => modal.classList.add('hidden');
         const openMenu = () => { sideMenu.classList.remove('translate-x-full'); menuOverlay.classList.remove('hidden'); };
         const closeMenu = () => { sideMenu.classList.add('translate-x-full'); menuOverlay.classList.add('hidden'); };
+        
+        function copyToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed'; // Prevent scrolling to bottom
+            textArea.style.top = 0;
+            textArea.style.left = 0;
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    alert('Link in die Zwischenablage kopiert!');
+                } else {
+                     alert('Kopieren fehlgeschlagen. Bitte manuell kopieren.');
+                }
+            } catch (err) {
+                console.error('Fehler beim Kopieren:', err);
+                alert('Kopieren fehlgeschlagen. Bitte manuell kopieren.');
+            }
+            document.body.removeChild(textArea);
+        }
+
+        // --- Event Delegation for dynamic content ---
+        questListContainer.addEventListener('click', async (e) => {
+            const editBtn = e.target.closest('.edit-game-btn');
+            const viewBtn = e.target.closest('.table-game-name');
+            const shareBtn = e.target.closest('.share-quest-btn');
+            const joinLeaveBtn = e.target.closest('.join-leave-btn');
+            const cancelBtn = e.target.closest('.cancel-game-btn');
+
+            if (editBtn) {
+                const gameId = editBtn.dataset.gameId;
+                const gameRef = doc(db, "spielrunden", gameId);
+                const docSnap = await getDoc(gameRef);
+                if (docSnap.exists()) {
+                    openEditModal(docSnap);
+                }
+            } else if (viewBtn) {
+                 const gameId = viewBtn.dataset.gameId;
+                 const gameRef = doc(db, "spielrunden", gameId);
+                 const docSnap = await getDoc(gameRef);
+                 if (docSnap.exists()) {
+                    renderSharedQuestModal(docSnap.data(), docSnap.id);
+                    showModal(sharedQuestModal);
+                 }
+            } else if (shareBtn) {
+                 const gameId = shareBtn.dataset.gameId;
+                 const shareUrl = `${window.location.origin}${window.location.pathname}?quest=${gameId}`;
+                 copyToClipboard(shareUrl);
+            } else if (joinLeaveBtn) {
+                if (!currentUser) { showModal(authModal); return; }
+                const gameId = joinLeaveBtn.dataset.gameId;
+                joinLeaveBtn.disabled = true;
+                const gameRef = doc(db, "spielrunden", gameId);
+                try {
+                    const docSnap = await getDoc(gameRef);
+                    if (docSnap.exists()) {
+                        const gameData = docSnap.data();
+                        const isParticipant = gameData.participants.some(p => p.uid === currentUser.uid);
+                        let newParticipants;
+                        if (isParticipant) {
+                            newParticipants = gameData.participants.filter(p => p.uid !== currentUser.uid);
+                        } else {
+                            if (gameData.participants.length < gameData.totalSeats) {
+                                newParticipants = [...gameData.participants, { uid: currentUser.uid, displayName: currentUser.displayName }];
+                            } else {
+                                alert("Diese Runde ist bereits voll.");
+                                joinLeaveBtn.disabled = false;
+                                return;
+                            }
+                        }
+                        await updateDoc(gameRef, { participants: newParticipants });
+                    }
+                } catch (error) { console.error("Fehler beim Beitreten/Verlassen:", error); } 
+                finally { joinLeaveBtn.disabled = false; }
+            } else if (cancelBtn) {
+                const gameId = cancelBtn.dataset.gameId;
+                if (confirm('Bist du sicher, dass du dieses Quest absagen möchtest?')) {
+                    const gameRef = doc(db, "spielrunden", gameId);
+                    await updateDoc(gameRef, { cancelled: true });
+                }
+            }
+        });
 
         // --- Event Listeners ---
         menuToggleBtn.addEventListener('click', openMenu);
         menuOverlay.addEventListener('click', closeMenu);
+        addGameBtn.addEventListener('click', () => {
+             if (!currentUser) { showModal(authModal); return; }
+             const modalTitle = document.getElementById('modal-title');
+             const submitBtn = document.getElementById('submit-btn');
+             modalTitle.textContent = 'Neues Quest erstellen';
+             submitBtn.textContent = 'Erstellen';
+             addEditGameForm.reset();
+             document.getElementById('edit-game-id').value = '';
+             document.getElementById('delete-game-btn').classList.add('hidden');
+             document.getElementById('reactivate-game-btn').classList.add('hidden');
+             showModal(addEditGameModal);
+        });
+
+        document.getElementById('cancel-add-game').addEventListener('click', () => hideModal(addEditGameModal));
+        document.getElementById('close-auth-modal').addEventListener('click', () => hideModal(authModal));
+        document.getElementById('close-account-modal').addEventListener('click', () => hideModal(accountModal));
+        document.getElementById('close-imprint-modal').addEventListener('click', () => hideModal(imprintModal));
+        document.getElementById('close-privacy-modal').addEventListener('click', () => hideModal(privacyModal));
+        document.getElementById('imprint-link').addEventListener('click', (e) => { e.preventDefault(); showModal(imprintModal); });
+        document.getElementById('privacy-link').addEventListener('click', (e) => { e.preventDefault(); showModal(privacyModal); });
+
+        document.getElementById('delete-game-btn').addEventListener('click', async () => {
+            const gameId = document.getElementById('edit-game-id').value;
+            if (gameId && confirm('Bist du sicher, dass du dieses Quest absagen möchtest?')) {
+                const gameRef = doc(db, "spielrunden", gameId);
+                await updateDoc(gameRef, { cancelled: true });
+                hideModal(addEditGameModal);
+            }
+        });
+
+        document.getElementById('reactivate-game-btn').addEventListener('click', async () => {
+            const gameId = document.getElementById('edit-game-id').value;
+            if (gameId) {
+                const gameRef = doc(db, "spielrunden", gameId);
+                await updateDoc(gameRef, { cancelled: false });
+                hideModal(addEditGameModal);
+            }
+        });
+
+        // Auth Modal Logic
+        document.querySelectorAll('.auth-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.dataset.tab;
+                document.querySelectorAll('.auth-tab').forEach(t => {
+                    t.classList.remove('border-cyan-500', 'text-white');
+                    t.classList.add('border-transparent', 'text-slate-400');
+                });
+                tab.classList.add('border-cyan-500', 'text-white');
+                tab.classList.remove('border-transparent', 'text-slate-400');
+                
+                if (targetTab === 'login') {
+                    loginForm.classList.remove('hidden');
+                    registerForm.classList.add('hidden');
+                } else {
+                    loginForm.classList.add('hidden');
+                    registerForm.classList.remove('hidden');
+                }
+                authError.textContent = '';
+            });
+        });
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const loginButton = loginForm.querySelector('button[type="submit"]');
+            authError.textContent = '';
+            loginButton.disabled = true;
+            loginButton.textContent = 'Logge ein...';
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                // onAuthStateChanged will handle hiding the modal
+            } catch (error) {
+                console.error("Login-Fehler:", error.code);
+                authError.textContent = getGermanAuthError(error.code);
+            } finally {
+                loginButton.disabled = false;
+                loginButton.textContent = 'Einloggen';
+            }
+        });
+
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('register-name').value.trim();
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const passwordConfirm = document.getElementById('register-password-confirm').value;
+            authError.textContent = '';
+
+            if (password !== passwordConfirm) {
+                authError.textContent = 'Die Passwörter stimmen nicht überein.';
+                return;
+            }
+            if(name.length < 3) {
+                 authError.textContent = 'Dein Anzeigename muss mindestens 3 Zeichen lang sein.';
+                 return;
+            }
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                await updateProfile(userCredential.user, { displayName: name });
+                await sendEmailVerification(userCredential.user);
+                alert('Registrierung erfolgreich! Bitte überprüfe dein E-Mail-Postfach, um deine Adresse zu bestätigen.');
+                signOut(auth); // Log out until email is verified
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+                document.querySelector('.auth-tab[data-tab="login"]').click();
+            } catch (error) {
+                console.error("Registrierungsfehler:", error.code);
+                authError.textContent = getGermanAuthError(error.code);
+            }
+        });
+        
+        document.getElementById('forgot-password-link').addEventListener('click', async (e) => {
+             e.preventDefault();
+             const email = document.getElementById('login-email').value;
+             if (!email) {
+                 authError.textContent = 'Bitte gib deine E-Mail-Adresse ein, um dein Passwort zurückzusetzen.';
+                 return;
+             }
+             try {
+                 await sendPasswordResetEmail(auth, email);
+                 authError.textContent = 'E-Mail zum Zurücksetzen des Passworts wurde gesendet.';
+             } catch (error) {
+                 authError.textContent = getGermanAuthError(error.code);
+             }
+        });
+
+        function getGermanAuthError(errorCode) {
+            switch (errorCode) {
+                case 'auth/user-not-found':
+                case 'auth/wrong-password':
+                case 'auth/invalid-credential':
+                    return 'E-Mail oder Passwort ist ungültig.';
+                case 'auth/email-already-in-use':
+                    return 'Diese E-Mail-Adresse wird bereits verwendet.';
+                case 'auth/weak-password':
+                    return 'Das Passwort muss mindestens 6 Zeichen lang sein.';
+                case 'auth/invalid-email':
+                    return 'Bitte gib eine gültige E-Mail-Adresse ein.';
+                default:
+                    return 'Ein unerwarteter Fehler ist aufgetreten.';
+            }
+        }
+
+        // --- Opening Hours Logic for Add/Edit Modal ---
+        function checkOpeningHours() {
+            const location = locationTypeSelect.value;
+            const date = new Date(gameDateInput.value);
+            const day = date.getDay(); // Sunday is 0
+            const time = gameTimeInput.value;
+            warningDiv.textContent = ''; // Clear previous warning
+
+            const openingHours = {
+                'Genduron': { '1': 'Ruhetag', '2-5': '14:00-22:00', '6': '14:00-22:00', '0': 'Ruhetag' },
+                'Knobelritter': { '1-5': '17:00-23:00', '6': '17:00-23:00', '0': 'geschlossen' },
+                'Spieleversum': { '1': 'geschlossen', '2-4': '16:00-22:00', '5': '16:00-23:00', '6': '14:00-23:00', '0': 'geschlossen' },
+            };
+
+            if (openingHours[location] && time && date) {
+                const hours = openingHours[location];
+                let ruleForDay = null;
+                // Direct match for single day (e.g., '1')
+                if (hours[day.toString()]) {
+                    ruleForDay = hours[day.toString()];
+                } else {
+                    // Check for ranges (e.g., '2-5')
+                    const range = Object.keys(hours).find(r => {
+                        if (r.includes('-')) {
+                            const [start, end] = r.split('-').map(Number);
+                            return day >= start && day <= end;
+                        }
+                        return false;
+                    });
+                    if (range) ruleForDay = hours[range];
+                }
+
+                if (ruleForDay) {
+                    if (ruleForDay === 'Ruhetag' || ruleForDay === 'geschlossen') {
+                        warningDiv.textContent = `Achtung: ${location} ist an diesem Tag voraussichtlich geschlossen/hat Ruhetag.`;
+                    } else {
+                        const [openTime, closeTime] = ruleForDay.split('-');
+                        if (time < openTime || time > closeTime) {
+                            warningDiv.textContent = `Achtung: ${location} hat an diesem Tag von ${openTime} bis ${closeTime} Uhr geöffnet.`;
+                        }
+                    }
+                }
+            }
+        }
+        locationTypeSelect.addEventListener('change', () => {
+            if (locationTypeSelect.value === 'other') {
+                customLocationContainer.classList.remove('hidden');
+            } else {
+                customLocationContainer.classList.add('hidden');
+            }
+            checkOpeningHours();
+        });
+        gameDateInput.addEventListener('change', checkOpeningHours);
+        gameTimeInput.addEventListener('input', checkOpeningHours);
+
+        addEditGameForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser) {
+                alert("Bitte zuerst einloggen.");
+                return;
+            }
+
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Speichere...';
+
+            try {
+                const gameId = document.getElementById('edit-game-id').value;
+                const locationType = document.getElementById('location-type').value;
+                const location = locationType === 'other' ? document.getElementById('custom-location').value.trim() : locationType;
+                const date = document.getElementById('game-date').value;
+                const time = document.getElementById('game-time').value;
+                const dateTime = new Date(`${date}T${time}`);
+                
+                if (!location) throw new Error("Der Spielort darf nicht leer sein.");
+                if (isNaN(dateTime.getTime())) throw new Error("Ungültiges Datum oder Uhrzeit.");
+
+                const selectedTags = Array.from(document.querySelectorAll('#tags-container input:checked')).map(cb => cb.value);
+
+                const questData = {
+                    gameName: document.getElementById('game-name').value.trim(),
+                    location: location,
+                    dateTime: Timestamp.fromDate(dateTime),
+                    totalSeats: parseInt(document.getElementById('total-seats').value, 10),
+                    duration: parseInt(document.getElementById('game-duration').value, 10) || null,
+                    tags: selectedTags,
+                };
+
+                if (gameId) {
+                    // Updating existing quest
+                    const gameRef = doc(db, "spielrunden", gameId);
+                    const docSnap = await getDoc(gameRef);
+                    if (docSnap.exists()) {
+                        const existingData = docSnap.data();
+                        let participants = existingData.participants;
+                        const organizerParticipates = document.getElementById('organizer-participates').checked;
+                        const isOrganizerInList = participants.some(p => p.uid === currentUser.uid);
+
+                        if (organizerParticipates && !isOrganizerInList) {
+                            participants.push({ uid: currentUser.uid, displayName: currentUser.displayName });
+                        } else if (!organizerParticipates && isOrganizerInList) {
+                            participants = participants.filter(p => p.uid !== currentUser.uid);
+                        }
+                        questData.participants = participants;
+
+                        // Preserve original creator info and creation date on update
+                        questData.creatorId = existingData.creatorId;
+                        questData.creatorName = existingData.creatorName;
+                        questData.createdAt = existingData.createdAt;
+
+                        await updateDoc(gameRef, questData);
+                    }
+                } else {
+                    // Creating new quest
+                    questData.creatorId = currentUser.uid;
+                    questData.creatorName = currentUser.displayName;
+                    questData.createdAt = Timestamp.now();
+                    questData.cancelled = false;
+                    questData.participants = [];
+                    
+                    if (document.getElementById('organizer-participates').checked) {
+                        questData.participants.push({ uid: currentUser.uid, displayName: currentUser.displayName });
+                    }
+                    await addDoc(collection(db, "spielrunden"), questData);
+                }
+
+                hideModal(addEditGameModal);
+
+            } catch (error) {
+                console.error("Fehler beim Speichern des Quests:", error);
+                alert(`Fehler: ${error.message}`);
+            } finally {
+                submitBtn.disabled = false;
+                // Text will be reset when modal is opened next time
+            }
+        });
         
         function applyAllTransformsAndRender() {
             const selectedDays = Array.from(dayFilterContainer.querySelectorAll('.day-filter-btn.active')).map(btn => btn.dataset.day);
@@ -435,7 +801,7 @@
                     sortConfig.key = key;
                     sortConfig.direction = 'asc';
                 }
-                header.classList.remove('asc', 'desc');
+                document.querySelectorAll('.sortable').forEach(h => h.classList.remove('asc', 'desc'));
                 header.classList.add(sortConfig.direction);
                 applyAllTransformsAndRender();
             });
@@ -597,9 +963,10 @@
             card.dataset.questName = game.gameName;
             
             let participantsHTML = game.participants.map(p => `<span class="bg-slate-700 text-slate-300 text-sm font-medium px-2.5 py-1 rounded-full">${p.displayName}</span>`).join('');
+            if (!participantsHTML) participantsHTML = '<p class="text-slate-500 text-sm">Noch keine Teilnehmer.</p>';
             let tagsHTML = (game.tags && game.tags.length > 0) ? game.tags.map(tag => `<span class="bg-cyan-800 text-cyan-200 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join('') : ''; 
 
-            card.innerHTML = `${isCancelled ? '<div class="absolute inset-0 bg-red-900/70 flex items-center justify-center rounded-lg z-0"><span class="text-2xl font-bold text-white transform -rotate-12">ABGESAGT</span></div>' : ''}<div class="flex-grow"><div class="flex justify-between items-start"><h3 class="text-2xl font-bold text-cyan-400 mb-2">${game.gameName}</h3><div class="flex items-center gap-2 text-xl relative z-10"><button class="share-quest-btn text-slate-500 hover:text-cyan-400" title="Quest teilen" data-game-id="${gameId}">🔗</button>${isCreator ? `<button class="edit-game-btn text-slate-500 hover:text-cyan-400" title="Quest bearbeiten" data-game-id="${gameId}">✏️</button><button class="cancel-game-btn text-slate-500 hover:text-red-400" title="Quest absagen" data-game-id="${gameId}">⨷</button>` : ''}</div></div><p class="text-slate-400 mb-2">von <span class="font-semibold">${game.creatorName}</span></p><div class="flex items-center text-slate-400 mb-4 text-sm"><svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg><span>${game.location}</span></div><div class="flex flex-wrap mb-4">${tagsHTML}</div><div class="flex items-center text-slate-300 mb-2"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"></path></svg><span>${formattedDate}, ${formattedTime} Uhr</span></div>${game.duration ? `<div class="flex items-center text-slate-400 mb-4"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path></svg><span>ca. ${game.duration} Minuten</span></div>` : ''}<div class="flex items-center text-slate-300 mb-6"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 1 1 0 5.292M15 21H3v-1a6 6 0 0 1 12 0v1Zm0 0h6v-1a6 6 0 0 0-9-5.197M15 21a6 6 0 0 0-9-5.197m0 0A5.995 5.995 0 0 0 12 12a5.995 5.995 0 0 0-3-5.197M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path></svg><span class="${isFull ? 'text-red-400' : 'text-green-400'} font-semibold">${freeSeats > 0 ? `${freeSeats} Plätze frei` : 'Runde ist voll'}</span></div><h4 class="font-semibold text-slate-300 mb-2">Teilnehmer (${participantsCount}/${game.totalSeats}):</h4><div class="flex flex-wrap">${participantsHTML}</div></div><div class="mt-6"><button class="join-leave-btn w-full font-bold py-3 px-4 rounded-lg transition ${isCancelled ? 'bg-slate-700 text-slate-500' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull ? 'bg-slate-700 text-slate-500' : 'bg-cyan-500 hover:bg-cyan-600'))}" data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>${isCancelled ? 'Abgesagt' : (isParticipant ? 'Verlassen' : (isFull ? 'Voll' : 'Ich bin dabei!'))}</button></div>`;
+            card.innerHTML = `${isCancelled ? '<div class="absolute inset-0 bg-red-900/70 flex items-center justify-center rounded-lg z-0"><span class="text-2xl font-bold text-white transform -rotate-12">ABGESAGT</span></div>' : ''}<div class="flex-grow"><div class="flex justify-between items-start"><h3 class="text-2xl font-bold text-cyan-400 mb-2">${game.gameName}</h3><div class="flex items-center gap-2 text-xl relative z-10"><button class="share-quest-btn text-slate-500 hover:text-cyan-400" title="Quest teilen" data-game-id="${gameId}">🔗</button>${isCreator ? `<button class="edit-game-btn text-slate-500 hover:text-cyan-400" title="Quest bearbeiten" data-game-id="${gameId}">✏️</button>${!isCancelled ? `<button class="cancel-game-btn text-slate-500 hover:text-red-400" title="Quest absagen" data-game-id="${gameId}">⨷</button>`: ''}` : ''}</div></div><p class="text-slate-400 mb-2">von <span class="font-semibold">${game.creatorName}</span></p><div class="flex items-center text-slate-400 mb-4 text-sm"><svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg><span>${game.location}</span></div><div class="flex flex-wrap mb-4">${tagsHTML}</div><div class="flex items-center text-slate-300 mb-2"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"></path></svg><span>${formattedDate}, ${formattedTime} Uhr</span></div>${game.duration ? `<div class="flex items-center text-slate-400 mb-4"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path></svg><span>ca. ${game.duration} Minuten</span></div>` : ''}<div class="flex items-center text-slate-300 mb-6"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 1 1 0 5.292M15 21H3v-1a6 6 0 0 1 12 0v1Zm0 0h6v-1a6 6 0 0 0-9-5.197M15 21a6 6 0 0 0-9-5.197m0 0A5.995 5.995 0 0 0 12 12a5.995 5.995 0 0 0-3-5.197M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path></svg><span class="${isFull ? 'text-red-400' : 'text-green-400'} font-semibold">${freeSeats > 0 ? `${freeSeats} Plätze frei` : 'Runde ist voll'}</span></div><h4 class="font-semibold text-slate-300 mb-2">Teilnehmer (${participantsCount}/${game.totalSeats}):</h4><div class="flex flex-wrap gap-2">${participantsHTML}</div></div><div class="mt-6"><button class="join-leave-btn w-full font-bold py-3 px-4 rounded-lg transition ${isCancelled ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-cyan-500 hover:bg-cyan-600'))}" data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>${isCancelled ? 'Abgesagt' : (isParticipant ? 'Verlassen' : (isFull ? 'Voll' : 'Ich bin dabei!'))}</button></div>`;
             return card;
         }
         
@@ -617,19 +984,111 @@
             const formattedTime = gameDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }); 
 
             const row = document.createElement('tr');
-            row.className = `border-b border-slate-700 ${isCancelled ? 'opacity-50' : ''}`;
+            row.className = `border-b border-slate-700 ${isCancelled ? 'opacity-60 bg-red-900/20' : 'hover:bg-slate-700/50'}`;
             row.dataset.id = gameId;
             
             row.innerHTML = `<td class="px-6 py-4 font-bold text-white">
                     <div class="flex items-center gap-3">
-                        <button class="table-game-name text-left" data-game-id="${gameId}">${game.gameName}</button>
+                        <button class="table-game-name text-left ${isCancelled ? '' : 'hover:text-cyan-400 transition'}" data-game-id="${gameId}">${game.gameName} ${isCancelled ? '<span class="text-xs font-normal text-red-400">(Abgesagt)</span>' : ''}</button>
                         <div class="flex items-center gap-2 text-lg">
                             <button class="share-quest-btn ${isCancelled ? 'text-slate-700 cursor-not-allowed' : 'text-slate-500 hover:text-cyan-400'}" title="Quest teilen" data-game-id="${gameId}" ${isCancelled ? 'disabled' : ''}>🔗</button>
-                            ${isCreator ? `<button class="edit-game-btn text-slate-500 hover:text-cyan-400" title="Quest bearbeiten" data-game-id="${gameId}">✏️</button>` : ''}
+                            ${isCreator ? `<button class="edit-game-btn text-slate-500 hover:text-cyan-400" title="Quest bearbeiten/reaktivieren" data-game-id="${gameId}">✏️</button>` : ''}
                         </div>
                     </div>
-                </td><td class="px-6 py-4">${game.location}</td><td class="px-6 py-4">${formattedDate} ${formattedTime}</td><td class="px-6 py-4">${game.duration || '-'} Min.</td><td class="px-6 py-4">${participantsCount}/${game.totalSeats}</td><td class="px-6 py-4 text-center"><div class="flex items-center justify-center gap-2"><button class="join-leave-btn font-bold py-2 px-4 rounded-lg transition ${isCancelled ? 'bg-slate-700 text-slate-500' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull && !isParticipant ? 'bg-slate-700 text-slate-500' : 'bg-cyan-500 hover:bg-cyan-600'))}" data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>${isCancelled ? 'Abgesagt' : (isParticipant ? 'Verlassen' : (isFull ? 'Voll' : 'Beitreten'))}</button>${isCreator ? `<button class="cancel-game-btn text-slate-500 hover:text-red-400 text-xl" title="Quest absagen" data-game-id="${gameId}">⨷</button>` : ''}</div></td>`;
+                </td><td class="px-6 py-4">${game.location}</td><td class="px-6 py-4">${formattedDate} ${formattedTime}</td><td class="px-6 py-4">${game.duration || '-'} Min.</td><td class="px-6 py-4">${participantsCount}/${game.totalSeats}</td><td class="px-6 py-4 text-center"><div class="flex items-center justify-center gap-2"><button class="join-leave-btn font-bold py-2 px-4 rounded-lg transition ${isCancelled ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull && !isParticipant ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-cyan-500 hover:bg-cyan-600'))}" data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>${isCancelled ? 'Abgesagt' : (isParticipant ? 'Verlassen' : (isFull ? 'Voll' : 'Beitreten'))}</button>${isCreator && !isCancelled ? `<button class="cancel-game-btn text-slate-500 hover:text-red-400 text-xl" title="Quest absagen" data-game-id="${gameId}">⨷</button>` : ''}</div></td>`;
             return row;
+        }
+
+        function openEditModal(doc) {
+            const game = doc.data();
+            const modalTitle = document.getElementById('modal-title');
+            const submitBtn = document.getElementById('submit-btn');
+            const deleteBtn = document.getElementById('delete-game-btn');
+            const reactivateBtn = document.getElementById('reactivate-game-btn');
+            
+            modalTitle.textContent = 'Quest bearbeiten';
+            submitBtn.textContent = 'Speichern';
+            
+            addEditGameForm.reset();
+            document.getElementById('edit-game-id').value = doc.id;
+            document.getElementById('game-name').value = game.gameName;
+            
+            const locationSelect = document.getElementById('location-type');
+            const customLocationInput = document.getElementById('custom-location');
+            const isPredefinedLocation = Array.from(locationSelect.options).some(opt => opt.value === game.location);
+            if (isPredefinedLocation) {
+                locationSelect.value = game.location;
+                customLocationContainer.classList.add('hidden');
+            } else {
+                locationSelect.value = 'other';
+                customLocationContainer.classList.remove('hidden');
+                customLocationInput.value = game.location;
+            }
+
+            const gameDate = game.dateTime.toDate();
+            const yyyy = gameDate.getFullYear();
+            const mm = String(gameDate.getMonth() + 1).padStart(2, '0');
+            const dd = String(gameDate.getDate()).padStart(2, '0');
+            document.getElementById('game-date').value = `${yyyy}-${mm}-${dd}`;
+            document.getElementById('game-time').value = gameDate.toTimeString().slice(0, 5);
+
+            document.getElementById('total-seats').value = game.totalSeats;
+            document.getElementById('game-duration').value = game.duration || '';
+
+            document.querySelectorAll('#tags-container input[type="checkbox"]').forEach(cb => {
+                cb.checked = game.tags && game.tags.includes(cb.value);
+            });
+            
+            const organizerParticipatesCheckbox = document.getElementById('organizer-participates');
+            const organizerInParticipants = game.participants.some(p => p.uid === game.creatorId);
+            organizerParticipatesCheckbox.checked = organizerInParticipants;
+
+            if (game.cancelled) {
+                deleteBtn.classList.add('hidden');
+                reactivateBtn.classList.remove('hidden');
+            } else {
+                deleteBtn.classList.remove('hidden');
+                reactivateBtn.classList.add('hidden');
+            }
+
+            showModal(addEditGameModal);
+        }
+
+        function renderSharedQuestModal(game, gameId) {
+            const isParticipant = currentUser && game.participants.some(p => p.uid === currentUser.uid);
+            const participantsCount = game.participants.length;
+            const freeSeats = game.totalSeats - participantsCount;
+            const isFull = freeSeats <= 0;
+            const isCancelled = game.cancelled || false;
+            const gameDate = game.dateTime.toDate();
+            const formattedDate = gameDate.toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+            const formattedTime = gameDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+
+            let participantsHTML = game.participants.map(p => `<span class="bg-slate-700 text-slate-300 text-sm font-medium px-2.5 py-1 rounded-full">${p.displayName}</span>`).join('');
+            if (!participantsHTML) participantsHTML = '<p class="text-slate-500 text-sm">Noch keine Teilnehmer.</p>';
+            let tagsHTML = (game.tags && game.tags.length > 0) ? game.tags.map(tag => `<span class="bg-cyan-800 text-cyan-200 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join('') : '';
+
+            sharedQuestContent.dataset.questId = gameId; // Store questId for re-rendering
+            sharedQuestContent.innerHTML = `
+                <button id="close-shared-quest-modal" class="absolute top-4 right-4 text-slate-500 hover:text-white text-2xl">&times;</button>
+                <h3 class="text-3xl font-bold text-cyan-400 mb-2">${game.gameName}</h3>
+                <p class="text-slate-400 mb-4">Organisiert von <span class="font-semibold">${game.creatorName}</span></p>
+                <div class="space-y-4 mb-6">
+                    <div class="flex items-center text-slate-300"><svg class="w-5 h-5 mr-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg><span>${game.location}</span></div>
+                    <div class="flex items-center text-slate-300"><svg class="w-5 h-5 mr-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"></path></svg><span>${formattedDate} um ${formattedTime} Uhr</span></div>
+                    ${game.duration ? `<div class="flex items-center text-slate-300"><svg class="w-5 h-5 mr-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path></svg><span>ca. ${game.duration} Minuten</span></div>` : ''}
+                    <div class="flex items-center text-slate-300"><svg class="w-5 h-5 mr-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 1 1 0 5.292M15 21H3v-1a6 6 0 0 1 12 0v1Zm0 0h6v-1a6 6 0 0 0-9-5.197M15 21a6 6 0 0 0-9-5.197m0 0A5.995 5.995 0 0 0 12 12a5.995 5.995 0 0 0-3-5.197M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path></svg><span class="${isFull ? 'text-red-400' : 'text-green-400'} font-semibold">${freeSeats > 0 ? `${freeSeats} von ${game.totalSeats} Plätzen frei` : 'Runde ist voll'}</span></div>
+                </div>
+                ${tagsHTML ? `<div class="flex flex-wrap mb-4">${tagsHTML}</div>` : ''}
+                <div class="border-t border-slate-700 pt-4">
+                    <h4 class="font-semibold text-slate-300 mb-2">Teilnehmer (${participantsCount}/${game.totalSeats}):</h4>
+                    <div class="flex flex-wrap gap-2">${participantsHTML}</div>
+                </div>
+                <div class="mt-6">
+                    <button class="join-leave-btn w-full font-bold py-3 px-4 rounded-lg transition ${isCancelled ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-cyan-500 hover:bg-cyan-600'))}" data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>${isCancelled ? 'Abgesagt' : (isParticipant ? 'Teilnahme zurückziehen' : (isFull ? 'Voll' : 'An Quest teilnehmen'))}</button>
+                </div>
+            `;
+            document.getElementById('close-shared-quest-modal').addEventListener('click', () => hideModal(sharedQuestModal));
         }
 
         // ... rest of the file
