@@ -241,7 +241,6 @@
                 </div>
                 <div class="mb-4"><label class="block text-slate-400 mb-2">Optionale Tags</label><div id="tags-container" class="grid grid-cols-2 gap-2 text-sm"><label class="flex items-center"><input type="checkbox" name="tags" value="für Anfänger:innen geeignet" class="h-4 w-4 bg-slate-700 rounded"><span class="ml-2">für Anfänger:innen geeignet</span></label><label class="flex items-center"><input type="checkbox" name="tags" value="Expertenspiel" class="h-4 w-4 bg-slate-700 rounded"><span class="ml-2">Expertenspiel</span></label><label class="flex items-center"><input type="checkbox" name="tags" value="Kooperativ" class="h-4 w-4 bg-slate-700 rounded"><span class="ml-2">Kooperativ</span></label><label class="flex items-center"><input type="checkbox" name="tags" value="Regeln werden erklärt!" class="h-4 w-4 bg-slate-700 rounded"><span class="ml-2">Regeln werden erklärt!</span></label></div></div>
                 <div id="organizer-participates-container" class="mb-4"><label class="flex items-center text-slate-400"><input type="checkbox" id="organizer-participates" class="h-4 w-4 bg-slate-700 rounded" checked><span class="ml-2">Ich nehme selbst teil</span></label></div>
-                <div id="opening-hours-warning" class="text-yellow-400 text-sm mb-4"></div>
                 <div class="flex justify-between items-center">
                     <div><button type="button" id="delete-game-btn" class="bg-red-800 hover:bg-red-700 text-white py-2 px-4 rounded-lg transition hidden">Löschen</button><button type="button" id="reactivate-game-btn" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg transition hidden ml-2">Reaktivieren</button></div>
                     <div class="flex gap-4"><button type="button" id="cancel-add-game" class="bg-slate-600 hover:bg-slate-700 text-white py-2 px-4 rounded-lg transition">Abbrechen</button><button type="submit" id="submit-btn" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg transition">Erstellen</button></div>
@@ -348,7 +347,6 @@
         const addEditGameForm = document.getElementById('add-edit-game-form');
         const gameDateInput = document.getElementById('game-date');
         const gameTimeInput = document.getElementById('game-time');
-        const warningDiv = document.getElementById('opening-hours-warning');
         const locationTypeSelect = document.getElementById('location-type');
         const customLocationContainer = document.getElementById('custom-location-container');
         const sideMenuContent = document.getElementById('side-menu-content');
@@ -522,10 +520,15 @@
 
         document.getElementById('delete-game-btn').addEventListener('click', async () => {
             const gameId = document.getElementById('edit-game-id').value;
-            if (gameId && confirm('Bist du sicher, dass du dieses Quest absagen möchtest?')) {
+            if (gameId && confirm('Bist du sicher, dass du dieses Quest endgültig löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.')) {
                 const gameRef = doc(db, "spielrunden", gameId);
-                await updateDoc(gameRef, { cancelled: true });
-                hideModal(addEditGameModal);
+                try {
+                    await deleteDoc(gameRef);
+                    hideModal(addEditGameModal);
+                } catch (error) {
+                    console.error("Fehler beim Löschen des Quests:", error);
+                    alert("Das Quest konnte nicht gelöscht werden.");
+                }
             }
         });
 
@@ -708,60 +711,13 @@
             }
         }
 
-        // --- Opening Hours Logic for Add/Edit Modal ---
-        function checkOpeningHours() {
-            const location = locationTypeSelect.value;
-            const date = new Date(gameDateInput.value);
-            const day = date.getDay(); // Sunday is 0
-            const time = gameTimeInput.value;
-            warningDiv.textContent = ''; // Clear previous warning
-
-            const openingHours = {
-                'Genduron': { '1': 'Ruhetag', '2-5': '14:00-22:00', '6': '14:00-22:00', '0': 'Ruhetag' },
-                'Knobelritter': { '1-5': '17:00-23:00', '6': '17:00-23:00', '0': 'geschlossen' },
-                'Spieleversum': { '1': 'geschlossen', '2-4': '16:00-22:00', '5': '16:00-23:00', '6': '14:00-23:00', '0': 'geschlossen' },
-            };
-
-            if (openingHours[location] && time && date.valueOf()) {
-                const hours = openingHours[location];
-                let ruleForDay = null;
-                // Direct match for single day (e.g., '1')
-                if (hours[day.toString()]) {
-                    ruleForDay = hours[day.toString()];
-                } else {
-                    // Check for ranges (e.g., '2-5')
-                    const range = Object.keys(hours).find(r => {
-                        if (r.includes('-')) {
-                            const [start, end] = r.split('-').map(Number);
-                            return day >= start && day <= end;
-                        }
-                        return false;
-                    });
-                    if (range) ruleForDay = hours[range];
-                }
-
-                if (ruleForDay) {
-                    if (ruleForDay === 'Ruhetag' || ruleForDay === 'geschlossen') {
-                        warningDiv.textContent = `Achtung: ${location} ist an diesem Tag voraussichtlich geschlossen/hat Ruhetag.`;
-                    } else {
-                        const [openTime, closeTime] = ruleForDay.split('-');
-                        if (time < openTime || time > closeTime) {
-                            warningDiv.textContent = `Achtung: ${location} hat an diesem Tag von ${openTime} bis ${closeTime} Uhr geöffnet.`;
-                        }
-                    }
-                }
-            }
-        }
         locationTypeSelect.addEventListener('change', () => {
             if (locationTypeSelect.value === 'other') {
                 customLocationContainer.classList.remove('hidden');
             } else {
                 customLocationContainer.classList.add('hidden');
             }
-            checkOpeningHours();
         });
-        gameDateInput.addEventListener('change', checkOpeningHours);
-        gameTimeInput.addEventListener('input', checkOpeningHours);
 
         addEditGameForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -1327,9 +1283,5 @@
     </script>
 </body>
 </html>
-
-
-
-
 
 
