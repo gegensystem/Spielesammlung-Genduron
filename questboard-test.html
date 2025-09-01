@@ -65,7 +65,7 @@
     <header class="bg-slate-800/70 backdrop-blur-sm sticky top-0 z-20 shadow-lg">
         <div class="container mx-auto px-4 py-4 max-w-7xl flex justify-between items-center">
             <div>
-                <h1 class="text-3xl font-bold text-cyan-400">📜🎲 Questboard</h1>
+                <h1 class="text-3xl font-bold text-cyan-400">🎲 Questboard</h1>
                 <p class="text-slate-400 mt-1">Finde Mitspieler für deine nächste Runde.</p>
             </div>
             <div class="flex items-center gap-4">
@@ -105,9 +105,9 @@
             <div class="flex flex-col lg:flex-row gap-4 w-full lg:w-auto order-2 sm:order-1">
                 <div class="flex flex-col sm:flex-row gap-4">
                      <div class="flex gap-4">
-                        <input type="text" id="name-filter" placeholder="Nach Spiel suchen..." class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:w-auto" autocomplete="off" readonly onfocus="this.removeAttribute('readonly');">
-                        <input type="text" id="location-filter" placeholder="Nach Ort suchen..." class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:w-auto" autocomplete="off" readonly onfocus="this.removeAttribute('readonly');">
-                    </div>
+                         <input type="text" id="name-filter" placeholder="Nach Spiel suchen..." class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:w-auto" autocomplete="off" readonly onfocus="this.removeAttribute('readonly');">
+                         <input type="text" id="location-filter" placeholder="Nach Ort suchen..." class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:w-auto" autocomplete="off" readonly onfocus="this.removeAttribute('readonly');">
+                     </div>
                 </div>
                 <div id="day-filter-container" class="flex gap-2 p-1 bg-slate-800 rounded-lg">
                     <button class="filter-btn day-filter-btn active px-2 py-1 rounded-md transition" data-day="all">Alle</button>
@@ -130,7 +130,17 @@
             <button class="filter-btn location-filter-btn px-3 py-1 rounded-md transition" data-location="Games Toys and more">Games Toys and more</button>
             <button class="filter-btn location-filter-btn px-3 py-1 rounded-md transition" data-location="Brettspielfreunde">Brettspielfreunde</button>
         </div>
-        
+       
+        <!-- View Switcher -->
+        <div id="view-switcher" class="hidden lg:flex justify-center items-center gap-3 mb-6 text-slate-400">
+            <span>Tabellenansicht</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="view-toggle-checkbox" class="sr-only peer">
+                <div class="w-11 h-6 bg-slate-700 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-600"></div>
+            </label>
+            <span>Kachelansicht</span>
+        </div>
+
         <!-- Game List Container (for responsive switch) -->
         <div id="quest-list-container">
             <!-- Mobile Card View -->
@@ -157,8 +167,8 @@
                 </table>
             </div>
              <div id="loading-indicator" class="text-center col-span-full py-10">
-                <p class="text-slate-400 text-lg">Lade verfügbare Quests...</p>
-            </div>
+                 <p class="text-slate-400 text-lg">Lade verfügbare Quests...</p>
+             </div>
         </div>
 
          <!-- Pagination Controls -->
@@ -166,7 +176,7 @@
             <!-- Pagination buttons will be rendered here -->
         </div>
     </main>
-    
+   
     <!-- Footer -->
     <footer class="text-center py-8 mt-8 text-slate-500 border-t border-slate-800">
         <div class="container mx-auto px-4 max-w-5xl space-x-4">
@@ -252,10 +262,10 @@
              <button id="close-imprint-modal" class="absolute top-4 right-4 text-slate-500 hover:text-white text-2xl z-10">&times;</button>
              <h2 class="text-2xl font-bold mb-6 flex-shrink-0">Impressum</h2>
              <div class="text-slate-300 space-y-4 text-sm max-h-[60vh] overflow-y-auto pr-4">
-                <h3 class="font-semibold text-slate-100 text-base">Angaben gemäß § 5 ECG</h3><p>Dipl.-Ing. Ing. Andreas E. Neuhold, BSc.<br>Haushoferstraße 25<br>4020 Linz<br>Österreich</p>
-                <h3 class="font-semibold text-slate-100 text-base mt-4">Kontakt</h3><p>Telefon: +43 677 624 639 01<br>E-Mail: andreas.neuhold@gmail.com</p>
-                <h3 class="font-semibold text-slate-100 text-base mt-4">Ausrichtung der Webseite</h3><p>Private, nicht-kommerzielle Plattform zur Organisation von Spieletreffen. Die Nutzung der Seite ist kostenlos. Es besteht die Möglichkeit, das Projekt durch freiwillige Zuwendungen (Trinkgelder) zu unterstützen, die über externe Zahlungsdienstleister abgewickelt werden.</p>
-                <h3 class="font-semibold text-slate-100 text-base mt-4">Online-Streitbeilegung</h3><p>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:underline">https://ec.europa.eu/consumers/odr</a>. Unsere E-Mail-Adresse findest du oben im Impressum. Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>
+                 <h3 class="font-semibold text-slate-100 text-base">Angaben gemäß § 5 ECG</h3><p>Dipl.-Ing. Ing. Andreas E. Neuhold, BSc.<br>Haushoferstraße 25<br>4020 Linz<br>Österreich</p>
+                 <h3 class="font-semibold text-slate-100 text-base mt-4">Kontakt</h3><p>Telefon: +43 677 624 639 01<br>E-Mail: andreas.neuhold@gmail.com</p>
+                 <h3 class="font-semibold text-slate-100 text-base mt-4">Ausrichtung der Webseite</h3><p>Private, nicht-kommerzielle Plattform zur Organisation von Spieletreffen. Die Nutzung der Seite ist kostenlos. Es besteht die Möglichkeit, das Projekt durch freiwillige Zuwendungen (Trinkgelder) zu unterstützen, die über externe Zahlungsdienstleister abgewickelt werden.</p>
+                 <h3 class="font-semibold text-slate-100 text-base mt-4">Online-Streitbeilegung</h3><p>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer" class="text-cyan-400 hover:underline">https://ec.europa.eu/consumers/odr</a>. Unsere E-Mail-Adresse findest du oben im Impressum. Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>
              </div>
         </div>
     </div>
@@ -264,14 +274,14 @@
              <button id="close-privacy-modal" class="absolute top-4 right-4 text-slate-500 hover:text-white text-2xl z-10">&times;</button>
              <h2 class="text-2xl font-bold mb-6 flex-shrink-0">Datenschutzerklärung</h2>
              <div class="text-slate-300 space-y-4 text-sm max-h-[60vh] overflow-y-auto pr-4">
-                <p>Der Schutz deiner persönlichen Daten ist uns wichtig. Nachfolgend informieren wir dich über die Verarbeitung deiner personenbezogenen Daten.</p>
-                <p><strong class="text-slate-100">Verantwortlicher:</strong> Andreas Neuhold, andreas.neuhold@gmail.com</p>
-                <p><strong class="text-slate-100">Zweck der Datenverarbeitung:</strong> Die Verarbeitung deiner Daten (Anzeigename, E-Mail-Adresse) dient ausschließlich der Organisation von Spielrunden über diese Webseite. Dies umfasst das Erstellen von Spielrunden (Quests), die Teilnahme an diesen und die Verwaltung deines Benutzerkontos.</p>
-                <p><strong class="text-slate-100">Datenweitergabe:</strong> Deine Daten werden grundsätzlich nicht an Dritte weitergegeben.</p>
-                <p><strong class="text-slate-100">Freiwillige Zuwendungen (Trinkgelder):</strong> Auf unserer Webseite besteht die Möglichkeit, das Projekt durch freiwillige Zuwendungen zu unterstützen. Wenn du dich dafür entscheidest, wirst du zu einem externen Zahlungsdienstleister (z.B. PayPal) weitergeleitet. Wir selbst erheben oder speichern keine Zahlungsdaten wie Kreditkartennummern oder Bankverbindungen. Die gesamte Zahlungsabwicklung erfolgt ausschließlich über die sicheren Server des jeweiligen Anbieters. Es gelten die Datenschutzbestimmungen des jeweiligen Zahlungsdienstleisters.</p>
-                <p><strong class="text-slate-100">Speicherung:</strong> Die Datenverarbeitung erfolgt mithilfe einer Firebase Datenbank von Google. Der Serverstandort ist Frankfurt (Deutschland). Mit Google wurde ein Auftragsverarbeitungsvertrag abgeschlossen, der den Schutz deiner Daten gewährleistet.</p>
-                <p><strong class="text-slate-100">Deine Rechte:</strong> Du hast das Recht auf Auskunft, Berichtigung und Löschung deiner Daten. Für die Löschung deines Kontos und der damit verbundenen Daten, kontaktiere bitte den oben genannten Verantwortlichen.</p>
-                <p><strong class="text-slate-100">Anwendbares Recht und Gerichtsstand:</strong> Es gilt österreichisches Recht. Der Gerichtsstand ist Linz.</p>
+                 <p>Der Schutz deiner persönlichen Daten ist uns wichtig. Nachfolgend informieren wir dich über die Verarbeitung deiner personenbezogenen Daten.</p>
+                 <p><strong class="text-slate-100">Verantwortlicher:</strong> Andreas Neuhold, andreas.neuhold@gmail.com</p>
+                 <p><strong class="text-slate-100">Zweck der Datenverarbeitung:</strong> Die Verarbeitung deiner Daten (Anzeigename, E-Mail-Adresse) dient ausschließlich der Organisation von Spielrunden über diese Webseite. Dies umfasst das Erstellen von Spielrunden (Quests), die Teilnahme an diesen und die Verwaltung deines Benutzerkontos.</p>
+                 <p><strong class="text-slate-100">Datenweitergabe:</strong> Deine Daten werden grundsätzlich nicht an Dritte weitergegeben.</p>
+                 <p><strong class="text-slate-100">Freiwillige Zuwendungen (Trinkgelder):</strong> Auf unserer Webseite besteht die Möglichkeit, das Projekt durch freiwillige Zuwendungen zu unterstützen. Wenn du dich dafür entscheidest, wirst du zu einem externen Zahlungsdienstleister (z.B. PayPal) weitergeleitet. Wir selbst erheben oder speichern keine Zahlungsdaten wie Kreditkartennummern oder Bankverbindungen. Die gesamte Zahlungsabwicklung erfolgt ausschließlich über die sicheren Server des jeweiligen Anbieters. Es gelten die Datenschutzbestimmungen des jeweiligen Zahlungsdienstleisters.</p>
+                 <p><strong class="text-slate-100">Speicherung:</strong> Die Datenverarbeitung erfolgt mithilfe einer Firebase Datenbank von Google. Der Serverstandort ist Frankfurt (Deutschland). Mit Google wurde ein Auftragsverarbeitungsvertrag abgeschlossen, der den Schutz deiner Daten gewährleistet.</p>
+                 <p><strong class="text-slate-100">Deine Rechte:</strong> Du hast das Recht auf Auskunft, Berichtigung und Löschung deiner Daten. Für die Löschung deines Kontos und der damit verbundenen Daten, kontaktiere bitte den oben genannten Verantwortlichen.</p>
+                 <p><strong class="text-slate-100">Anwendbares Recht und Gerichtsstand:</strong> Es gilt österreichisches Recht. Der Gerichtsstand ist Linz.</p>
              </div>
         </div>
     </div>
@@ -288,7 +298,7 @@
             apiKey: "AIzaSyAm62EYO-knD48Gv_8h4asS_DsdiCVYhAo",
             authDomain: "spielrunde2.firebaseapp.com",
             projectId: "spielrunde2",
-            storageBucket: "spielrunde2.firebasestorage.app",
+            storageBucket: "spielrunde2.appspot.com",
             messagingSenderId: "718528869080",
             appId: "1:718528869080:web:28fdf441af5187c0725dad",
             measurementId: "G-1HPY49Q9DK"
@@ -312,6 +322,7 @@
 
         // --- DOM Elements ---
         const gameListCards = document.getElementById('game-list-cards');
+        const gameListTable = document.getElementById('game-list-table');
         const gameListTableBody = document.getElementById('game-list-table-body');
         const authModal = document.getElementById('auth-modal');
         const nameFilterInput = document.getElementById('name-filter');
@@ -342,13 +353,14 @@
         const imprintModal = document.getElementById('imprint-modal');
         const privacyModal = document.getElementById('privacy-modal');
         const questListContainer = document.getElementById('quest-list-container');
-        
+        const viewToggleCheckbox = document.getElementById('view-toggle-checkbox');
+       
         // --- Helper Functions ---
         const showModal = (modal) => modal.classList.remove('hidden');
         const hideModal = (modal) => modal.classList.add('hidden');
         const openMenu = () => { sideMenu.classList.remove('translate-x-full'); menuOverlay.classList.remove('hidden'); };
         const closeMenu = () => { sideMenu.classList.add('translate-x-full'); menuOverlay.classList.add('hidden'); };
-        
+       
         function copyToClipboard(text) {
             const textArea = document.createElement('textarea');
             textArea.value = text;
@@ -363,7 +375,7 @@
                 if (successful) {
                     alert('Link in die Zwischenablage kopiert!');
                 } else {
-                     alert('Kopieren fehlgeschlagen. Bitte manuell kopieren.');
+                    alert('Kopieren fehlgeschlagen. Bitte manuell kopieren.');
                 }
             } catch (err) {
                 console.error('Fehler beim Kopieren:', err);
@@ -393,8 +405,8 @@
                  const gameRef = doc(db, "spielrunden", gameId);
                  const docSnap = await getDoc(gameRef);
                  if (docSnap.exists()) {
-                    renderSharedQuestModal(docSnap.data(), docSnap.id);
-                    showModal(sharedQuestModal);
+                     renderSharedQuestModal(docSnap.data(), docSnap.id);
+                     showModal(sharedQuestModal);
                  }
             } else if (shareBtn) {
                  const gameId = shareBtn.dataset.gameId;
@@ -451,21 +463,35 @@
                 }
             } else {
                  const expandableRow = e.target.closest('.expandable-row');
-                if (expandableRow) {
-                    const targetId = expandableRow.dataset.targetId;
-                    const detailsRow = document.getElementById(targetId);
-                    if (detailsRow) {
-                        const isCurrentlyOpen = !detailsRow.classList.contains('hidden');
-                        document.querySelectorAll('.details-row').forEach(row => row.classList.add('hidden'));
-                        if (!isCurrentlyOpen) {
-                            detailsRow.classList.remove('hidden');
-                        }
-                    }
-                }
+                 if (expandableRow) {
+                     const targetId = expandableRow.dataset.targetId;
+                     const detailsRow = document.getElementById(targetId);
+                     if (detailsRow) {
+                         const isCurrentlyOpen = !detailsRow.classList.contains('hidden');
+                         document.querySelectorAll('.details-row').forEach(row => row.classList.add('hidden'));
+                         if (!isCurrentlyOpen) {
+                             detailsRow.classList.remove('hidden');
+                         }
+                     }
+                 }
             }
         });
 
         // --- Event Listeners ---
+        if (viewToggleCheckbox) {
+            viewToggleCheckbox.addEventListener('change', () => {
+                const isCardView = viewToggleCheckbox.checked;
+                if (isCardView) {
+                    // Switch to Card View on Desktop
+                    gameListTable.classList.remove('lg:block');
+                    gameListCards.classList.remove('lg:hidden');
+                } else {
+                    // Switch back to Table View on Desktop
+                    gameListTable.classList.add('lg:block');
+                    gameListCards.classList.add('lg:hidden');
+                }
+            });
+        }
         menuToggleBtn.addEventListener('click', openMenu);
         menuOverlay.addEventListener('click', closeMenu);
         addGameBtn.addEventListener('click', () => {
@@ -506,7 +532,7 @@
                 hideModal(addEditGameModal);
             }
         });
-        
+       
         document.getElementById('resend-verification-btn').addEventListener('click', async (e) => {
             const btn = e.target;
             const feedback = document.getElementById('resend-feedback');
@@ -561,7 +587,7 @@
                 });
                 tab.classList.add('border-cyan-500', 'text-white');
                 tab.classList.remove('border-transparent', 'text-slate-400');
-                
+               
                 if (targetTab === 'login') {
                     loginForm.classList.remove('hidden');
                     registerForm.classList.add('hidden');
@@ -624,7 +650,7 @@
                 authError.textContent = getGermanAuthError(error.code);
             }
         });
-        
+       
         document.getElementById('forgot-password-link').addEventListener('click', async (e) => {
              e.preventDefault();
              const email = document.getElementById('login-email').value;
@@ -730,7 +756,7 @@
                 const date = document.getElementById('game-date').value;
                 const time = document.getElementById('game-time').value;
                 const dateTime = new Date(`${date}T${time}`);
-                
+               
                 if (!location) throw new Error("Der Spielort darf nicht leer sein.");
                 if (isNaN(dateTime.getTime())) throw new Error("Ungültiges Datum oder Uhrzeit.");
 
@@ -773,7 +799,7 @@
                     questData.createdAt = Timestamp.now();
                     questData.cancelled = false;
                     questData.participants = [];
-                    
+                   
                     if (document.getElementById('organizer-participates').checked) {
                         questData.participants.push({ uid: currentUser.uid, displayName: currentUser.displayName });
                     }
@@ -790,7 +816,7 @@
                 // Text will be reset when modal is opened next time
             }
         });
-        
+       
         function applyAllTransformsAndRender() {
             const selectedDays = Array.from(dayFilterContainer.querySelectorAll('.day-filter-btn.active')).map(btn => btn.dataset.day);
             const selectedLocations = Array.from(locationFilterContainer.querySelectorAll('.location-filter-btn.active')).map(btn => btn.dataset.location);
@@ -825,7 +851,7 @@
                 if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
                 return 0;
             });
-            
+           
             const totalPages = Math.ceil(filteredQuests.length / ITEMS_PER_PAGE);
             if (currentPage > totalPages) currentPage = totalPages || 1;
             const start = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -856,7 +882,7 @@
                 });
             }
         }
-        
+       
         function renderPaginationControls(totalPages) {
             paginationControls.innerHTML = '';
             if (totalPages > 1) {
@@ -914,7 +940,7 @@
             if (verificationCheckInterval) clearInterval(verificationCheckInterval);
             const wasJustLoggedIn = !currentUser && user;
             currentUser = user ? { uid: user.uid, displayName: user.displayName, email: user.email, emailVerified: user.emailVerified } : null;
-            
+           
             if (wasJustLoggedIn) {
                 hideModal(authModal);
             }
@@ -971,7 +997,7 @@
                 verificationBanner.classList.remove('hidden');
             }
         }
-        
+       
         function updateSideMenu(isLoggedIn) {
             let menuHTML = `<button id="close-menu-btn" class="absolute top-4 right-4 text-slate-500 hover:text-white text-2xl">&times;</button>`;
             if (isLoggedIn) {
@@ -991,9 +1017,9 @@
                 menuHTML += `
                      <h2 class="text-xl font-bold mb-6">Menü</h2>
                      <nav class="flex flex-col space-y-2">
-                        <a href="#" id="login-register-btn" class="p-2 rounded-md hover:bg-slate-700">Login / Registrieren</a>
-                        <a href="anleitung.html" class="p-2 rounded-md hover:bg-slate-700">Anleitung</a>
-                        <a href="faq.html" class="p-2 rounded-md hover:bg-slate-700">FAQ</a>
+                         <a href="#" id="login-register-btn" class="p-2 rounded-md hover:bg-slate-700">Login / Registrieren</a>
+                         <a href="anleitung.html" class="p-2 rounded-md hover:bg-slate-700">Anleitung</a>
+                         <a href="faq.html" class="p-2 rounded-md hover:bg-slate-700">FAQ</a>
                     </nav>
                 `;
             }
@@ -1007,7 +1033,7 @@
                 document.getElementById('login-register-btn').addEventListener('click', (e) => { e.preventDefault(); showModal(authModal); closeMenu(); });
             }
         }
-        
+       
         let unsubscribeFromGames = null;
         function listenToGames() { 
             if (unsubscribeFromGames) unsubscribeFromGames(); 
@@ -1022,7 +1048,7 @@
                 loadingIndicator.innerHTML = '<p class="text-red-400 text-center col-span-full">Fehler beim Laden der Quests.</p>'; 
             }); 
         }
-        
+       
         function renderGameCard(doc) {
             const game = doc.data(); 
             const gameId = doc.id;
@@ -1035,11 +1061,11 @@
             const gameDate = game.dateTime.toDate(); 
             const formattedDate = gameDate.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' }); 
             const formattedTime = gameDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }); 
-            
+           
             const card = document.createElement('div');
             card.className = `quest-card bg-slate-800 rounded-lg shadow-lg p-6 flex flex-col relative`; 
             card.dataset.id = gameId;
-            
+           
             let participantsHTML = game.participants.map(p => `
                 <span class="bg-slate-700 text-slate-300 text-sm font-medium pl-2.5 pr-1.5 py-1 rounded-full flex items-center gap-1">
                     ${p.displayName}
@@ -1051,7 +1077,7 @@
             card.innerHTML = `${isCancelled ? '<div class="absolute inset-0 bg-red-900/70 flex items-center justify-center rounded-lg z-0"><span class="text-2xl font-bold text-white transform -rotate-12">ABGESAGT</span></div>' : ''}<div class="flex-grow"><div class="flex justify-between items-start"><h3 class="text-2xl font-bold text-cyan-400 mb-2">${game.gameName}</h3><div class="flex items-center gap-2 text-xl relative z-10"><button class="share-quest-btn text-slate-500 hover:text-cyan-400" title="Quest teilen" data-game-id="${gameId}">🔗</button>${isCreator ? `<button class="edit-game-btn text-slate-500 hover:text-cyan-400" title="Quest bearbeiten" data-game-id="${gameId}">✏️</button>${!isCancelled ? `<button class="cancel-game-btn text-slate-500 hover:text-red-400" title="Quest absagen" data-game-id="${gameId}">⨷</button>`: ''}` : ''}</div></div><p class="text-slate-400 mb-2">von <span class="font-semibold">${game.creatorName}</span></p><div class="flex items-center text-slate-400 mb-4 text-sm"><svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg><span>${game.location}</span></div><div class="flex flex-wrap mb-4">${tagsHTML}</div><div class="flex items-center text-slate-300 mb-2"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"></path></svg><span>${formattedDate}, ${formattedTime} Uhr</span></div>${game.duration ? `<div class="flex items-center text-slate-400 mb-4"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path></svg><span>ca. ${game.duration} Minuten</span></div>` : ''}<div class="flex items-center text-slate-300 mb-6"><svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 1 1 0 5.292M15 21H3v-1a6 6 0 0 1 12 0v1Zm0 0h6v-1a6 6 0 0 0-9-5.197M15 21a6 6 0 0 0-9-5.197m0 0A5.995 5.995 0 0 0 12 12a5.995 5.995 0 0 0-3-5.197M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path></svg><span class="${isFull ? 'text-red-400' : 'text-green-400'} font-semibold">${freeSeats > 0 ? `${freeSeats} Plätze frei` : 'Runde ist voll'}</span></div><h4 class="font-semibold text-slate-300 mb-2">Teilnehmer (${participantsCount}/${game.totalSeats}):</h4><div class="flex flex-wrap gap-2">${participantsHTML}</div></div><div class="mt-6"><button class="join-leave-btn w-full font-bold py-3 px-4 rounded-lg transition ${isCancelled ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-cyan-500 hover:bg-cyan-600'))}" data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>${isCancelled ? 'Abgesagt' : (isParticipant ? 'Verlassen' : (isFull ? 'Voll' : 'Ich bin dabei!'))}</button></div>`;
             return card;
         }
-        
+       
         function renderGameTableRow(doc) {
             const game = doc.data();
             const gameId = doc.id;
@@ -1069,7 +1095,7 @@
             row.className = `expandable-row border-b border-slate-700 ${isCancelled ? 'opacity-60 bg-red-900/20' : 'hover:bg-slate-700/50'}`;
             row.dataset.id = gameId;
             row.dataset.targetId = `details-${gameId}`;
-            
+           
             row.innerHTML = `<td class="px-6 py-4 font-bold text-white">
                     <div class="flex items-center gap-3">
                         <button class="table-game-name text-left ${isCancelled ? '' : 'hover:text-cyan-400 transition'}" data-game-id="${gameId}">${game.gameName} ${isCancelled ? '<span class="text-xs font-normal text-red-400">(Abgesagt)</span>' : ''}</button>
@@ -1079,19 +1105,34 @@
                         </div>
                     </div>
                 </td><td class="px-6 py-4">${game.location}</td><td class="px-6 py-4">${formattedDate} ${formattedTime}</td><td class="px-6 py-4">${game.duration || '-'} Min.</td><td class="px-6 py-4">${participantsCount}/${game.totalSeats}</td><td class="px-6 py-4 text-center"><div class="flex items-center justify-center gap-2"><button class="join-leave-btn font-bold py-2 px-4 rounded-lg transition ${isCancelled ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull && !isParticipant ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-cyan-500 hover:bg-cyan-600'))}" data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>${isCancelled ? 'Abgesagt' : (isParticipant ? 'Verlassen' : (isFull ? 'Voll' : 'Beitreten'))}</button>${isCreator && !isCancelled ? `<button class="cancel-game-btn text-slate-500 hover:text-red-400 text-xl" title="Quest absagen" data-game-id="${gameId}">⨷</button>` : ''}</div></td>`;
-            
+           
             const detailsRow = document.createElement('tr');
             detailsRow.id = `details-${gameId}`;
             detailsRow.className = 'details-row hidden';
 
             let participantsHTML = game.participants.map(p => `
                  <span class="bg-slate-700 text-slate-300 text-sm font-medium pl-2.5 pr-1.5 py-1 rounded-full flex items-center gap-1">
-                    ${p.displayName}
-                    ${isCreator && currentUser && p.uid !== currentUser.uid ? `<button class="remove-participant-btn text-red-400 hover:text-red-200" data-game-id="${gameId}" data-participant-uid="${p.uid}" title="Teilnehmer entfernen">&times;</button>` : ''}
-                </span>`).join('');
+                     ${p.displayName}
+                     ${isCreator && currentUser && p.uid !== currentUser.uid ? `<button class="remove-participant-btn text-red-400 hover:text-red-200" data-game-id="${gameId}" data-participant-uid="${p.uid}" title="Teilnehmer entfernen">&times;</button>` : ''}
+                 </span>`).join('');
             if (!participantsHTML) participantsHTML = '<p class="text-slate-500 text-sm">Noch keine Teilnehmer.</p>';
 
-            detailsRow.innerHTML = `<td colspan="6" class="p-4"><h4 class="font-semibold text-slate-300 mb-2">Teilnehmer (${participantsCount}/${game.totalSeats}):</h4><div class="flex flex-wrap gap-2">${participantsHTML}</div></td>`;
+            const tagsHTML = (game.tags && game.tags.length > 0)
+                ? `<div class="mt-4 pt-4 border-t border-slate-700/50">
+                     <h4 class="font-semibold text-slate-300 mb-2">Tags:</h4>
+                     <div class="flex flex-wrap gap-2">
+                       ${game.tags.map(tag => `<span class="bg-cyan-800 text-cyan-200 text-xs font-medium px-2.5 py-0.5 rounded-full">${tag}</span>`).join('')}
+                     </div>
+                   </div>`
+                : '';
+
+            detailsRow.innerHTML = `<td colspan="6" class="p-4">
+                <div>
+                    <h4 class="font-semibold text-slate-300 mb-2">Teilnehmer (${participantsCount}/${game.totalSeats}):</h4>
+                    <div class="flex flex-wrap gap-2">${participantsHTML}</div>
+                </div>
+                ${tagsHTML}
+            </td>`;
 
             return [row, detailsRow];
         }
@@ -1102,14 +1143,14 @@
             const submitBtn = document.getElementById('submit-btn');
             const deleteBtn = document.getElementById('delete-game-btn');
             const reactivateBtn = document.getElementById('reactivate-game-btn');
-            
+           
             modalTitle.textContent = 'Quest bearbeiten';
             submitBtn.textContent = 'Speichern';
-            
+           
             addEditGameForm.reset();
             document.getElementById('edit-game-id').value = doc.id;
             document.getElementById('game-name').value = game.gameName;
-            
+           
             const locationSelect = document.getElementById('location-type');
             const customLocationInput = document.getElementById('custom-location');
             const isPredefinedLocation = Array.from(locationSelect.options).some(opt => opt.value === game.location);
@@ -1135,7 +1176,7 @@
             document.querySelectorAll('#tags-container input[type="checkbox"]').forEach(cb => {
                 cb.checked = game.tags && game.tags.includes(cb.value);
             });
-            
+           
             const organizerParticipatesCheckbox = document.getElementById('organizer-participates');
             const organizerInParticipants = game.participants.some(p => p.uid === game.creatorId);
             organizerParticipatesCheckbox.checked = organizerInParticipants;
@@ -1164,9 +1205,9 @@
 
             let participantsHTML = game.participants.map(p => `
                  <span class="bg-slate-700 text-slate-300 text-sm font-medium pl-2.5 pr-1.5 py-1 rounded-full flex items-center gap-1">
-                    ${p.displayName}
-                    ${isCreator && currentUser && p.uid !== currentUser.uid ? `<button class="remove-participant-btn text-red-400 hover:text-red-200" data-game-id="${gameId}" data-participant-uid="${p.uid}" title="Teilnehmer entfernen">&times;</button>` : ''}
-                </span>`).join('');
+                     ${p.displayName}
+                     ${isCreator && currentUser && p.uid !== currentUser.uid ? `<button class="remove-participant-btn text-red-400 hover:text-red-200" data-game-id="${gameId}" data-participant-uid="${p.uid}" title="Teilnehmer entfernen">&times;</button>` : ''}
+                 </span>`).join('');
             if (!participantsHTML) participantsHTML = '<p class="text-slate-500 text-sm">Noch keine Teilnehmer.</p>';
             let tagsHTML = (game.tags && game.tags.length > 0) ? game.tags.map(tag => `<span class="bg-cyan-800 text-cyan-200 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join('') : '';
 
@@ -1257,4 +1298,5 @@
     </script>
 </body>
 </html>
+
 
