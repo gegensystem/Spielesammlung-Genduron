@@ -1121,15 +1121,24 @@
             row.dataset.id = gameId;
             row.dataset.targetId = `details-${gameId}`;
            
-            row.innerHTML = `<td class="px-6 py-4 font-bold text-white">
-                    <div class="flex items-center gap-3">
-                        <button class="table-game-name text-left ${isCancelled ? '' : 'hover:text-cyan-400 transition'}" data-game-id="${gameId}">${game.gameName} ${isCancelled ? '<span class="text-xs font-normal text-red-400">(Abgesagt)</span>' : ''}</button>
-                        <div class="flex items-center gap-2 text-lg">
-                            <button class="share-quest-btn ${isCancelled ? 'text-slate-700 cursor-not-allowed' : 'text-slate-500 hover:text-cyan-400'}" title="Quest teilen" data-game-id="${gameId}" ${isCancelled ? 'disabled' : ''}>🔗</button>
-                            ${isCreator ? `<button class="edit-game-btn text-slate-500 hover:text-cyan-400" title="Quest bearbeiten/reaktivieren" data-game-id="${gameId}">✏️</button>` : ''}
+            const tagsRowHTML = (game.tags && game.tags.length > 0)
+                ? `<div class="flex flex-wrap gap-1 mt-1.5">
+                    ${game.tags.map(tag => `<span class="bg-slate-700 text-cyan-200 text-[10px] font-medium px-2 py-0.5 rounded-full">${tag}</span>`).join('')}
+                   </div>`
+                : '';
+
+            row.innerHTML = `<td class="px-6 py-4 font-bold text-white align-top">
+                    <div>
+                        <div class="flex items-center gap-3">
+                            <button class="table-game-name text-left ${isCancelled ? '' : 'hover:text-cyan-400 transition'}" data-game-id="${gameId}">${game.gameName} ${isCancelled ? '<span class="text-xs font-normal text-red-400">(Abgesagt)</span>' : ''}</button>
+                            <div class="flex items-center gap-2 text-lg">
+                                <button class="share-quest-btn ${isCancelled ? 'text-slate-700 cursor-not-allowed' : 'text-slate-500 hover:text-cyan-400'}" title="Quest teilen" data-game-id="${gameId}" ${isCancelled ? 'disabled' : ''}>🔗</button>
+                                ${isCreator ? `<button class="edit-game-btn text-slate-500 hover:text-cyan-400" title="Quest bearbeiten/reaktivieren" data-game-id="${gameId}">✏️</button>` : ''}
+                            </div>
                         </div>
+                        ${tagsRowHTML}
                     </div>
-                </td><td class="px-6 py-4">${game.location}</td><td class="px-6 py-4">${formattedDate} ${formattedTime}</td><td class="px-6 py-4">${game.duration || '-'} Min.</td><td class="px-6 py-4">${participantsCount}/${game.totalSeats}</td><td class="px-6 py-4 text-center"><div class="flex items-center justify-center gap-2"><button class="join-leave-btn font-bold py-2 px-4 rounded-lg transition ${isCancelled ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull && !isParticipant ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-cyan-500 hover:bg-cyan-600'))}" data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>${isCancelled ? 'Abgesagt' : (isParticipant ? 'Verlassen' : (isFull ? 'Voll' : 'Beitreten'))}</button>${isCreator && !isCancelled ? `<button class="cancel-game-btn text-slate-500 hover:text-red-400 text-xl" title="Quest absagen" data-game-id="${gameId}">⨷</button>` : ''}</div></td>`;
+                </td><td class="px-6 py-4 align-top">${game.location}</td><td class="px-6 py-4 align-top">${formattedDate} ${formattedTime}</td><td class="px-6 py-4 align-top">${game.duration || '-'} Min.</td><td class="px-6 py-4 align-top">${participantsCount}/${game.totalSeats}</td><td class="px-6 py-4 text-center align-top"><div class="flex items-center justify-center gap-2"><button class="join-leave-btn font-bold py-2 px-4 rounded-lg transition ${isCancelled ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull && !isParticipant ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-cyan-500 hover:bg-cyan-600'))}" data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>${isCancelled ? 'Abgesagt' : (isParticipant ? 'Verlassen' : (isFull ? 'Voll' : 'Beitreten'))}</button>${isCreator && !isCancelled ? `<button class="cancel-game-btn text-slate-500 hover:text-red-400 text-xl" title="Quest absagen" data-game-id="${gameId}">⨷</button>` : ''}</div></td>`;
            
             const detailsRow = document.createElement('tr');
             detailsRow.id = `details-${gameId}`;
@@ -1142,21 +1151,11 @@
                  </span>`).join('');
             if (!participantsHTML) participantsHTML = '<p class="text-slate-500 text-sm">Noch keine Teilnehmer.</p>';
 
-            const tagsHTML = (game.tags && game.tags.length > 0)
-                ? `<div class="mt-4 pt-4 border-t border-slate-700/50">
-                     <h4 class="font-semibold text-slate-300 mb-2">Tags:</h4>
-                     <div class="flex flex-wrap gap-2">
-                       ${game.tags.map(tag => `<span class="bg-cyan-800 text-cyan-200 text-xs font-medium px-2.5 py-0.5 rounded-full">${tag}</span>`).join('')}
-                     </div>
-                   </div>`
-                : '';
-
             detailsRow.innerHTML = `<td colspan="6" class="p-4">
                 <div>
                     <h4 class="font-semibold text-slate-300 mb-2">Teilnehmer (${participantsCount}/${game.totalSeats}):</h4>
                     <div class="flex flex-wrap gap-2">${participantsHTML}</div>
                 </div>
-                ${tagsHTML}
             </td>`;
 
             return [row, detailsRow];
@@ -1323,6 +1322,7 @@
     </script>
 </body>
 </html>
+
 
 
 
