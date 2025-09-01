@@ -848,7 +848,11 @@
             const nameText = nameFilterInput.value.toLowerCase().trim();
             const locationText = locationFilterInput ? locationFilterInput.value.toLowerCase().trim() : "";
 
-            const filteredQuests = allQuests.filter(quest => {
+            // New: Filter for future quests first
+            const now = new Date();
+            const futureQuests = allQuests.filter(quest => quest.dateTime.toDate() >= now);
+
+            const filteredQuests = futureQuests.filter(quest => {
                 const cardDay = quest.dateTime.toDate().getDay().toString();
                 const cardLocation = quest.location;
                 const cardLocationLower = cardLocation.toLowerCase();
@@ -1063,7 +1067,8 @@
         function listenToGames() { 
             if (unsubscribeFromGames) unsubscribeFromGames(); 
             const gamesCol = collection(db, "spielrunden"); 
-            const q = query(gamesCol, where("dateTime", ">=", Timestamp.now()), orderBy("dateTime", "asc")); 
+            // Simpler query, less prone to index errors. Filtering for future quests now happens client-side.
+            const q = query(gamesCol, orderBy("dateTime", "asc")); 
             unsubscribeFromGames = onSnapshot(q, (snapshot) => { 
                 loadingIndicator.style.display = 'none';
                 allQuests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -1322,6 +1327,7 @@
     </script>
 </body>
 </html>
+
 
 
 
