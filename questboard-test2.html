@@ -1089,25 +1089,12 @@
             const deleteBtn = document.getElementById('delete-game-btn');
             const reactivateBtn = document.getElementById('reactivate-game-btn');
            
-            modalTitle.textContent = 'Quest bearbeiten';
-            submitBtn.textContent = 'Speichern';
-           
             addEditGameForm.reset();
-
-            // Disable form fields if the quest is cancelled
-            const isCancelled = game.cancelled || false;
-            const formElements = addEditGameForm.elements;
-            for (const element of formElements) {
-                if (element.type !== 'button') { // Keep buttons enabled
-                    element.disabled = isCancelled;
-                }
-            }
-            submitBtn.disabled = isCancelled;
-
-
+            
+            // --- Populate form fields first ---
             document.getElementById('edit-game-id').value = doc.id;
             document.getElementById('game-name').value = game.gameName;
-           
+
             const locationSelect = document.getElementById('location-type');
             const customLocationInput = document.getElementById('custom-location');
             const isPredefinedLocation = Array.from(locationSelect.options).some(opt => opt.value === game.location);
@@ -1138,12 +1125,24 @@
             const organizerInParticipants = game.participants.some(p => p.uid === game.creatorId);
             organizerParticipatesCheckbox.checked = organizerInParticipants;
 
-            if (game.cancelled) {
-                deleteBtn.classList.add('hidden');
-                reactivateBtn.classList.remove('hidden');
+            // --- Handle UI state based on cancelled status ---
+            const isCancelled = game.cancelled || false;
+            const formElements = addEditGameForm.elements;
+
+            for (const element of formElements) {
+                if (element.type !== 'button') {
+                    element.disabled = isCancelled;
+                }
+            }
+            
+            submitBtn.disabled = isCancelled;
+            deleteBtn.classList.toggle('hidden', isCancelled);
+            reactivateBtn.classList.toggle('hidden', !isCancelled);
+            
+            if (isCancelled) {
+                 modalTitle.textContent = 'Quest reaktivieren';
             } else {
-                deleteBtn.classList.remove('hidden');
-                reactivateBtn.classList.add('hidden');
+                 modalTitle.textContent = 'Quest bearbeiten';
             }
 
             showModal(addEditGameModal);
@@ -1255,4 +1254,5 @@
     </script>
 </body>
 </html>
+
 
