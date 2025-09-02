@@ -19,6 +19,11 @@
             transition: box-shadow 0.5s ease-in-out;
             box-shadow: 0 0 20px 5px #06b6d4;
         }
+        /* Custom styles for date input */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            cursor: pointer;
+            filter: invert(0.6) brightness(1.5);
+        }
     </style>
 </head>
 <body class="bg-slate-900 text-white antialiased">
@@ -69,9 +74,10 @@
                      <div class="flex flex-wrap gap-4">
                          <input type="text" id="name-filter" placeholder="Nach Spiel suchen..." class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:w-auto" autocomplete="off" readonly onfocus="this.removeAttribute('readonly');">
                          <input type="text" id="location-filter" placeholder="Nach Ort suchen..." class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:w-auto" autocomplete="off" readonly onfocus="this.removeAttribute('readonly');">
-                         <select id="date-filter" class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:w-auto appearance-none">
-                            <option value="">Nach Datum filtern...</option>
-                         </select>
+                         <div class="relative">
+                            <input type="date" id="date-filter" class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:w-auto pr-8">
+                            <button id="clear-date-filter" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white hidden text-xl font-bold">&times;</button>
+                        </div>
                      </div>
                 </div>
                 <div id="day-filter-container" class="flex gap-2 p-1 bg-slate-800 rounded-lg">
@@ -271,6 +277,7 @@
         const sharedQuestModal = document.getElementById('shared-quest-modal');
         const locationFilterInput = document.getElementById('location-filter');
         const dateFilterInput = document.getElementById('date-filter');
+        const clearDateFilterBtn = document.getElementById('clear-date-filter');
         const paginationControls = document.getElementById('pagination-controls');
         const loadingIndicator = document.getElementById('loading-indicator');
         const loginForm = document.getElementById('login-form');
@@ -396,6 +403,13 @@
              document.getElementById('edit-game-id').value = '';
              document.getElementById('delete-game-btn').classList.add('hidden');
              document.getElementById('reactivate-game-btn').classList.add('hidden');
+             
+             // Set max date for quest creation
+             const today = new Date();
+             const maxDate = new Date();
+             maxDate.setMonth(today.getMonth() + 3);
+             document.getElementById('game-date').setAttribute('max', maxDate.toISOString().split('T')[0]);
+
              showModal(addEditGameModal);
         });
 
@@ -830,6 +844,7 @@
         dayFilterContainer.addEventListener('click', (e) => { 
             if (e.target.classList.contains('day-filter-btn')) { 
                 dateFilterInput.value = ''; // Clear date filter when a day button is clicked
+                clearDateFilterBtn.classList.add('hidden');
                 const clickedDay = e.target.dataset.day; 
                 if (clickedDay === 'all') { 
                     dayFilterContainer.querySelectorAll('.day-filter-btn').forEach(btn => btn.classList.remove('active')); 
@@ -868,6 +883,12 @@
              // When a date is selected, deactivate day-of-week filters
             dayFilterContainer.querySelectorAll('.day-filter-btn').forEach(btn => btn.classList.remove('active'));
             dayFilterContainer.querySelector('[data-day="all"]').classList.add('active');
+            clearDateFilterBtn.classList.toggle('hidden', !dateFilterInput.value);
+            applyAllTransformsAndRender();
+        });
+        clearDateFilterBtn.addEventListener('click', () => {
+            dateFilterInput.value = '';
+            clearDateFilterBtn.classList.add('hidden');
             applyAllTransformsAndRender();
         });
 
@@ -982,46 +1003,11 @@
             unsubscribeFromGames = onSnapshot(q, (snapshot) => { 
                 loadingIndicator.style.display = 'none';
                 allQuests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                updateDateFilterDropdown(allQuests);
                 applyAllTransformsAndRender();
             }, (error) => { 
                 console.error("Firestore Error:", error); 
                 loadingIndicator.innerHTML = '<p class="text-red-400 text-center col-span-full">Fehler beim Laden der Quests.</p>'; 
             }); 
-        }
-
-        function updateDateFilterDropdown(quests) {
-            const dateFilter = document.getElementById('date-filter');
-            const selectedValue = dateFilter.value;
-            
-            const now = new Date();
-            const futureQuests = quests.filter(quest => quest.dateTime.toDate() >= now);
-            
-            const availableDates = [...new Set(futureQuests.map(quest => {
-                return quest.dateTime.toDate().toISOString().slice(0, 10);
-            }))];
-            
-            // Clear existing options except the first one
-            while (dateFilter.options.length > 1) {
-                dateFilter.remove(1);
-            }
-
-            availableDates.forEach(dateString => {
-                const option = document.createElement('option');
-                option.value = dateString;
-                
-                const dateObj = new Date(dateString);
-                const timezoneOffset = dateObj.getTimezoneOffset() * 60000;
-                const adjustedDate = new Date(dateObj.getTime() + timezoneOffset);
-
-                option.textContent = adjustedDate.toLocaleDateString('de-DE', { weekday: 'short', day: 'numeric', month: 'short' });
-                dateFilter.appendChild(option);
-            });
-
-            // Restore selection if possible
-            if (availableDates.includes(selectedValue)) {
-                dateFilter.value = selectedValue;
-            }
         }
        
         function renderGameCard(doc) {
