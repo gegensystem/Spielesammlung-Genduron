@@ -733,18 +733,56 @@
         }
 
         function renderQuestLists(quests) {
-            gameListCards.innerHTML = '';
-            if (quests.length === 0 && allQuests.length > 0) {
-                 gameListCards.innerHTML = '<p class="text-slate-400 text-center col-span-full">Keine Quests für diese Filter gefunden.</p>';
-            } else if (quests.length === 0 && allQuests.length === 0) {
-                 gameListCards.innerHTML = '<p class="text-slate-400 text-center col-span-full">Aktuell sind keine Quests verfügbar. Erstelle das erste!</p>';
+            gameListCards.innerHTML = ''; // Clear previous content
+
+            if (quests.length === 0) {
+                const messageContainer = document.createElement('div');
+                messageContainer.className = 'col-span-full'; // Span all columns
+                if (allQuests.length > 0) {
+                    messageContainer.innerHTML = '<p class="text-slate-400 text-center">Keine Quests für diese Filter gefunden.</p>';
+                } else {
+                    messageContainer.innerHTML = '<p class="text-slate-400 text-center">Aktuell sind keine Quests verfügbar. Erstelle das erste!</p>';
+                }
+                gameListCards.appendChild(messageContainer);
+                return;
             }
-            else {
-                quests.forEach(quest => {
+
+            const questsByDay = {};
+
+            quests.forEach(quest => {
+                const date = quest.dateTime.toDate();
+                const yyyy = date.getFullYear();
+                const mm = String(date.getMonth() + 1).padStart(2, '0');
+                const dd = String(date.getDate()).padStart(2, '0');
+                const sortableKey = `${yyyy}-${mm}-${dd}`;
+                
+                if (!questsByDay[sortableKey]) {
+                    questsByDay[sortableKey] = {
+                        dateObj: date, // store the date object
+                        quests: []
+                    };
+                }
+                questsByDay[sortableKey].quests.push(quest);
+            });
+            
+            const sortedDays = Object.keys(questsByDay).sort();
+
+            sortedDays.forEach(dayKey => {
+                const dayData = questsByDay[dayKey];
+                const displayDateStr = dayData.dateObj.toLocaleDateString('de-DE', { weekday: 'long' });
+                
+                // Create and append the heading for the day
+                const heading = document.createElement('h3');
+                heading.className = 'text-lg font-semibold text-slate-400 mt-6 mb-3 col-span-full';
+                heading.textContent = displayDateStr;
+                gameListCards.appendChild(heading);
+
+                // Render the cards for that day
+                dayData.quests.forEach(quest => {
                     const docWrapper = { id: quest.id, data: () => quest };
                     gameListCards.appendChild(renderGameCard(docWrapper));
                 });
-            }
+            });
         }
        
         function renderPaginationControls(totalPages) {
@@ -931,7 +969,7 @@
                         <div class="absolute top-4 right-4 flex items-center gap-2 text-xl z-20">
                             <button class="share-quest-btn text-slate-500 hover:text-cyan-400" title="Quest teilen" data-game-id="${gameId}">🔗</button>
                             ${isCreator ? `
-                                <button class="edit-game-btn text-slate-500 hover:text-cyan-400" title="Quest bearbeiten" data-game-id="${gameId}">✏️</button>
+                                <button class="edit-game-btn text-slate-500 hover:text-cyan-400" title="${isCancelled ? 'Quest reaktivieren/bearbeiten' : 'Quest bearbeiten'}" data-game-id="${gameId}">✏️</button>
                                 ${!isCancelled ? `<button class="cancel-game-btn text-slate-500 hover:text-red-400" title="Quest absagen" data-game-id="${gameId}">⨷</button>` : ''}
                             ` : ''}
                         </div>
@@ -981,6 +1019,18 @@
             submitBtn.textContent = 'Speichern';
            
             addEditGameForm.reset();
+
+            // Disable form fields if the quest is cancelled
+            const isCancelled = game.cancelled || false;
+            const formElements = addEditGameForm.elements;
+            for (const element of formElements) {
+                if (element.type !== 'button') { // Keep buttons enabled
+                    element.disabled = isCancelled;
+                }
+            }
+            submitBtn.disabled = isCancelled;
+
+
             document.getElementById('edit-game-id').value = doc.id;
             document.getElementById('game-name').value = game.gameName;
            
@@ -1131,11 +1181,6 @@
     </script>
 </body>
 </html>
-
-
-
-
-
 
 
 
