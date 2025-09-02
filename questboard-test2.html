@@ -1169,6 +1169,17 @@
             if (!participantsHTML) participantsHTML = '<p class="text-slate-500 text-sm">Noch keine Teilnehmer.</p>';
             let tagsHTML = (game.tags && game.tags.length > 0) ? game.tags.map(tag => `<span class="bg-cyan-800 text-cyan-200 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join('') : '';
 
+            let creatorActionsHTML = '';
+            if (isCreator) {
+                creatorActionsHTML = `
+                <div class="mt-4 text-center">
+                     <button id="edit-from-shared-modal-btn" class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg transition" data-game-id="${gameId}">
+                        ${isCancelled ? 'Quest verwalten (Reaktivieren)' : 'Quest bearbeiten'}
+                     </button>
+                </div>
+                `;
+            }
+
             sharedQuestContent.dataset.questId = gameId; // Store questId for re-rendering
             sharedQuestContent.innerHTML = `
                 <button id="close-shared-quest-modal" class="absolute top-4 right-4 text-slate-500 hover:text-white text-2xl">&times;</button>
@@ -1185,6 +1196,7 @@
                     <h4 class="font-semibold text-slate-300 mb-2">Teilnehmer (${participantsCount}/${game.totalSeats}):</h4>
                     <div class="flex flex-wrap gap-2">${participantsHTML}</div>
                 </div>
+                ${creatorActionsHTML}
                 <div class="mt-6">
                     <button class="join-leave-btn w-full font-bold py-3 px-4 rounded-lg transition ${isCancelled ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-cyan-500 hover:bg-cyan-600'))}" data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>${isCancelled ? 'Abgesagt' : (isParticipant ? 'Teilnahme zurückziehen' : (isFull ? 'Voll' : 'An Quest teilnehmen'))}</button>
                 </div>
@@ -1199,6 +1211,18 @@
 
             const removeParticipantBtn = e.target.closest('.remove-participant-btn');
             const joinLeaveBtn = e.target.closest('.join-leave-btn');
+            const editFromSharedBtn = e.target.closest('#edit-from-shared-modal-btn');
+
+            if (editFromSharedBtn) {
+                const gameId = editFromSharedBtn.dataset.gameId;
+                const gameRef = doc(db, "spielrunden", gameId);
+                const docSnap = await getDoc(gameRef);
+                if (docSnap.exists()) {
+                    hideModal(sharedQuestModal);
+                    openEditModal(docSnap);
+                }
+                return;
+            }
 
             if (removeParticipantBtn) {
                 const gameId = removeParticipantBtn.dataset.gameId;
@@ -1256,4 +1280,5 @@
     </script>
 </body>
 </html>
+
 
