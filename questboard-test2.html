@@ -914,7 +914,7 @@
                 newUrl.searchParams.delete('quest');
                 window.history.replaceState({}, document.title, newUrl.href);
 
-                const questRef = doc(db, "spielrunden", gameId);
+                const questRef = doc(db, "spielrunden", questId);
                 try {
                     const docSnap = await getDoc(questRef);
                     if (docSnap.exists()) {
@@ -925,7 +925,7 @@
             } else if (wasJustLoggedIn && !sharedQuestModal.classList.contains('hidden')) {
                 const questId = sharedQuestContent.dataset.questId;
                 if (questId) {
-                    const questRef = doc(db, "spielrunden", gameId);
+                    const questRef = doc(db, "spielrunden", questId);
                     const docSnap = await getDoc(questRef);
                     if (docSnap.exists()) {
                         renderSharedQuestModal(docSnap.data(), docSnap.id);
@@ -1136,13 +1136,15 @@
             }
             
             submitBtn.disabled = isCancelled;
-            deleteBtn.classList.toggle('hidden', isCancelled);
-            reactivateBtn.classList.toggle('hidden', !isCancelled);
             
             if (isCancelled) {
-                 modalTitle.textContent = 'Quest reaktivieren';
+                modalTitle.textContent = 'Quest reaktivieren';
+                deleteBtn.classList.add('hidden');
+                reactivateBtn.classList.remove('hidden');
             } else {
-                 modalTitle.textContent = 'Quest bearbeiten';
+                modalTitle.textContent = 'Quest bearbeiten';
+                deleteBtn.classList.remove('hidden');
+                reactivateBtn.classList.add('hidden');
             }
 
             showModal(addEditGameModal);
@@ -1255,4 +1257,6 @@
 </body>
 </html>
 
+
+"
 
