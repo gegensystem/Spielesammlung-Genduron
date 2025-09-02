@@ -93,21 +93,6 @@
             <button class="filter-btn location-filter-btn px-3 py-1 rounded-md transition" data-location="Brettspielfreunde">Brettspielfreunde</button>
         </div>
        
-        <!-- Sort Control -->
-        <div class="flex justify-center mb-6">
-            <div class="flex items-center gap-2 text-slate-400">
-                <label for="sort-select">Sortieren nach:</label>
-                <select id="sort-select" class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500">
-                    <option value="dateTime-asc">Datum (aufsteigend)</option>
-                    <option value="dateTime-desc">Datum (absteigend)</option>
-                    <option value="gameName-asc">Spiel (A-Z)</option>
-                    <option value="gameName-desc">Spiel (Z-A)</option>
-                    <option value="location-asc">Ort (A-Z)</option>
-                    <option value="location-desc">Ort (Z-A)</option>
-                </select>
-            </div>
-        </div>
-
         <!-- Game List Container -->
         <div id="quest-list-container">
             <div id="game-list-cards" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -299,7 +284,7 @@
         const imprintModal = document.getElementById('imprint-modal');
         const privacyModal = document.getElementById('privacy-modal');
         const questListContainer = document.getElementById('quest-list-container');
-        const sortSelect = document.getElementById('sort-select');
+        
        
         // --- Helper Functions ---
         const showModal = (modal) => modal.classList.remove('hidden');
@@ -793,13 +778,6 @@
             }
         }
 
-        sortSelect.addEventListener('change', (e) => {
-            const [key, direction] = e.target.value.split('-');
-            sortConfig = { key, direction };
-            applyAllTransformsAndRender();
-        });
-
-
         dayFilterContainer.addEventListener('click', (e) => { if (e.target.classList.contains('day-filter-btn')) { const clickedDay = e.target.dataset.day; if (clickedDay === 'all') { dayFilterContainer.querySelectorAll('.day-filter-btn').forEach(btn => btn.classList.remove('active')); e.target.classList.add('active'); } else { dayFilterContainer.querySelector('[data-day="all"]').classList.remove('active'); e.target.classList.toggle('active'); if (dayFilterContainer.querySelectorAll('.day-filter-btn.active').length === 0) { dayFilterContainer.querySelector('[data-day="all"]').classList.add('active'); } } applyAllTransformsAndRender(); } });
         locationFilterContainer.addEventListener('click', (e) => {
             if (e.target.classList.contains('location-filter-btn')) {
@@ -968,7 +946,10 @@
                         <h3 class="text-xl font-bold text-cyan-400 pr-12">${game.gameName}</h3>
                         <div class="absolute top-4 right-4 flex items-center gap-2 text-xl z-20">
                             <button class="share-quest-btn text-slate-500 hover:text-cyan-400" title="Quest teilen" data-game-id="${gameId}">🔗</button>
-                            ${isCreator ? `<button class="edit-game-btn text-slate-500 hover:text-cyan-400" title="Quest bearbeiten" data-game-id="${gameId}">✏️</button>` : ''}
+                            ${isCreator ? `
+                                <button class="edit-game-btn text-slate-500 hover:text-cyan-400" title="Quest bearbeiten" data-game-id="${gameId}">✏️</button>
+                                ${!isCancelled ? `<button class="cancel-game-btn text-slate-500 hover:text-red-400" title="Quest absagen" data-game-id="${gameId}">⨷</button>` : ''}
+                            ` : ''}
                         </div>
                     </div>
                     <div class="flex items-center text-slate-400 mb-3 text-sm">
@@ -983,13 +964,20 @@
                 </div>
                 <div class="border-t border-slate-700 pt-4 mt-auto ${isCancelled ? 'opacity-50' : ''}">
                     <div class="flex justify-between items-center">
-                        <div class="flex items-center text-slate-300">
-                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 1 1 0 5.292M15 21H3v-1a6 6 0 0 1 12 0v1Zm0 0h6v-1a6 6 0 0 0-9-5.197M15 21a6 6 0 0 0-9-5.197m0 0A5.995 5.995 0 0 0 12 12a5.995 5.995 0 0 0-3-5.197M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path></svg>
-                             <span class="${isFull ? 'text-red-400' : 'text-green-400'} font-semibold">${participantsCount}/${game.totalSeats}</span>
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center text-slate-300">
+                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 1 1 0 5.292M15 21H3v-1a6 6 0 0 1 12 0v1Zm0 0h6v-1a6 6 0 0 0-9-5.197M15 21a6 6 0 0 0-9-5.197m0 0A5.995 5.995 0 0 0 12 12a5.995 5.995 0 0 0-3-5.197M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path></svg>
+                                 <span class="${isFull ? 'text-red-400' : 'text-green-400'} font-semibold">${participantsCount}/${game.totalSeats}</span>
+                            </div>
+                            <div class="flex -space-x-2 overflow-hidden">
+                                 ${game.participants.slice(0, 3).map(p => `<span class="inline-block h-6 w-6 rounded-full bg-slate-600 ring-2 ring-slate-800 text-center leading-6 text-[10px]" title="${p.displayName}">${p.displayName.substring(0, 2).toUpperCase()}</span>`).join('')}
+                                 ${game.participants.length > 3 ? `<span class="flex items-center justify-center h-6 w-6 rounded-full bg-slate-700 ring-2 ring-slate-800 text-[10px] font-medium text-slate-400">+${game.participants.length - 3}</span>` : ''}
+                            </div>
                         </div>
-                        <div class="flex -space-x-2 overflow-hidden">
-                             ${game.participants.slice(0, 4).map(p => `<span class="inline-block h-8 w-8 rounded-full bg-slate-600 ring-2 ring-slate-800 text-center leading-8 text-xs" title="${p.displayName}">${p.displayName.substring(0, 2).toUpperCase()}</span>`).join('')}
-                             ${game.participants.length > 4 ? `<span class="flex items-center justify-center h-8 w-8 rounded-full bg-slate-700 ring-2 ring-slate-800 text-xs font-medium text-slate-400">+${game.participants.length - 4}</span>` : ''}
+                        <div>
+                            <button class="join-leave-btn font-semibold py-2 px-4 rounded-lg transition text-sm ${isCancelled ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull && !isParticipant ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-cyan-500 hover:bg-cyan-600'))}" data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>
+                                ${isCancelled ? 'Abgesagt' : (isParticipant ? 'Verlassen' : (isFull ? 'Voll' : 'Dabei!'))}
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1164,4 +1152,8 @@
     </script>
 </body>
 </html>
+
+
+
+
 
