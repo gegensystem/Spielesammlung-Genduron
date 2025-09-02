@@ -317,12 +317,13 @@
 
         // --- Event Delegation for dynamic content ---
         questListContainer.addEventListener('click', async (e) => {
+            // Check for the most specific buttons first
             const editBtn = e.target.closest('.edit-game-btn');
-            const viewBtn = e.target.closest('.view-quest-btn'); // Changed from table-game-name
             const shareBtn = e.target.closest('.share-quest-btn');
             const joinLeaveBtn = e.target.closest('.join-leave-btn');
             const cancelBtn = e.target.closest('.cancel-game-btn');
-            const removeParticipantBtn = e.target.closest('.remove-participant-btn');
+            // Check for the general card click last
+            const viewBtn = e.target.closest('.view-quest-btn'); 
 
             if (editBtn) {
                 const gameId = editBtn.dataset.gameId;
@@ -331,14 +332,6 @@
                 if (docSnap.exists()) {
                     openEditModal(docSnap);
                 }
-            } else if (viewBtn) {
-                 const gameId = viewBtn.dataset.gameId;
-                 const gameRef = doc(db, "spielrunden", gameId);
-                 const docSnap = await getDoc(gameRef);
-                 if (docSnap.exists()) {
-                     renderSharedQuestModal(docSnap.data(), docSnap.id);
-                     showModal(sharedQuestModal);
-                 }
             } else if (shareBtn) {
                  const gameId = shareBtn.dataset.gameId;
                  const shareUrl = `${window.location.origin}${window.location.pathname}?quest=${gameId}`;
@@ -375,23 +368,14 @@
                     const gameRef = doc(db, "spielrunden", gameId);
                     await updateDoc(gameRef, { cancelled: true });
                 }
-            } else if (removeParticipantBtn) {
-                const gameId = removeParticipantBtn.dataset.gameId;
-                const participantUid = removeParticipantBtn.dataset.participantUid;
-                if (confirm('Bist du sicher, dass du diesen Teilnehmer entfernen möchtest?')) {
-                    const gameRef = doc(db, "spielrunden", gameId);
-                    try {
-                        const docSnap = await getDoc(gameRef);
-                        if (docSnap.exists()) {
-                            const gameData = docSnap.data();
-                            const newParticipants = gameData.participants.filter(p => p.uid !== participantUid);
-                            await updateDoc(gameRef, { participants: newParticipants });
-                        }
-                    } catch (error) {
-                        console.error("Fehler beim Entfernen des Teilnehmers:", error);
-                        alert("Der Teilnehmer konnte nicht entfernt werden.");
-                    }
-                }
+            } else if (viewBtn) { // This is now the fallback for a click anywhere else on the card
+                 const gameId = viewBtn.dataset.gameId;
+                 const gameRef = doc(db, "spielrunden", gameId);
+                 const docSnap = await getDoc(gameRef);
+                 if (docSnap.exists()) {
+                     renderSharedQuestModal(docSnap.data(), docSnap.id);
+                     showModal(sharedQuestModal);
+                 }
             }
         });
 
@@ -982,12 +966,7 @@
                     </div>
                 </div>
             `;
-            // Stop propagation on buttons inside the card
-            card.querySelectorAll('button').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                });
-            });
+            // This was stopping the events from reaching the main listener. It has been removed.
             return card;
         }
 
@@ -1152,6 +1131,7 @@
     </script>
 </body>
 </html>
+
 
 
 
