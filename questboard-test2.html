@@ -553,11 +553,9 @@
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(userCredential.user, { displayName: name });
                 await sendEmailVerification(userCredential.user);
-                alert('Registrierung erfolgreich! Bitte überprüfe dein E-Mail-Postfach, um deine Adresse zu bestätigen. Logge dich danach ein.');
-                signOut(auth);
-                loginForm.classList.remove('hidden');
-                registerForm.classList.add('hidden');
-                document.querySelector('.auth-tab[data-tab="login"]').click();
+                // The onAuthStateChanged listener will handle closing the modal and updating the UI automatically
+                // because the user is now logged in. We just need to inform them.
+                alert('Registrierung erfolgreich! Wir haben dir eine E-Mail zur Bestätigung geschickt. Bitte überprüfe dein Postfach.');
             } catch (error) {
                 console.error("Registrierungsfehler:", error.code);
                 authError.textContent = getGermanAuthError(error.code);
@@ -863,13 +861,16 @@
             }
 
             if (user && !user.emailVerified) {
+                verificationBanner.classList.remove('hidden'); // Ensure banner is shown
                 verificationCheckInterval = setInterval(async () => {
                     const freshUser = auth.currentUser;
                     if (freshUser) {
                         await freshUser.reload();
                         if (freshUser.emailVerified) {
                             clearInterval(verificationCheckInterval);
-                            setTimeout(() => { alert("Deine E-Mail wurde erfolgreich bestätigt. Bitte logge dich nun ein, um fortzufahren."); signOut(auth); }, 500);
+                            // Log user out and ask them to log back in.
+                            alert("Deine E-Mail wurde erfolgreich bestätigt. Bitte logge dich nun ein, um fortzufahren.");
+                            signOut(auth);
                         }
                     }
                 }, 5000);
@@ -1181,6 +1182,8 @@
     </script>
 </body>
 </html>
+
+
 
 
 
