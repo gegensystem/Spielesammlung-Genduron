@@ -66,9 +66,13 @@
             </button>
             <div class="flex flex-col lg:flex-row gap-4 w-full lg:w-auto order-2 sm:order-1">
                 <div class="flex flex-col sm:flex-row gap-4">
-                     <div class="flex gap-4">
+                     <div class="flex flex-wrap gap-4">
                          <input type="text" id="name-filter" placeholder="Nach Spiel suchen..." class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:w-auto" autocomplete="off" readonly onfocus="this.removeAttribute('readonly');">
                          <input type="text" id="location-filter" placeholder="Nach Ort suchen..." class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:w-auto" autocomplete="off" readonly onfocus="this.removeAttribute('readonly');">
+                         <div class="relative">
+                            <input type="date" id="date-filter" class="bg-slate-800 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 w-full sm:w-auto appearance-none">
+                            <button id="clear-date-filter" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white hidden">&times;</button>
+                        </div>
                      </div>
                 </div>
                 <div id="day-filter-container" class="flex gap-2 p-1 bg-slate-800 rounded-lg">
@@ -267,6 +271,8 @@
         const menuToggleBtn = document.getElementById('menu-toggle-btn');
         const sharedQuestModal = document.getElementById('shared-quest-modal');
         const locationFilterInput = document.getElementById('location-filter');
+        const dateFilterInput = document.getElementById('date-filter');
+        const clearDateFilterBtn = document.getElementById('clear-date-filter');
         const paginationControls = document.getElementById('pagination-controls');
         const loadingIndicator = document.getElementById('loading-indicator');
         const loginForm = document.getElementById('login-form');
@@ -682,6 +688,7 @@
         });
        
         function applyAllTransformsAndRender() {
+            const selectedDate = dateFilterInput.value;
             const selectedDays = Array.from(dayFilterContainer.querySelectorAll('.day-filter-btn.active')).map(btn => btn.dataset.day);
             const selectedLocations = Array.from(locationFilterContainer.querySelectorAll('.location-filter-btn.active')).map(btn => btn.dataset.location);
             const nameText = nameFilterInput.value.toLowerCase().trim();
@@ -692,16 +699,22 @@
             const futureQuests = allQuests.filter(quest => quest.dateTime.toDate() >= now);
 
             const filteredQuests = futureQuests.filter(quest => {
-                const cardDay = quest.dateTime.toDate().getDay().toString();
+                const questDate = quest.dateTime.toDate();
+                const questDateString = questDate.toISOString().slice(0, 10);
+                const cardDay = questDate.getDay().toString();
                 const cardLocation = quest.location;
                 const cardLocationLower = cardLocation.toLowerCase();
                 const cardName = quest.gameName.toLowerCase();
 
+                const dateMatch = !selectedDate || questDateString === selectedDate;
                 const dayMatch = selectedDays.includes('all') || selectedDays.length === 0 || selectedDays.includes(cardDay);
                 const locationButtonMatch = selectedLocations.includes('all') || selectedLocations.length === 0 || selectedLocations.includes(cardLocation);
                 const locationTextMatch = locationText === '' || cardLocationLower.includes(locationText);
                 const nameMatch = (nameText === '' || cardName.includes(nameText));
 
+                if (selectedDate) {
+                    return dateMatch && locationButtonMatch && locationTextMatch && nameMatch;
+                }
                 return dayMatch && locationButtonMatch && locationTextMatch && nameMatch;
             });
 
@@ -732,6 +745,7 @@
 
         function renderQuestLists(quests) {
             gameListCards.innerHTML = ''; // Clear previous content
+            const selectedDate = dateFilterInput.value;
 
             if (quests.length === 0) {
                 const messageContainer = document.createElement('div');
@@ -745,8 +759,25 @@
                 return;
             }
 
-            const questsByDay = {};
+            if (selectedDate) {
+                const dateObj = new Date(selectedDate);
+                // Adjust for timezone offset to prevent showing the previous day
+                const timezoneOffset = dateObj.getTimezoneOffset() * 60000;
+                const adjustedDate = new Date(dateObj.getTime() + timezoneOffset);
+                
+                const heading = document.createElement('h3');
+                heading.className = 'text-lg font-semibold text-slate-400 mt-6 mb-3 col-span-full';
+                heading.textContent = `Quests am ${adjustedDate.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })}`;
+                gameListCards.appendChild(heading);
+                quests.forEach(quest => {
+                    const docWrapper = { id: quest.id, data: () => quest };
+                    gameListCards.appendChild(renderGameCard(docWrapper));
+                });
+                return;
+            }
 
+
+            const questsByDay = {};
             quests.forEach(quest => {
                 const date = quest.dateTime.toDate();
                 const yyyy = date.getFullYear();
@@ -767,7 +798,7 @@
 
             sortedDays.forEach(dayKey => {
                 const dayData = questsByDay[dayKey];
-                const displayDateStr = dayData.dateObj.toLocaleDateString('de-DE', { weekday: 'long' });
+                const displayDateStr = dayData.dateObj.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
                 
                 // Create and append the heading for the day
                 const heading = document.createElement('h3');
@@ -798,7 +829,24 @@
             }
         }
 
-        dayFilterContainer.addEventListener('click', (e) => { if (e.target.classList.contains('day-filter-btn')) { const clickedDay = e.target.dataset.day; if (clickedDay === 'all') { dayFilterContainer.querySelectorAll('.day-filter-btn').forEach(btn => btn.classList.remove('active')); e.target.classList.add('active'); } else { dayFilterContainer.querySelector('[data-day="all"]').classList.remove('active'); e.target.classList.toggle('active'); if (dayFilterContainer.querySelectorAll('.day-filter-btn.active').length === 0) { dayFilterContainer.querySelector('[data-day="all"]').classList.add('active'); } } applyAllTransformsAndRender(); } });
+        dayFilterContainer.addEventListener('click', (e) => { 
+            if (e.target.classList.contains('day-filter-btn')) { 
+                dateFilterInput.value = ''; // Clear date filter when a day button is clicked
+                clearDateFilterBtn.classList.add('hidden');
+                const clickedDay = e.target.dataset.day; 
+                if (clickedDay === 'all') { 
+                    dayFilterContainer.querySelectorAll('.day-filter-btn').forEach(btn => btn.classList.remove('active')); 
+                    e.target.classList.add('active'); 
+                } else { 
+                    dayFilterContainer.querySelector('[data-day="all"]').classList.remove('active'); 
+                    e.target.classList.toggle('active'); 
+                    if (dayFilterContainer.querySelectorAll('.day-filter-btn.active').length === 0) { 
+                        dayFilterContainer.querySelector('[data-day="all"]').classList.add('active'); 
+                    } 
+                } 
+                applyAllTransformsAndRender(); 
+            } 
+        });
         locationFilterContainer.addEventListener('click', (e) => {
             if (e.target.classList.contains('location-filter-btn')) {
                 const clickedLocation = e.target.dataset.location;
@@ -819,6 +867,19 @@
         if (locationFilterInput) {
             locationFilterInput.addEventListener('input', applyAllTransformsAndRender);
         }
+        dateFilterInput.addEventListener('change', () => {
+             // When a date is selected, deactivate day-of-week filters
+            dayFilterContainer.querySelectorAll('.day-filter-btn').forEach(btn => btn.classList.remove('active'));
+            dayFilterContainer.querySelector('[data-day="all"]').classList.add('active');
+            clearDateFilterBtn.classList.toggle('hidden', !dateFilterInput.value);
+            applyAllTransformsAndRender();
+        });
+        clearDateFilterBtn.addEventListener('click', () => {
+            dateFilterInput.value = '';
+            clearDateFilterBtn.classList.add('hidden');
+            applyAllTransformsAndRender();
+        });
+
 
         onAuthStateChanged(auth, async (user) => {
             if (verificationCheckInterval) clearInterval(verificationCheckInterval);
@@ -1182,8 +1243,4 @@
     </script>
 </body>
 </html>
-
-
-
-
 
