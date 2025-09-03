@@ -18,63 +18,99 @@
     <header class="bg-slate-800/70 backdrop-blur-sm sticky top-0 z-20 shadow-lg">
         <div class="container mx-auto px-4 py-4 max-w-5xl flex justify-between items-center">
             <div>
-                <h1 class="text-3xl font-bold text-cyan-400">📜🎲 Questboard</h1>
-                <p class="text-slate-400 mt-1">Finde Mitspieler für deine nächste Runde.</p>
+                <h1 class="text-3xl font-bold text-cyan-400">🎲 Questboard</h1>
+                <p class="text-slate-400 mt-1">Häufig gestellte Fragen (FAQ)</p>
             </div>
+             <a href="index.html" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                Zurück zum Board
+            </a>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main id="main-content" class="container mx-auto p-4 max-w-3xl">
-        <div class="bg-slate-800 p-8 rounded-lg shadow-2xl mt-8">
-            <h2 class="text-3xl font-bold mb-8 text-cyan-400">Häufig gestellte Fragen (FAQ)</h2>
+    <main class="container mx-auto p-4 max-w-5xl mt-8">
+        <div class="space-y-8">
 
-            <div class="space-y-6 text-slate-300">
-                <div>
-                    <h3 class="font-semibold text-lg text-slate-100">Muss ich mich registrieren, um die Seite zu nutzen?</h3>
-                    <p class="mt-2">Nein. Du kannst alle angebotenen Spielrunden (Quests) ansehen, ohne registriert oder eingeloggt zu sein. Eine Registrierung ist erst dann notwendig, wenn du selbst ein Quest erstellen oder an einem teilnehmen möchtest.</p>
-                </div>
-
-                <div class="border-t border-slate-700 pt-6">
-                    <h3 class="font-semibold text-lg text-slate-100">Warum muss ich meine E-Mail-Adresse bestätigen?</h3>
-                    <p class="mt-2">Die Bestätigung deiner E-Mail-Adresse ist eine wichtige Sicherheitsmaßnahme. Sie stellt sicher, dass du eine gültige E-Mail-Adresse verwendet hast und verhindert, dass jemand anderes deine Adresse missbraucht. Solange deine E-Mail nicht bestätigt ist, kannst du keine Aktionen auf der Seite durchführen (z.B. einem Quest beitreten).</p>
-                </div>
-
-                <div class="border-t border-slate-700 pt-6">
-                    <h3 class="font-semibold text-lg text-slate-100">Wie erstelle ich ein neues Quest?</h3>
-                    <p class="mt-2">Nachdem du dich eingeloggt hast, klicke einfach auf den großen Button "(+) Neues Quest anbieten". Fülle die Details zu deinem Spiel, dem Ort und der Zeit aus und klicke auf "Erstellen". Dein Quest ist dann sofort für alle anderen sichtbar.</p>
-                </div>
-
-                <div class="border-t border-slate-700 pt-6">
-                    <h3 class="font-semibold text-lg text-slate-100">Kann ich ein erstelltes Quest bearbeiten oder absagen?</h3>
-                    <p class="mt-2">Ja. Nur du als Ersteller des Quests siehst auf der Quest-Karte zwei kleine Symbole: einen Stift (✏️) zum Bearbeiten und ein Kreuz (⨷) zum Absagen. Du kannst alle Details nachträglich ändern oder das Quest als "ABGESAGT" markieren.</p>
-                </div>
-                
-                <div class="border-t border-slate-700 pt-6">
-                    <h3 class="font-semibold text-lg text-slate-100">Was passiert, wenn ich mein Konto löschen möchte?</h3>
-                    <p class="mt-2">Wenn du dein Konto löschen lassen möchtest, kannst du dies im "Mein Konto"-Bereich anfragen. Der Administrator wird deine Anfrage erhalten und dein Benutzerkonto aus dem Login-System entfernen. Deine erstellten Quests und Teilnahmen bleiben aus Gründen der Nachvollziehbarkeit für andere Spieler unter deinem Namen bestehen.</p>
-                </div>
-
-                <div class="border-t border-slate-700 pt-6">
-                    <h3 class="font-semibold text-lg text-slate-100">Ist die Nutzung der Seite kostenlos?</h3>
-                    <p class="mt-2">Ja, die Nutzung des Questboards ist und bleibt komplett kostenlos. Wenn dir die Seite gefällt, kannst du das Projekt über den "Kaffee ausgeben"-Button freiwillig unterstützen. Dies ist jedoch rein optional.</p>
-                </div>
+            <!-- Section: Allgemein -->
+            <h2 class="text-2xl font-bold text-cyan-400 border-b border-slate-700 pb-2">Allgemein</h2>
+            <div class="bg-slate-800 p-6 rounded-lg">
+                <h3 class="text-xl font-bold text-slate-200 mb-3">Was ist das Questboard?</h3>
+                <p class="text-slate-300 leading-relaxed">
+                    Das Questboard ist eine Plattform, die es dir einfach macht, Mitspieler für Brettspiele und andere Tabletop-Spiele in deiner Umgebung zu finden. Du kannst entweder an von anderen erstellten Runden (Quests) teilnehmen oder selbst welche anbieten.
+                </p>
+            </div>
+            <div class="bg-slate-800 p-6 rounded-lg">
+                <h3 class="text-xl font-bold text-slate-200 mb-3">Ist die Nutzung kostenlos?</h3>
+                <p class="text-slate-300 leading-relaxed">
+                    Ja, die Nutzung des Questboards ist komplett kostenlos. Wenn dir die Seite gefällt, kannst du dem Betreiber über den "Kaffee ausgeben"-Button eine kleine freiwillige Zuwendung zukommen lassen.
+                </p>
             </div>
 
-            <div class="mt-10 text-center">
-                <a href="https://gegensystem.github.io/Spielesammlung-Genduron/questboard.html" class="text-cyan-400 hover:underline">Zurück zum Questboard</a>
+            <!-- Section: Konto -->
+            <h2 class="text-2xl font-bold text-cyan-400 border-b border-slate-700 pb-2 mt-12">Konto & Registrierung</h2>
+            <div class="bg-slate-800 p-6 rounded-lg">
+                <h3 class="text-xl font-bold text-slate-200 mb-3">Muss ich mich registrieren?</h3>
+                <p class="text-slate-300 leading-relaxed">
+                    Du kannst alle öffentlichen Quests ansehen, ohne registriert zu sein. Um jedoch selbst ein Quest zu erstellen oder an einem teilzunehmen, benötigst du ein kostenloses Konto mit einer bestätigten E-Mail-Adresse.
+                </p>
             </div>
+            <div class="bg-slate-800 p-6 rounded-lg">
+                <h3 class="text-xl font-bold text-slate-200 mb-3">Ich habe mich registriert, aber keine E-Mail erhalten. Was nun?</h3>
+                <p class="text-slate-300 leading-relaxed">
+                    Bitte überprüfe unbedingt deinen **Spam- oder Junk-Ordner** in deinem E-Mail-Postfach. Leider landen automatisch versendete E-Mails oft fälschlicherweise dort. Der Link in der E-Mail ist notwendig, um dein Konto zu bestätigen, bevor du Quests erstellen oder ihnen beitreten kannst.
+                </p>
+            </div>
+            
+            <!-- Section: Quests finden -->
+            <h2 class="text-2xl font-bold text-cyan-400 border-b border-slate-700 pb-2 mt-12">Quests finden & teilnehmen</h2>
+            <div class="bg-slate-800 p-6 rounded-lg">
+                <h3 class="text-xl font-bold text-slate-200 mb-3">Wie finde ich passende Quests?</h3>
+                <p class="text-slate-300 leading-relaxed">
+                    Dir stehen mehrere Filter zur Verfügung, die du auch kombinieren kannst:
+                </p>
+                <ul class="list-disc list-inside text-slate-300 mt-4 space-y-2">
+                    <li><strong>Textsuche:</strong> Gib einfach den Namen eines Spiels oder einen Ort in die Suchfelder ein.</li>
+                    <li><strong>Orts-Buttons:</strong> Wähle einen oder mehrere der vorgegebenen Spielorte aus, um nur Quests dort zu sehen.</li>
+                    <li><strong>Wochentage:</strong> Klicke auf einen oder mehrere Wochentage (Mo, Di, etc.), um deine Suche auf diese Tage zu beschränken.</li>
+                    <li><strong>Datumssuche:</strong> Klicke auf das Datumsfeld, um einen Kalender zu öffnen und gezielt nach Quests an einem bestimmten Tag zu suchen.</li>
+                </ul>
+            </div>
+            <div class="bg-slate-800 p-6 rounded-lg">
+                <h3 class="text-xl font-bold text-slate-200 mb-3">Wie kann ich ein Quest mit Freunden teilen?</h3>
+                <p class="text-slate-300 leading-relaxed">
+                    Auf jeder Quest-Karte findest du oben rechts ein kleines Link-Symbol (🔗). Klicke darauf, und ein direkter Link zu diesem Quest wird in deine Zwischenablage kopiert. Diesen Link kannst du dann einfach an deine Freunde senden.
+                </p>
+            </div>
+
+            <!-- Section: Eigene Quests -->
+            <h2 class="text-2xl font-bold text-cyan-400 border-b border-slate-700 pb-2 mt-12">Eigene Quests verwalten</h2>
+            <div class="bg-slate-800 p-6 rounded-lg">
+                <h3 class="text-xl font-bold text-slate-200 mb-3">Was ist der Unterschied zwischen "Absagen" und "Löschen"?</h3>
+                <p class="text-slate-300 leading-relaxed">
+                    Als Ersteller eines Quests hast du zwei Möglichkeiten, es zu verwalten:
+                </p>
+                 <ul class="list-disc list-inside text-slate-300 mt-4 space-y-2">
+                    <li><strong>Absagen (⨷ Symbol):</strong> Das Quest wird für andere als "ABGESAGT" markiert und niemand kann mehr beitreten. Du kannst es aber jederzeit über den Bearbeiten-Button (✏️) wieder **reaktivieren**.</li>
+                    <li><strong>Löschen:</strong> Im Bearbeitungsfenster findest du einen "Löschen"-Button. Diese Aktion entfernt das Quest **endgültig und unwiderruflich** aus der Datenbank.</li>
+                </ul>
+            </div>
+            <div class="bg-slate-800 p-6 rounded-lg">
+                <h3 class="text-xl font-bold text-slate-200 mb-3">Muss ich die Öffnungszeiten der Spielorte beachten?</h3>
+                <p class="text-slate-300 leading-relaxed">
+                    Ja. Die App überprüft die Öffnungszeiten der bekannten Spielorte nicht mehr automatisch. Bitte informiere dich eigenständig über die Öffnungszeiten, besonders wenn du ein Quest außerhalb der üblichen Stoßzeiten planst.
+                </p>
+            </div>
+
         </div>
     </main>
     
     <!-- Footer -->
     <footer class="text-center py-8 mt-8 text-slate-500 border-t border-slate-800">
-        <div class="container mx-auto px-4 max-w-5xl space-x-4">
-            <a href="#" id="imprint-link" class="hover:text-cyan-400 transition">Impressum</a>
-            <span>|</span>
-            <a href="#" id="privacy-link" class="hover:text-cyan-400 transition">Datenschutz</a>
+        <div class="container mx-auto px-4 max-w-5xl">
+             © 2024 Questboard
         </div>
     </footer>
 
 </body>
 </html>
+
