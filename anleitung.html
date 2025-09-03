@@ -18,8 +18,11 @@
     <header class="bg-slate-800/70 backdrop-blur-sm sticky top-0 z-20 shadow-lg">
         <div class="container mx-auto px-4 py-4 max-w-5xl flex justify-between items-center">
             <div>
-                <h1 class="text-3xl font-bold text-cyan-400">📜🎲 Questboard</h1>
+                 <a href="https://gegensystem.github.io/Spielesammlung-Genduron/questboard.html" class="text-3xl font-bold text-cyan-400">🎲 Questboard</a>
                 <p class="text-slate-400 mt-1">Finde Mitspieler für deine nächste Runde.</p>
+            </div>
+            <div>
+                <a href="https://gegensystem.github.io/Spielesammlung-Genduron/questboard.html" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition-transform transform hover:scale-105">Zurück zum Questboard</a>
             </div>
         </div>
     </header>
@@ -27,72 +30,70 @@
     <!-- Main Content -->
     <main id="main-content" class="container mx-auto p-4 max-w-3xl">
         <div class="bg-slate-800 p-8 rounded-lg shadow-2xl mt-8">
-            <h2 class="text-3xl font-bold mb-8 text-cyan-400">Anleitung: Erste Schritte</h2>
+            <h2 class="text-3xl font-bold mb-8 text-cyan-400">Anleitung: So funktioniert das Questboard</h2>
 
-            <div class="space-y-8 text-slate-300">
+            <div class="space-y-10 text-slate-300 leading-relaxed">
                 
-                <!-- Step 1: Registrierung -->
+                <!-- Dein Konto -->
                 <div>
-                    <h3 class="font-semibold text-xl text-slate-100 border-b-2 border-cyan-500 pb-2 mb-4">Schritt 1: Registrieren & Einloggen</h3>
-                    <p class="mb-2">Um aktiv am Questboard teilzunehmen, benötigst du ein kostenloses Konto.</p>
-                    <ol class="list-decimal list-inside space-y-2 pl-4">
-                        <li>Klicke oben rechts auf den <span class="font-semibold text-cyan-400">"Login / Registrieren"</span>-Button.</li>
-                        <li>Wähle den Tab <span class="font-semibold">"Registrieren"</span>.</li>
-                        <li>Gib deinen gewünschten Anzeigenamen, deine E-Mail-Adresse und ein sicheres Passwort ein.</li>
-                        <li>Klicke auf "Registrieren". Du bist nun eingeloggt.</li>
+                    <h3 class="font-semibold text-xl text-slate-100 border-b-2 border-cyan-500 pb-2 mb-4">Dein Konto: Registrieren & Bestätigen</h3>
+                    <p class="mb-4">Um Quests zu erstellen oder ihnen beizutreten, benötigst du ein kostenloses Konto. Das geht in zwei schnellen Schritten:</p>
+                    <ol class="list-decimal list-inside space-y-3 pl-4">
+                        <li><strong>Registrieren:</strong> Klicke im Menü auf <span class="font-semibold text-cyan-400">"Login / Registrieren"</span>, wähle den Tab "Registrieren" und gib deinen Anzeigenamen, deine E-Mail und ein Passwort ein.</li>
+                        <li><strong>E-Mail bestätigen (Wichtig):</strong> Nach der Registrierung senden wir dir eine E-Mail. Klicke auf den Link darin, um dein Konto zu aktivieren.
+                        <br><span class="text-sm text-amber-400">Hinweis: Bitte schaue auch in deinem Spam-Ordner nach, falls die E-Mail nicht ankommt!</span>
+                        <br>Nach der Bestätigung wirst du aus Sicherheitsgründen ausgeloggt und musst dich erneut anmelden. Danach ist dein Konto voll einsatzbereit!</li>
                     </ol>
                 </div>
 
-                <!-- Step 2: E-Mail Bestätigung -->
+                <!-- Quests finden -->
                 <div class="border-t border-slate-700 pt-8">
-                    <h3 class="font-semibold text-xl text-slate-100 border-b-2 border-cyan-500 pb-2 mb-4">Schritt 2: E-Mail-Adresse bestätigen (Wichtig!)</h3>
-                    <p class="mb-2">Nach der Registrierung erhältst du eine E-Mail mit einem Bestätigungslink. Dieser Schritt ist entscheidend, um alle Funktionen nutzen zu können.</p>
-                    <ol class="list-decimal list-inside space-y-2 pl-4">
-                        <li>Öffne dein E-Mail-Postfach und suche nach der E-Mail vom Questboard.</li>
-                        <li>Klicke auf den Bestätigungslink in der E-Mail.</li>
-                        <li>Du wirst zur Questboard-Seite zurückgeleitet. Die Seite erkennt die Bestätigung automatisch, loggt dich aus Sicherheitsgründen aus und zeigt eine Erfolgsmeldung.</li>
-                        <li>Logge dich nun mit deinen Daten erneut ein. Dein Konto ist jetzt voll funktionsfähig!</li>
-                    </ol>
+                    <h3 class="font-semibold text-xl text-slate-100 border-b-2 border-cyan-500 pb-2 mb-4">Quests finden: Die Übersicht nutzen</h3>
+                    <p class="mb-4">Die Hauptseite zeigt dir alle zukünftigen Quests, automatisch nach Tagen sortiert. Um genau das zu finden, was du suchst, hast du mehrere Filteroptionen:</p>
+                    <ul class="list-disc list-inside space-y-3 pl-4">
+                        <li><strong>Textsuche:</strong> Gib einen Spielnamen oder Ort in die Suchfelder ein.</li>
+                        <li><strong>Ort-Buttons:</strong> Wähle einen oder mehrere der festen Spielorte aus, um nur Quests von dort zu sehen.</li>
+                        <li><strong>Wochentage:</strong> Klicke auf die Wochentage (z.B. "Fr"), um nur Quests an Freitagen anzuzeigen. Du kannst auch mehrere Tage kombinieren.</li>
+                        <li><strong>Datumssuche:</strong> Wähle ein genaues Datum im Kalender aus, um alle Quests für diesen spezifischen Tag zu sehen.</li>
+                    </ul>
                 </div>
 
-                <!-- Step 3: Quest erstellen -->
+                <!-- An Quests teilnehmen -->
                 <div class="border-t border-slate-700 pt-8">
-                    <h3 class="font-semibold text-xl text-slate-100 border-b-2 border-cyan-500 pb-2 mb-4">Schritt 3: Ein eigenes Quest erstellen</h3>
-                    <p class="mb-2">Möchtest du eine Spielrunde anbieten? So einfach geht's:</p>
-                    <ol class="list-decimal list-inside space-y-2 pl-4">
-                        <li>Klicke auf den Button <span class="font-semibold text-cyan-400">"(+) Neues Quest anbieten"</span>.</li>
-                        <li>Fülle alle Felder aus: Spielname, Ort, Datum, Uhrzeit und die Anzahl der Plätze.</li>
-                        <li>Wähle optional passende Tags aus, um dein Spiel besser zu beschreiben (z.B. "für Anfänger:innen geeignet").</li>
-                        <li>Klicke auf "Erstellen". Dein Quest erscheint sofort auf der Hauptseite.</li>
-                    </ol>
+                    <h3 class="font-semibold text-xl text-slate-100 border-b-2 border-cyan-500 pb-2 mb-4">An Quests teilnehmen</h3>
+                    <p class="mb-4">Du hast eine interessante Runde gefunden? Perfekt!</p>
+                     <ul class="list-disc list-inside space-y-3 pl-4">
+                        <li><strong>Details ansehen:</strong> Klicke auf eine Quest-Karte, um ein Fenster mit allen Details zu öffnen, inklusive der vollständigen Teilnehmerliste.</li>
+                        <li><strong>Beitreten & Verlassen:</strong> Mit dem <span class="font-semibold text-cyan-400">"Dabei!"</span>-Button auf der Karte sicherst du dir deinen Platz. Falls du doch nicht kannst, klicke einfach auf den <span class="font-semibold text-amber-400">"Verlassen"</span>-Button, um den Platz wieder freizugeben.</li>
+                    </ul>
                 </div>
 
-                <!-- Step 4: Quest beitreten -->
+                 <!-- Eigene Quests verwalten -->
                 <div class="border-t border-slate-700 pt-8">
-                    <h3 class="font-semibold text-xl text-slate-100 border-b-2 border-cyan-500 pb-2 mb-4">Schritt 4: Einem Quest beitreten oder es verlassen</h3>
-                    <p class="mb-2">Du hast eine interessante Runde gefunden?</p>
-                     <ul class="list-disc list-inside space-y-2 pl-4">
-                        <li>Klicke auf den grünen <span class="font-semibold text-green-400">"Ich bin dabei!"</span>-Button auf der jeweiligen Quest-Karte. Dein Name erscheint sofort in der Teilnehmerliste.</li>
-                        <li>Hast du deine Meinung geändert? Kein Problem! Klicke einfach auf den nun gelben <span class="font-semibold text-amber-400">"Verlassen"</span>-Button, um deinen Platz wieder freizugeben.</li>
+                    <h3 class="font-semibold text-xl text-slate-100 border-b-2 border-cyan-500 pb-2 mb-4">Eigene Quests verwalten</h3>
+                    <p class="mb-4">Als Ersteller hast du die volle Kontrolle über deine angebotenen Spielrunden:</p>
+                     <ul class="list-disc list-inside space-y-3 pl-4">
+                        <li><strong>Erstellen:</strong> Klicke auf <span class="font-semibold text-cyan-400">"(+) Neues Quest anbieten"</span>. Du kannst Quests bis zu drei Monate im Voraus planen.</li>
+                        <li><strong>Teilen:</strong> Klicke auf das Link-Symbol (🔗) auf deiner Quest-Karte, um einen direkten Link zu kopieren und ihn mit anderen zu teilen.</li>
+                         <li><strong>Bearbeiten:</strong> Mit dem Stift-Symbol (✏️) kannst du die Details deines Quests jederzeit anpassen.</li>
+                        <li><strong>Absagen & Reaktivieren:</strong> Mit dem ⨷-Symbol kannst du ein Quest absagen. Es wird dann für alle als "Abgesagt" markiert. Im Bearbeiten-Modus kannst du es später wieder reaktivieren.</li>
+                        <li><strong>Löschen:</strong> Wenn du ein Quest endgültig entfernen möchtest, findest du im Bearbeiten-Modus den "Löschen"-Button. Achtung: Diese Aktion kann nicht rückgängig gemacht werden.</li>
                     </ul>
                 </div>
 
             </div>
 
-            <div class="mt-10 text-center">
-                <a href="https://gegensystem.github.io/Spielesammlung-Genduron/questboard.html" class="text-cyan-400 hover:underline">Zurück zum Questboard</a>
-            </div>
         </div>
     </main>
     
     <!-- Footer -->
     <footer class="text-center py-8 mt-8 text-slate-500 border-t border-slate-800">
-        <div class="container mx-auto px-4 max-w-5xl space-x-4">
-            <a href="#" id="imprint-link" class="hover:text-cyan-400 transition">Impressum</a>
-            <span>|</span>
-            <a href="#" id="privacy-link" class="hover:text-cyan-400 transition">Datenschutz</a>
+        <div class="container mx-auto px-4 max-w-5xl">
+            <p>&copy; 2024 Questboard</p>
         </div>
     </footer>
 
 </body>
 </html>
+
+
