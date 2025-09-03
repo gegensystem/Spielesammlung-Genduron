@@ -59,7 +59,7 @@
     <main id="main-content" class="container mx-auto p-4 max-w-7xl">
         <!-- Verification Banner -->
         <div id="verification-banner" class="hidden bg-yellow-500/20 border border-yellow-500 text-yellow-300 px-4 py-3 rounded-lg text-center mb-4">
-            Bitte bestätige deine E-Mail-Adresse. Wir haben dir einen Link geschickt. Bitte schaue in deinen SPAM Ordner! 
+            Bitte bestätige deine E-Mail-Adresse. Wir haben dir einen Link geschickt. 
             <button id="resend-verification-btn" class="font-bold underline hover:text-white disabled:opacity-50 disabled:cursor-not-allowed">Erneut senden</button>
             <span id="resend-feedback" class="ml-2 text-green-400"></span>
         </div>
@@ -970,6 +970,9 @@
                         <a href="#" id="account-btn" class="p-2 rounded-md hover:bg-slate-700">Mein Konto</a>
                         <a href="anleitung.html" class="p-2 rounded-md hover:bg-slate-700">Anleitung</a>
                         <a href="faq.html" class="p-2 rounded-md hover:bg-slate-700">FAQ</a>
+                        <div class="border-t border-slate-700 my-2"></div>
+                        <a href="#" id="imprint-menu-link" class="p-2 rounded-md hover:bg-slate-700 text-sm">Impressum</a>
+                        <a href="#" id="privacy-menu-link" class="p-2 rounded-md hover:bg-slate-700 text-sm">Datenschutz</a>
                         <a href="#" id="logout-btn" class="p-2 rounded-md hover:bg-slate-700 border-t border-slate-700 mt-2 pt-3">Ausloggen</a>
                     </nav>
                 `;
@@ -980,12 +983,30 @@
                          <a href="#" id="login-register-btn" class="p-2 rounded-md hover:bg-slate-700">Login / Registrieren</a>
                          <a href="anleitung.html" class="p-2 rounded-md hover:bg-slate-700">Anleitung</a>
                          <a href="faq.html" class="p-2 rounded-md hover:bg-slate-700">FAQ</a>
+                         <div class="border-t border-slate-700 my-2"></div>
+                         <a href="#" id="imprint-menu-link" class="p-2 rounded-md hover:bg-slate-700 text-sm">Impressum</a>
+                         <a href="#" id="privacy-menu-link" class="p-2 rounded-md hover:bg-slate-700 text-sm">Datenschutz</a>
                     </nav>
                 `;
             }
             sideMenuContent.innerHTML = menuHTML;
 
+            // --- Attach Event Listeners for menu items ---
             document.getElementById('close-menu-btn').addEventListener('click', closeMenu);
+            
+            // Listeners for legal links
+            document.getElementById('imprint-menu-link')?.addEventListener('click', (e) => { 
+                e.preventDefault(); 
+                showModal(imprintModal); 
+                closeMenu(); 
+            });
+            document.getElementById('privacy-menu-link')?.addEventListener('click', (e) => { 
+                e.preventDefault(); 
+                showModal(privacyModal); 
+                closeMenu(); 
+            });
+
+            // Listeners for user-state specific links
             if(isLoggedIn) {
                 document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); signOut(auth); closeMenu(); });
                 document.getElementById('account-btn').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('account-name').textContent = currentUser.displayName || 'Nicht festgelegt'; document.getElementById('account-email').textContent = currentUser.email; document.getElementById('request-deletion-btn').classList.remove('hidden'); document.getElementById('request-deletion-btn').disabled = false; document.getElementById('request-deletion-btn').textContent = 'Löschung anfragen'; document.getElementById('deletion-feedback').textContent = ''; showModal(accountModal); closeMenu(); });
@@ -1280,5 +1301,8 @@
     </script>
 </body>
 </html>
+
+
+
 
 
