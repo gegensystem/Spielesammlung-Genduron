@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Questboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn-tailwindcss.vercel.app/"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
-        .modal-enter { animation: fadeIn 0.3s ease-out; }
-        .modal-leave { animation: fadeOut 0.3s ease-in; }
+        .modal-enter, .toast-enter { animation: fadeIn 0.3s ease-out; }
+        .modal-leave, .toast-leave { animation: fadeOut 0.3s ease-in; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         @keyframes fadeOut { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(0.95); } }
         .filter-btn.active { background-color: #06b6d4; color: white; }
@@ -19,11 +19,12 @@
             transition: box-shadow 0.5s ease-in-out;
             box-shadow: 0 0 20px 5px #06b6d4;
         }
-        /* Custom styles for date input */
         input[type="date"]::-webkit-calendar-picker-indicator {
             cursor: pointer;
             filter: invert(0.6) brightness(1.5);
         }
+        #toast-container { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); z-index: 100; }
+        .toast { background-color: #06b6d4; color: white; padding: 0.75rem 1.5rem; border-radius: 0.5rem; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body class="bg-slate-900 text-white antialiased">
@@ -49,15 +50,12 @@
 
     <!-- Side Menu -->
     <div id="side-menu" class="fixed top-0 right-0 h-full w-64 bg-slate-800 shadow-2xl transform translate-x-full transition-transform z-30">
-        <div id="side-menu-content" class="p-6">
-            <!-- Menu content will be dynamically inserted here -->
-        </div>
+        <div id="side-menu-content" class="p-6"></div>
     </div>
     <div id="menu-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden"></div>
 
     <!-- Main Content -->
     <main id="main-content" class="container mx-auto p-4 max-w-7xl">
-        <!-- Verification Banner -->
         <div id="verification-banner" class="hidden bg-yellow-500/20 border border-yellow-500 text-yellow-300 px-4 py-3 rounded-lg text-center mb-4">
             Bitte bestätige deine E-Mail-Adresse. Wir haben dir einen Link geschickt. 
             <button id="resend-verification-btn" class="font-bold underline hover:text-white disabled:opacity-50 disabled:cursor-not-allowed">Erneut senden</button>
@@ -92,7 +90,6 @@
                 </div>
             </div>
         </div>
-         <!-- Location Filter -->
         <div id="location-filter-container" class="mb-6 flex flex-wrap justify-center gap-2 p-2 bg-slate-800/50 rounded-lg">
             <button class="filter-btn location-filter-btn active px-3 py-1 rounded-md transition" data-location="all">Alle Orte</button>
             <button class="filter-btn location-filter-btn px-3 py-1 rounded-md transition" data-location="Genduron">Genduron</button>
@@ -102,23 +99,16 @@
             <button class="filter-btn location-filter-btn px-3 py-1 rounded-md transition" data-location="Brettspielfreunde">Brettspielfreunde</button>
         </div>
        
-        <!-- Game List Container -->
         <div id="quest-list-container">
-            <div id="game-list-cards" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                <!-- Cards will be rendered here -->
-            </div>
-             <div id="loading-indicator" class="text-center col-span-full py-10">
+            <div id="game-list-cards" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+            <div id="loading-indicator" class="text-center col-span-full py-10">
                  <p class="text-slate-400 text-lg">Lade verfügbare Quests...</p>
-             </div>
+            </div>
         </div>
 
-         <!-- Pagination Controls -->
-        <div id="pagination-controls" class="mt-6 flex justify-center items-center gap-4 text-slate-400">
-            <!-- Pagination buttons will be rendered here -->
-        </div>
+        <div id="pagination-controls" class="mt-6 flex justify-center items-center gap-4 text-slate-400"></div>
     </main>
    
-    <!-- Footer -->
     <footer class="text-center py-8 mt-8 text-slate-500 border-t border-slate-800">
         <div class="container mx-auto px-4 max-w-5xl space-x-4">
             <a href="#" id="imprint-link" class="hover:text-cyan-400 transition">Impressum</a>
@@ -231,6 +221,20 @@
         </div>
     </div>
 
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 hidden">
+        <div class="bg-slate-800 p-8 rounded-lg shadow-2xl w-full max-w-sm m-4 modal-enter text-center">
+            <p id="confirm-modal-text" class="text-slate-300 mb-6">Bist du sicher?</p>
+            <div class="flex justify-center gap-4">
+                <button id="confirm-modal-cancel-btn" class="bg-slate-600 hover:bg-slate-700 text-white py-2 px-6 rounded-lg transition">Abbrechen</button>
+                <button id="confirm-modal-confirm-btn" class="bg-red-700 hover:bg-red-800 text-white font-bold py-2 px-6 rounded-lg transition">Bestätigen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container"></div>
+
 
     <!-- Firebase and App Logic -->
     <script type="module">
@@ -295,6 +299,7 @@
         const imprintModal = document.getElementById('imprint-modal');
         const privacyModal = document.getElementById('privacy-modal');
         const questListContainer = document.getElementById('quest-list-container');
+        const confirmModal = document.getElementById('confirm-modal');
         
        
         // --- Helper Functions ---
@@ -302,38 +307,62 @@
         const hideModal = (modal) => modal.classList.add('hidden');
         const openMenu = () => { sideMenu.classList.remove('translate-x-full'); menuOverlay.classList.remove('hidden'); };
         const closeMenu = () => { sideMenu.classList.add('translate-x-full'); menuOverlay.classList.add('hidden'); };
+
+        // XSS Protection: Escape user-generated content before rendering
+        function escapeHTML(str) {
+            if (typeof str !== 'string') return '';
+            return str.replace(/[&<>"']/g, match => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[match]));
+        }
+
+        // Custom Toast Notification
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-enter';
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.remove('toast-enter');
+                toast.classList.add('toast-leave');
+                toast.addEventListener('animationend', () => toast.remove());
+            }, 3000);
+        }
+
+        // Custom Confirmation Modal
+        let confirmCallback = null;
+        function showConfirmModal(message, onConfirm) {
+            document.getElementById('confirm-modal-text').textContent = message;
+            confirmCallback = onConfirm;
+            showModal(confirmModal);
+        }
+        document.getElementById('confirm-modal-confirm-btn').addEventListener('click', () => {
+            if (confirmCallback) {
+                confirmCallback();
+                confirmCallback = null;
+            }
+            hideModal(confirmModal);
+        });
+        document.getElementById('confirm-modal-cancel-btn').addEventListener('click', () => hideModal(confirmModal));
+        confirmModal.addEventListener('click', (e) => { if (e.target === confirmModal) hideModal(confirmModal); });
+
        
         function copyToClipboard(text) {
-            const textArea = document.createElement('textarea');
-            textArea.value = text;
-            textArea.style.position = 'fixed'; // Prevent scrolling to bottom
-            textArea.style.top = 0;
-            textArea.style.left = 0;
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            try {
-                const successful = document.execCommand('copy');
-                if (successful) {
-                    alert('Link in die Zwischenablage kopiert!');
-                } else {
-                    alert('Kopieren fehlgeschlagen. Bitte manuell kopieren.');
-                }
-            } catch (err) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Link in die Zwischenablage kopiert!');
+            }).catch(err => {
                 console.error('Fehler beim Kopieren:', err);
-                alert('Kopieren fehlgeschlagen. Bitte manuell kopieren.');
-            }
-            document.body.removeChild(textArea);
+                showToast('Kopieren fehlgeschlagen.');
+            });
         }
 
         // --- Event Delegation for dynamic content ---
         questListContainer.addEventListener('click', async (e) => {
-            // Check for the most specific buttons first
             const editBtn = e.target.closest('.edit-game-btn');
             const shareBtn = e.target.closest('.share-quest-btn');
             const joinLeaveBtn = e.target.closest('.join-leave-btn');
             const cancelBtn = e.target.closest('.cancel-game-btn');
-            // Check for the general card click last
             const viewBtn = e.target.closest('.view-quest-btn'); 
 
             if (editBtn) {
@@ -364,7 +393,7 @@
                             if (gameData.participants.length < gameData.totalSeats) {
                                 newParticipants = [...gameData.participants, { uid: currentUser.uid, displayName: currentUser.displayName }];
                             } else {
-                                alert("Diese Runde ist bereits voll.");
+                                showToast("Diese Runde ist bereits voll.");
                                 joinLeaveBtn.disabled = false;
                                 return;
                             }
@@ -375,11 +404,11 @@
                 finally { joinLeaveBtn.disabled = false; }
             } else if (cancelBtn) {
                 const gameId = cancelBtn.dataset.gameId;
-                if (confirm('Bist du sicher, dass du dieses Quest absagen möchtest?')) {
+                showConfirmModal('Bist du sicher, dass du dieses Quest absagen möchtest?', async () => {
                     const gameRef = doc(db, "spielrunden", gameId);
                     await updateDoc(gameRef, { cancelled: true });
-                }
-            } else if (viewBtn) { // This is now the fallback for a click anywhere else on the card
+                });
+            } else if (viewBtn) {
                  const gameId = viewBtn.dataset.gameId;
                  const gameRef = doc(db, "spielrunden", gameId);
                  const docSnap = await getDoc(gameRef);
@@ -403,13 +432,9 @@
              document.getElementById('edit-game-id').value = '';
              document.getElementById('delete-game-btn').classList.add('hidden');
              document.getElementById('reactivate-game-btn').classList.add('hidden');
-             
-             // Set max date for quest creation
-             const today = new Date();
              const maxDate = new Date();
-             maxDate.setMonth(today.getMonth() + 3);
+             maxDate.setMonth(maxDate.getMonth() + 3);
              document.getElementById('game-date').setAttribute('max', maxDate.toISOString().split('T')[0]);
-
              showModal(addEditGameModal);
         });
 
@@ -423,15 +448,18 @@
 
         document.getElementById('delete-game-btn').addEventListener('click', async () => {
             const gameId = document.getElementById('edit-game-id').value;
-            if (gameId && confirm('Bist du sicher, dass du dieses Quest endgültig löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.')) {
-                const gameRef = doc(db, "spielrunden", gameId);
-                try {
-                    await deleteDoc(gameRef);
-                    hideModal(addEditGameModal);
-                } catch (error) {
-                    console.error("Fehler beim Löschen des Quests:", error);
-                    alert("Das Quest konnte nicht gelöscht werden.");
-                }
+            if (gameId) {
+                showConfirmModal('Bist du sicher, dass du dieses Quest endgültig löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.', async () => {
+                    const gameRef = doc(db, "spielrunden", gameId);
+                    try {
+                        await deleteDoc(gameRef);
+                        hideModal(addEditGameModal);
+                        showToast("Quest gelöscht.");
+                    } catch (error) {
+                        console.error("Fehler beim Löschen des Quests:", error);
+                        showToast("Das Quest konnte nicht gelöscht werden.");
+                    }
+                });
             }
         });
 
@@ -441,6 +469,7 @@
                 const gameRef = doc(db, "spielrunden", gameId);
                 await updateDoc(gameRef, { cancelled: false });
                 hideModal(addEditGameModal);
+                showToast("Quest wurde reaktiviert.");
             }
         });
        
@@ -452,17 +481,11 @@
             try {
                 await sendEmailVerification(auth.currentUser);
                 feedback.textContent = 'Erneut gesendet!';
-                setTimeout(() => {
-                    feedback.textContent = '';
-                    btn.disabled = false;
-                }, 5000);
+                setTimeout(() => { feedback.textContent = ''; btn.disabled = false; }, 5000);
             } catch (error) {
                 console.error("Error resending verification email:", error);
                 feedback.textContent = 'Fehler.';
-                 setTimeout(() => {
-                    feedback.textContent = '';
-                    btn.disabled = false;
-                }, 5000);
+                 setTimeout(() => { feedback.textContent = ''; btn.disabled = false; }, 5000);
             }
         });
 
@@ -470,36 +493,19 @@
             e.preventDefault();
             const btn = document.getElementById('request-deletion-btn');
             const feedbackEl = document.getElementById('deletion-feedback');
-
             btn.disabled = true;
             feedbackEl.textContent = 'Sende Anfrage...';
-
             const formData = new FormData();
             formData.append('uid', currentUser.uid);
             formData.append('email', currentUser.email);
             formData.append('displayName', currentUser.displayName);
             formData.append('_subject', `Löschanfrage: ${currentUser.displayName}`);
-
             try {
                 const response = await fetch("https://formspree.io/f/myzdgawa", {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'Accept': 'application/json'
-                    }
+                    method: 'POST', body: formData, headers: { 'Accept': 'application/json' }
                 });
-
-                if (response.ok) {
-                    feedbackEl.textContent = 'Löschanfrage wurde gesendet.';
-                    // Der Button bleibt deaktiviert, um mehrfaches Senden zu verhindern.
-                } else {
-                    const data = await response.json();
-                    if (Object.hasOwn(data, 'errors')) {
-                         throw new Error(data["errors"].map(error => error["message"]).join(", "));
-                    } else {
-                        throw new Error('Formspree submission failed');
-                    }
-                }
+                if (!response.ok) throw new Error('Formspree submission failed');
+                feedbackEl.textContent = 'Löschanfrage wurde gesendet.';
             } catch (error) {
                 console.error("Error requesting deletion via Formspree:", error);
                 feedbackEl.textContent = 'Fehler beim Senden der Anfrage.';
@@ -519,13 +525,8 @@
                 tab.classList.add('border-cyan-500', 'text-white');
                 tab.classList.remove('border-transparent', 'text-slate-400');
                
-                if (targetTab === 'login') {
-                    loginForm.classList.remove('hidden');
-                    registerForm.classList.add('hidden');
-                } else {
-                    loginForm.classList.add('hidden');
-                    registerForm.classList.remove('hidden');
-                }
+                loginForm.classList.toggle('hidden', targetTab !== 'login');
+                registerForm.classList.toggle('hidden', targetTab !== 'register');
                 authError.textContent = '';
             });
         });
@@ -540,7 +541,6 @@
             loginButton.textContent = 'Logge ein...';
             try {
                 await signInWithEmailAndPassword(auth, email, password);
-                // onAuthStateChanged will handle hiding the modal
             } catch (error) {
                 console.error("Login-Fehler:", error.code);
                 authError.textContent = getGermanAuthError(error.code);
@@ -559,21 +559,17 @@
             authError.textContent = '';
 
             if (password !== passwordConfirm) {
-                authError.textContent = 'Die Passwörter stimmen nicht überein.';
-                return;
+                authError.textContent = 'Die Passwörter stimmen nicht überein.'; return;
             }
             if(name.length < 3) {
-                 authError.textContent = 'Dein Anzeigename muss mindestens 3 Zeichen lang sein.';
-                 return;
+                 authError.textContent = 'Dein Anzeigename muss mindestens 3 Zeichen lang sein.'; return;
             }
 
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 await updateProfile(userCredential.user, { displayName: name });
                 await sendEmailVerification(userCredential.user);
-                // The onAuthStateChanged listener will handle closing the modal and updating the UI automatically
-                // because the user is now logged in. We just need to inform them.
-                alert('Registrierung erfolgreich! Wir haben dir eine E-Mail zur Bestätigung geschickt. Bitte überprüfe dein Postfach.');
+                showToast('Registrierung erfolgreich! Bitte E-Mail bestätigen.');
             } catch (error) {
                 console.error("Registrierungsfehler:", error.code);
                 authError.textContent = getGermanAuthError(error.code);
@@ -584,49 +580,33 @@
              e.preventDefault();
              const email = document.getElementById('login-email').value;
              if (!email) {
-                 authError.textContent = 'Bitte gib deine E-Mail-Adresse ein, um dein Passwort zurückzusetzen.';
-                 return;
+                 authError.textContent = 'Bitte gib deine E-Mail-Adresse ein.'; return;
              }
              try {
                  await sendPasswordResetEmail(auth, email);
                  authError.textContent = 'E-Mail zum Zurücksetzen des Passworts wurde gesendet.';
-             } catch (error) {
-                 authError.textContent = getGermanAuthError(error.code);
-             }
+             } catch (error) { authError.textContent = getGermanAuthError(error.code); }
         });
 
         function getGermanAuthError(errorCode) {
             switch (errorCode) {
                 case 'auth/user-not-found':
                 case 'auth/wrong-password':
-                case 'auth/invalid-credential':
-                    return 'E-Mail oder Passwort ist ungültig.';
-                case 'auth/email-already-in-use':
-                    return 'Diese E-Mail-Adresse wird bereits verwendet.';
-                case 'auth/weak-password':
-                    return 'Das Passwort muss mindestens 6 Zeichen lang sein.';
-                case 'auth/invalid-email':
-                    return 'Bitte gib eine gültige E-Mail-Adresse ein.';
-                default:
-                    return 'Ein unerwarteter Fehler ist aufgetreten.';
+                case 'auth/invalid-credential': return 'E-Mail oder Passwort ist ungültig.';
+                case 'auth/email-already-in-use': return 'Diese E-Mail-Adresse wird bereits verwendet.';
+                case 'auth/weak-password': return 'Das Passwort muss mindestens 6 Zeichen lang sein.';
+                case 'auth/invalid-email': return 'Bitte gib eine gültige E-Mail-Adresse ein.';
+                default: return 'Ein unerwarteter Fehler ist aufgetreten.';
             }
         }
 
         locationTypeSelect.addEventListener('change', () => {
-            if (locationTypeSelect.value === 'other') {
-                customLocationContainer.classList.remove('hidden');
-            } else {
-                customLocationContainer.classList.add('hidden');
-            }
+            customLocationContainer.classList.toggle('hidden', locationTypeSelect.value !== 'other');
         });
 
         addEditGameForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (!currentUser) {
-                alert("Bitte zuerst einloggen.");
-                return;
-            }
-
+            if (!currentUser) { showToast("Bitte zuerst einloggen."); return; }
             const submitBtn = document.getElementById('submit-btn');
             submitBtn.disabled = true;
             submitBtn.textContent = 'Speichere...';
@@ -643,7 +623,6 @@
                 if (isNaN(dateTime.getTime())) throw new Error("Ungültiges Datum oder Uhrzeit.");
 
                 const selectedTags = Array.from(document.querySelectorAll('#tags-container input:checked')).map(cb => cb.value);
-
                 const questData = {
                     gameName: document.getElementById('game-name').value.trim(),
                     location: location,
@@ -654,7 +633,6 @@
                 };
 
                 if (gameId) {
-                    // Updating existing quest
                     const gameRef = doc(db, "spielrunden", gameId);
                     const docSnap = await getDoc(gameRef);
                     if (docSnap.exists()) {
@@ -662,20 +640,15 @@
                         let participants = existingData.participants;
                         const organizerParticipates = document.getElementById('organizer-participates').checked;
                         const isOrganizerInList = participants.some(p => p.uid === currentUser.uid);
-
                         if (organizerParticipates && !isOrganizerInList) {
                             participants.push({ uid: currentUser.uid, displayName: currentUser.displayName });
                         } else if (!organizerParticipates && isOrganizerInList) {
                             participants = participants.filter(p => p.uid !== currentUser.uid);
                         }
                         questData.participants = participants;
-
-                        // DO NOT update/preserve creatorId, creatorName, or createdAt on update.
-                        // These fields should be immutable after creation.
                         await updateDoc(gameRef, questData);
                     }
                 } else {
-                    // Creating new quest
                     questData.creatorId = currentUser.uid;
                     questData.creatorName = currentUser.displayName;
                     questData.createdAt = Timestamp.now();
@@ -687,15 +660,12 @@
                     }
                     await addDoc(collection(db, "spielrunden"), questData);
                 }
-
                 hideModal(addEditGameModal);
-
             } catch (error) {
                 console.error("Fehler beim Speichern des Quests:", error);
-                alert(`Fehler: ${error.message}`);
+                showToast(`Fehler: ${error.message}`);
             } finally {
                 submitBtn.disabled = false;
-                // Text will be reset when modal is opened next time
             }
         });
        
@@ -706,43 +676,27 @@
             const nameText = nameFilterInput.value.toLowerCase().trim();
             const locationText = locationFilterInput ? locationFilterInput.value.toLowerCase().trim() : "";
 
-            // New: Filter for future quests first
-            const now = new Date();
-            const futureQuests = allQuests.filter(quest => quest.dateTime.toDate() >= now);
-
-            const filteredQuests = futureQuests.filter(quest => {
+            const filteredQuests = allQuests.filter(quest => {
                 const questDate = quest.dateTime.toDate();
                 const questDateString = questDate.toISOString().slice(0, 10);
                 const cardDay = questDate.getDay().toString();
                 const cardLocation = quest.location;
                 const cardLocationLower = cardLocation.toLowerCase();
                 const cardName = quest.gameName.toLowerCase();
-
                 const dateMatch = !selectedDate || questDateString === selectedDate;
                 const dayMatch = selectedDays.includes('all') || selectedDays.length === 0 || selectedDays.includes(cardDay);
                 const locationButtonMatch = selectedLocations.includes('all') || selectedLocations.length === 0 || selectedLocations.includes(cardLocation);
                 const locationTextMatch = locationText === '' || cardLocationLower.includes(locationText);
                 const nameMatch = (nameText === '' || cardName.includes(nameText));
 
-                if (selectedDate) {
-                    return dateMatch && locationButtonMatch && locationTextMatch && nameMatch;
-                }
+                if (selectedDate) return dateMatch && locationButtonMatch && locationTextMatch && nameMatch;
                 return dayMatch && locationButtonMatch && locationTextMatch && nameMatch;
             });
 
             filteredQuests.sort((a, b) => {
-                let valA = a[sortConfig.key];
-                let valB = b[sortConfig.key];
-                if (sortConfig.key === 'dateTime') {
-                    valA = valA.toMillis();
-                    valB = valB.toMillis();
-                } else {
-                    valA = typeof valA === 'string' ? valA.toLowerCase() : valA;
-                    valB = typeof valB === 'string' ? valB.toLowerCase() : valB;
-                }
-                if (valA < valB) return sortConfig.direction === 'asc' ? -1 : 1;
-                if (valA > valB) return sortConfig.direction === 'asc' ? 1 : -1;
-                return 0;
+                const valA = a[sortConfig.key].toMillis();
+                const valB = b[sortConfig.key].toMillis();
+                return sortConfig.direction === 'asc' ? valA - valB : valB - valA;
             });
            
             const totalPages = Math.ceil(filteredQuests.length / ITEMS_PER_PAGE);
@@ -756,73 +710,42 @@
         }
 
         function renderQuestLists(quests) {
-            gameListCards.innerHTML = ''; // Clear previous content
+            gameListCards.innerHTML = '';
             const selectedDate = dateFilterInput.value;
 
             if (quests.length === 0) {
-                const messageContainer = document.createElement('div');
-                messageContainer.className = 'col-span-full'; // Span all columns
-                if (allQuests.length > 0) {
-                    messageContainer.innerHTML = '<p class="text-slate-400 text-center">Keine Quests für diese Filter gefunden.</p>';
-                } else {
-                    messageContainer.innerHTML = '<p class="text-slate-400 text-center">Aktuell sind keine Quests verfügbar. Erstelle das erste!</p>';
-                }
-                gameListCards.appendChild(messageContainer);
+                const message = allQuests.length > 0 ? 'Keine Quests für diese Filter gefunden.' : 'Aktuell sind keine Quests verfügbar. Erstelle das erste!';
+                gameListCards.innerHTML = `<div class="col-span-full text-slate-400 text-center">${message}</div>`;
                 return;
             }
 
             if (selectedDate) {
                 const dateObj = new Date(selectedDate);
-                // Adjust for timezone offset to prevent showing the previous day
                 const timezoneOffset = dateObj.getTimezoneOffset() * 60000;
                 const adjustedDate = new Date(dateObj.getTime() + timezoneOffset);
-                
                 const heading = document.createElement('h3');
                 heading.className = 'text-lg font-semibold text-slate-400 mt-6 mb-3 col-span-full';
                 heading.textContent = `Quests am ${adjustedDate.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' })}`;
                 gameListCards.appendChild(heading);
-                quests.forEach(quest => {
-                    const docWrapper = { id: quest.id, data: () => quest };
-                    gameListCards.appendChild(renderGameCard(docWrapper));
-                });
+                quests.forEach(quest => gameListCards.appendChild(renderGameCard({ id: quest.id, data: () => quest })));
                 return;
             }
 
-
-            const questsByDay = {};
-            quests.forEach(quest => {
+            const questsByDay = quests.reduce((acc, quest) => {
                 const date = quest.dateTime.toDate();
-                const yyyy = date.getFullYear();
-                const mm = String(date.getMonth() + 1).padStart(2, '0');
-                const dd = String(date.getDate()).padStart(2, '0');
-                const sortableKey = `${yyyy}-${mm}-${dd}`;
-                
-                if (!questsByDay[sortableKey]) {
-                    questsByDay[sortableKey] = {
-                        dateObj: date, // store the date object
-                        quests: []
-                    };
-                }
-                questsByDay[sortableKey].quests.push(quest);
-            });
+                const sortableKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+                if (!acc[sortableKey]) acc[sortableKey] = { dateObj: date, quests: [] };
+                acc[sortableKey].quests.push(quest);
+                return acc;
+            }, {});
             
-            const sortedDays = Object.keys(questsByDay).sort();
-
-            sortedDays.forEach(dayKey => {
-                const dayData = questsByDay[dayKey];
-                const displayDateStr = dayData.dateObj.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
-                
-                // Create and append the heading for the day
+            Object.keys(questsByDay).sort().forEach(dayKey => {
+                const { dateObj, quests } = questsByDay[dayKey];
                 const heading = document.createElement('h3');
                 heading.className = 'text-lg font-semibold text-slate-400 mt-6 mb-3 col-span-full';
-                heading.textContent = displayDateStr;
+                heading.textContent = dateObj.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
                 gameListCards.appendChild(heading);
-
-                // Render the cards for that day
-                dayData.quests.forEach(quest => {
-                    const docWrapper = { id: quest.id, data: () => quest };
-                    gameListCards.appendChild(renderGameCard(docWrapper));
-                });
+                quests.forEach(quest => gameListCards.appendChild(renderGameCard({ id: quest.id, data: () => quest })));
             });
         }
        
@@ -840,10 +763,10 @@
                  document.getElementById('next-page-btn').addEventListener('click', () => { if (currentPage < totalPages) { currentPage++; applyAllTransformsAndRender(); } });
             }
         }
-
+        
         dayFilterContainer.addEventListener('click', (e) => { 
             if (e.target.classList.contains('day-filter-btn')) { 
-                dateFilterInput.value = ''; // Clear date filter when a day button is clicked
+                dateFilterInput.value = '';
                 clearDateFilterBtn.classList.add('hidden');
                 const clickedDay = e.target.dataset.day; 
                 if (clickedDay === 'all') { 
@@ -876,11 +799,8 @@
             }
         });
         nameFilterInput.addEventListener('input', applyAllTransformsAndRender);
-        if (locationFilterInput) {
-            locationFilterInput.addEventListener('input', applyAllTransformsAndRender);
-        }
+        if (locationFilterInput) locationFilterInput.addEventListener('input', applyAllTransformsAndRender);
         dateFilterInput.addEventListener('change', () => {
-             // When a date is selected, deactivate day-of-week filters
             dayFilterContainer.querySelectorAll('.day-filter-btn').forEach(btn => btn.classList.remove('active'));
             dayFilterContainer.querySelector('[data-day="all"]').classList.add('active');
             clearDateFilterBtn.classList.toggle('hidden', !dateFilterInput.value);
@@ -898,10 +818,8 @@
             const wasJustLoggedIn = !currentUser && user;
             currentUser = user ? { uid: user.uid, displayName: user.displayName, email: user.email, emailVerified: user.emailVerified } : null;
            
-            if (wasJustLoggedIn) {
-                hideModal(authModal);
-            }
-
+            if (wasJustLoggedIn) hideModal(authModal);
+            
             updateUserUI(!!user);
             updateSideMenu(!!user);
             listenToGames(); 
@@ -909,11 +827,9 @@
             if (initialSharedQuestId) {
                 const questId = initialSharedQuestId;
                 initialSharedQuestId = null; 
-
                 const newUrl = new URL(window.location.href);
                 newUrl.searchParams.delete('quest');
                 window.history.replaceState({}, document.title, newUrl.href);
-
                 const questRef = doc(db, "spielrunden", questId);
                 try {
                     const docSnap = await getDoc(questRef);
@@ -921,37 +837,30 @@
                         renderSharedQuestModal(docSnap.data(), docSnap.id);
                         showModal(sharedQuestModal);
                     }
-                } catch (error) { console.error("Error fetching shared quest on load:", error); }
+                } catch (error) { console.error("Error fetching shared quest:", error); }
             } else if (wasJustLoggedIn && !sharedQuestModal.classList.contains('hidden')) {
                 const questId = sharedQuestContent.dataset.questId;
                 if (questId) {
                     const questRef = doc(db, "spielrunden", questId);
                     const docSnap = await getDoc(questRef);
-                    if (docSnap.exists()) {
-                        renderSharedQuestModal(docSnap.data(), docSnap.id);
-                    }
+                    if (docSnap.exists()) renderSharedQuestModal(docSnap.data(), docSnap.id);
                 }
             }
 
             if (user && !user.emailVerified) {
-                verificationBanner.classList.remove('hidden'); // Ensure banner is shown
+                verificationBanner.classList.remove('hidden');
                 verificationCheckInterval = setInterval(async () => {
-                    const freshUser = auth.currentUser;
-                    if (freshUser) {
-                        await freshUser.reload();
-                        if (freshUser.emailVerified) {
-                            clearInterval(verificationCheckInterval);
-                            // Log user out and ask them to log back in.
-                            alert("Deine E-Mail wurde erfolgreich bestätigt. Bitte logge dich nun ein, um fortzufahren.");
-                            signOut(auth);
-                        }
+                    await auth.currentUser.reload();
+                    if (auth.currentUser.emailVerified) {
+                        clearInterval(verificationCheckInterval);
+                        showToast("E-Mail erfolgreich bestätigt. Bitte neu einloggen.");
+                        signOut(auth);
                     }
                 }, 5000);
             }
         });
 
         function updateUserUI(isLoggedIn) {
-            const verificationBanner = document.getElementById('verification-banner');
             verificationBanner.classList.add('hidden');
             if (isLoggedIn && !currentUser.emailVerified) {
                 verificationBanner.classList.remove('hidden');
@@ -963,8 +872,8 @@
             if (isLoggedIn) {
                 menuHTML += `
                     <div class="mb-6">
-                        <p class="font-semibold text-white">${currentUser.displayName || currentUser.email}</p>
-                        <p class="text-sm text-slate-400">${currentUser.email}</p>
+                        <p class="font-semibold text-white">${escapeHTML(currentUser.displayName || '')}</p>
+                        <p class="text-sm text-slate-400">${escapeHTML(currentUser.email)}</p>
                     </div>
                     <nav class="flex flex-col space-y-2">
                         <a href="#" id="account-btn" class="p-2 rounded-md hover:bg-slate-700">Mein Konto</a>
@@ -991,36 +900,35 @@
             }
             sideMenuContent.innerHTML = menuHTML;
 
-            // --- Attach Event Listeners for menu items ---
             document.getElementById('close-menu-btn').addEventListener('click', closeMenu);
-            
-            // Listeners for legal links
-            document.getElementById('imprint-menu-link')?.addEventListener('click', (e) => { 
-                e.preventDefault(); 
-                showModal(imprintModal); 
-                closeMenu(); 
-            });
-            document.getElementById('privacy-menu-link')?.addEventListener('click', (e) => { 
-                e.preventDefault(); 
-                showModal(privacyModal); 
-                closeMenu(); 
-            });
+            const handleMenuLinkClick = (id, modal) => {
+                sideMenuContent.querySelector(id)?.addEventListener('click', (e) => { e.preventDefault(); showModal(modal); closeMenu(); });
+            };
+            handleMenuLinkClick('#imprint-menu-link', imprintModal);
+            handleMenuLinkClick('#privacy-menu-link', privacyModal);
 
-            // Listeners for user-state specific links
             if(isLoggedIn) {
-                document.getElementById('logout-btn').addEventListener('click', (e) => { e.preventDefault(); signOut(auth); closeMenu(); });
-                document.getElementById('account-btn').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('account-name').textContent = currentUser.displayName || 'Nicht festgelegt'; document.getElementById('account-email').textContent = currentUser.email; document.getElementById('request-deletion-btn').classList.remove('hidden'); document.getElementById('request-deletion-btn').disabled = false; document.getElementById('request-deletion-btn').textContent = 'Löschung anfragen'; document.getElementById('deletion-feedback').textContent = ''; showModal(accountModal); closeMenu(); });
+                sideMenuContent.querySelector('#logout-btn').addEventListener('click', (e) => { e.preventDefault(); signOut(auth); closeMenu(); });
+                sideMenuContent.querySelector('#account-btn').addEventListener('click', (e) => { 
+                    e.preventDefault(); 
+                    document.getElementById('account-name').textContent = currentUser.displayName; 
+                    document.getElementById('account-email').textContent = currentUser.email;
+                    document.getElementById('request-deletion-btn').disabled = false;
+                    document.getElementById('deletion-feedback').textContent = '';
+                    showModal(accountModal); 
+                    closeMenu(); 
+                });
             } else {
-                document.getElementById('login-register-btn').addEventListener('click', (e) => { e.preventDefault(); showModal(authModal); closeMenu(); });
+                sideMenuContent.querySelector('#login-register-btn').addEventListener('click', (e) => { e.preventDefault(); showModal(authModal); closeMenu(); });
             }
         }
        
         let unsubscribeFromGames = null;
         function listenToGames() { 
             if (unsubscribeFromGames) unsubscribeFromGames(); 
-            const gamesCol = collection(db, "spielrunden"); 
-            // Simpler query, less prone to index errors. Filtering for future quests now happens client-side.
-            const q = query(gamesCol, orderBy("dateTime", "asc")); 
+            const cutoffDate = new Date(new Date().getTime() - 3 * 60 * 60 * 1000);
+            const q = query(collection(db, "spielrunden"), where("dateTime", ">=", Timestamp.fromDate(cutoffDate)), orderBy("dateTime", "asc")); 
+            
             unsubscribeFromGames = onSnapshot(q, (snapshot) => { 
                 loadingIndicator.style.display = 'none';
                 allQuests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -1034,44 +942,37 @@
         function renderGameCard(doc) {
             const game = doc.data(); 
             const gameId = doc.id;
-            const isCreator = currentUser && currentUser.uid === game.creatorId; 
+            const isCreator = currentUser?.uid === game.creatorId; 
             const isParticipant = currentUser && game.participants.some(p => p.uid === currentUser.uid); 
             const participantsCount = game.participants.length; 
-            const freeSeats = game.totalSeats - participantsCount; 
-            const isFull = freeSeats <= 0; 
+            const isFull = participantsCount >= game.totalSeats; 
             const isCancelled = game.cancelled || false; 
             const gameDate = game.dateTime.toDate(); 
             const formattedDate = gameDate.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' }); 
             const formattedTime = gameDate.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }); 
            
             const card = document.createElement('div');
-            // Added view-quest-btn to the card itself to make it clickable
             card.className = `quest-card view-quest-btn bg-slate-800 rounded-lg shadow-lg p-6 flex flex-col relative transition-transform transform hover:scale-105 cursor-pointer`; 
             card.dataset.gameId = gameId;
            
-            let participantsHTML = game.participants.map(p => `
-                <span class="bg-slate-700 text-slate-300 text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1">
-                    ${p.displayName}
-                </span>`).join('');
-
-            let tagsHTML = (game.tags && game.tags.length > 0) ? game.tags.map(tag => `<span class="bg-cyan-800 text-cyan-200 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join('') : ''; 
+            let tagsHTML = (game.tags || []).map(tag => `<span class="bg-cyan-800 text-cyan-200 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full">${escapeHTML(tag)}</span>`).join(''); 
 
             card.innerHTML = `
                 ${isCancelled ? '<div class="absolute inset-0 bg-red-900/70 flex items-center justify-center rounded-lg z-10"><span class="text-2xl font-bold text-white transform -rotate-12">ABGESAGT</span></div>' : ''}
                 <div class="flex-grow ${isCancelled ? 'opacity-50' : ''}">
                     <div class="flex justify-between items-start mb-2">
-                        <h3 class="text-xl font-bold text-cyan-400 pr-12">${game.gameName}</h3>
+                        <h3 class="text-xl font-bold text-cyan-400 pr-12">${escapeHTML(game.gameName)}</h3>
                         <div class="absolute top-4 right-4 flex items-center gap-2 text-xl z-20">
                             <button class="share-quest-btn text-slate-500 hover:text-cyan-400" title="Quest teilen" data-game-id="${gameId}">🔗</button>
                             ${isCreator ? `
-                                <button class="edit-game-btn text-slate-500 hover:text-cyan-400" title="${isCancelled ? 'Quest reaktivieren/bearbeiten' : 'Quest bearbeiten'}" data-game-id="${gameId}">✏️</button>
-                                ${!isCancelled ? `<button class="cancel-game-btn text-slate-500 hover:text-red-400" title="Quest absagen" data-game-id="${gameId}">⨷</button>` : ''}
+                                <button class="edit-game-btn text-slate-500 hover:text-cyan-400" title="${isCancelled ? 'Verwalten' : 'Bearbeiten'}" data-game-id="${gameId}">✏️</button>
+                                ${!isCancelled ? `<button class="cancel-game-btn text-slate-500 hover:text-red-400" title="Absagen" data-game-id="${gameId}">⨷</button>` : ''}
                             ` : ''}
                         </div>
                     </div>
                     <div class="flex items-center text-slate-400 mb-3 text-sm">
                         <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg>
-                        <span>${game.location}</span>
+                        <span>${escapeHTML(game.location)}</span>
                     </div>
                      <div class="flex items-center text-slate-300 mb-4 text-sm">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"></path></svg>
@@ -1087,32 +988,24 @@
                                  <span class="${isFull ? 'text-red-400' : 'text-green-400'} font-semibold">${participantsCount}/${game.totalSeats}</span>
                             </div>
                             <div class="flex -space-x-2 overflow-hidden">
-                                 ${game.participants.slice(0, 3).map(p => `<span class="inline-block h-6 w-6 rounded-full bg-slate-600 ring-2 ring-slate-800 text-center leading-6 text-[10px]" title="${p.displayName}">${p.displayName.substring(0, 2).toUpperCase()}</span>`).join('')}
+                                 ${game.participants.slice(0, 3).map(p => `<span class="inline-block h-6 w-6 rounded-full bg-slate-600 ring-2 ring-slate-800 text-center leading-6 text-[10px]" title="${escapeHTML(p.displayName)}">${escapeHTML(p.displayName).substring(0, 2).toUpperCase()}</span>`).join('')}
                                  ${game.participants.length > 3 ? `<span class="flex items-center justify-center h-6 w-6 rounded-full bg-slate-700 ring-2 ring-slate-800 text-[10px] font-medium text-slate-400">+${game.participants.length - 3}</span>` : ''}
                             </div>
                         </div>
                         <div>
-                            <button class="join-leave-btn font-semibold py-2 px-4 rounded-lg transition text-sm ${isCancelled ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull && !isParticipant ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-cyan-500 hover:bg-cyan-600'))}" data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>
+                            <button class="join-leave-btn font-semibold py-2 px-4 rounded-lg transition text-sm ${isCancelled ? 'bg-slate-700 text-slate-500' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull && !isParticipant ? 'bg-slate-700 text-slate-500' : 'bg-cyan-500 hover:bg-cyan-600'))}" data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>
                                 ${isCancelled ? 'Abgesagt' : (isParticipant ? 'Verlassen' : (isFull ? 'Voll' : 'Dabei!'))}
                             </button>
                         </div>
                     </div>
                 </div>
             `;
-            // This was stopping the events from reaching the main listener. It has been removed.
             return card;
         }
 
         function openEditModal(doc) {
             const game = doc.data();
-            const modalTitle = document.getElementById('modal-title');
-            const submitBtn = document.getElementById('submit-btn');
-            const deleteBtn = document.getElementById('delete-game-btn');
-            const reactivateBtn = document.getElementById('reactivate-game-btn');
-           
             addEditGameForm.reset();
-            
-            // --- Populate form fields first ---
             document.getElementById('edit-game-id').value = doc.id;
             document.getElementById('game-name').value = game.gameName;
 
@@ -1129,54 +1022,30 @@
             }
 
             const gameDate = game.dateTime.toDate();
-            const yyyy = gameDate.getFullYear();
-            const mm = String(gameDate.getMonth() + 1).padStart(2, '0');
-            const dd = String(gameDate.getDate()).padStart(2, '0');
-            document.getElementById('game-date').value = `${yyyy}-${mm}-${dd}`;
+            document.getElementById('game-date').value = `${gameDate.getFullYear()}-${String(gameDate.getMonth() + 1).padStart(2, '0')}-${String(gameDate.getDate()).padStart(2, '0')}`;
             document.getElementById('game-time').value = gameDate.toTimeString().slice(0, 5);
-
             document.getElementById('total-seats').value = game.totalSeats;
             document.getElementById('game-duration').value = game.duration || '';
-
             document.querySelectorAll('#tags-container input[type="checkbox"]').forEach(cb => {
-                cb.checked = game.tags && game.tags.includes(cb.value);
+                cb.checked = game.tags?.includes(cb.value);
             });
-           
-            const organizerParticipatesCheckbox = document.getElementById('organizer-participates');
-            const organizerInParticipants = game.participants.some(p => p.uid === game.creatorId);
-            organizerParticipatesCheckbox.checked = organizerInParticipants;
+            document.getElementById('organizer-participates').checked = game.participants.some(p => p.uid === game.creatorId);
 
-            // --- Handle UI state based on cancelled status ---
             const isCancelled = game.cancelled || false;
-            const formElements = addEditGameForm.elements;
-
-            for (const element of formElements) {
-                if (element.type !== 'button') {
-                    element.disabled = isCancelled;
-                }
-            }
+            document.querySelectorAll('#add-edit-game-form *:not(button)').forEach(el => el.disabled = isCancelled);
+            document.getElementById('submit-btn').disabled = isCancelled;
+            document.getElementById('modal-title').textContent = isCancelled ? 'Quest reaktivieren' : 'Quest bearbeiten';
+            document.getElementById('delete-game-btn').classList.toggle('hidden', isCancelled);
+            document.getElementById('reactivate-game-btn').classList.toggle('hidden', !isCancelled);
             
-            submitBtn.disabled = isCancelled;
-            
-            if (isCancelled) {
-                modalTitle.textContent = 'Quest reaktivieren';
-                deleteBtn.classList.add('hidden');
-                reactivateBtn.classList.remove('hidden');
-            } else {
-                modalTitle.textContent = 'Quest bearbeiten';
-                deleteBtn.classList.remove('hidden');
-                reactivateBtn.classList.add('hidden');
-            }
-
             showModal(addEditGameModal);
         }
 
         function renderSharedQuestModal(game, gameId) {
-            const isCreator = currentUser && currentUser.uid === game.creatorId;
+            const isCreator = currentUser?.uid === game.creatorId;
             const isParticipant = currentUser && game.participants.some(p => p.uid === currentUser.uid);
             const participantsCount = game.participants.length;
-            const freeSeats = game.totalSeats - participantsCount;
-            const isFull = freeSeats <= 0;
+            const isFull = participantsCount >= game.totalSeats;
             const isCancelled = game.cancelled || false;
             const gameDate = game.dateTime.toDate();
             const formattedDate = gameDate.toLocaleDateString('de-DE', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
@@ -1184,52 +1053,38 @@
 
             let participantsHTML = game.participants.map(p => `
                  <span class="bg-slate-700 text-slate-300 text-sm font-medium pl-2.5 pr-1.5 py-1 rounded-full flex items-center gap-1">
-                     ${p.displayName}
-                     ${isCreator && currentUser && p.uid !== currentUser.uid ? `<button class="remove-participant-btn text-red-400 hover:text-red-200" data-game-id="${gameId}" data-participant-uid="${p.uid}" title="Teilnehmer entfernen">&times;</button>` : ''}
-                 </span>`).join('');
-            if (!participantsHTML) participantsHTML = '<p class="text-slate-500 text-sm">Noch keine Teilnehmer.</p>';
-            let tagsHTML = (game.tags && game.tags.length > 0) ? game.tags.map(tag => `<span class="bg-cyan-800 text-cyan-200 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full">${tag}</span>`).join('') : '';
+                     ${escapeHTML(p.displayName)}
+                     ${isCreator && currentUser?.uid !== p.uid ? `<button class="remove-participant-btn text-red-400 hover:text-red-200" data-game-id="${gameId}" data-participant-uid="${p.uid}" title="Teilnehmer entfernen">&times;</button>` : ''}
+                 </span>`).join('') || '<p class="text-slate-500 text-sm">Noch keine Teilnehmer.</p>';
+            let tagsHTML = (game.tags || []).map(tag => `<span class="bg-cyan-800 text-cyan-200 text-xs font-medium mr-2 mb-2 px-2.5 py-0.5 rounded-full">${escapeHTML(tag)}</span>`).join('');
 
-            let creatorActionsHTML = '';
-            if (isCreator) {
-                creatorActionsHTML = `
-                <div class="mt-4 text-center">
-                     <button id="edit-from-shared-modal-btn" class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg transition" data-game-id="${gameId}">
-                        ${isCancelled ? 'Quest verwalten (Reaktivieren)' : 'Quest bearbeiten'}
-                     </button>
-                </div>
-                `;
-            }
-
-            sharedQuestContent.dataset.questId = gameId; // Store questId for re-rendering
+            sharedQuestContent.dataset.questId = gameId;
             sharedQuestContent.innerHTML = `
                 <button id="close-shared-quest-modal" class="absolute top-4 right-4 text-slate-500 hover:text-white text-2xl">&times;</button>
-                <h3 class="text-3xl font-bold text-cyan-400 mb-2">${game.gameName}</h3>
-                <p class="text-slate-400 mb-4">Organisiert von <span class="font-semibold">${game.creatorName}</span></p>
+                <h3 class="text-3xl font-bold text-cyan-400 mb-2">${escapeHTML(game.gameName)}</h3>
+                <p class="text-slate-400 mb-4">Organisiert von <span class="font-semibold">${escapeHTML(game.creatorName)}</span></p>
                 <div class="space-y-4 mb-6">
-                    <div class="flex items-center text-slate-300"><svg class="w-5 h-5 mr-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg><span>${game.location}</span></div>
+                    <div class="flex items-center text-slate-300"><svg class="w-5 h-5 mr-3 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg><span>${escapeHTML(game.location)}</span></div>
                     <div class="flex items-center text-slate-300"><svg class="w-5 h-5 mr-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z"></path></svg><span>${formattedDate} um ${formattedTime} Uhr</span></div>
                     ${game.duration ? `<div class="flex items-center text-slate-300"><svg class="w-5 h-5 mr-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path></svg><span>ca. ${game.duration} Minuten</span></div>` : ''}
-                    <div class="flex items-center text-slate-300"><svg class="w-5 h-5 mr-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 1 1 0 5.292M15 21H3v-1a6 6 0 0 1 12 0v1Zm0 0h6v-1a6 6 0 0 0-9-5.197M15 21a6 6 0 0 0-9-5.197m0 0A5.995 5.995 0 0 0 12 12a5.995 5.995 0 0 0-3-5.197M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path></svg><span class="${isFull ? 'text-red-400' : 'text-green-400'} font-semibold">${freeSeats > 0 ? `${freeSeats} von ${game.totalSeats} Plätzen frei` : 'Runde ist voll'}</span></div>
+                    <div class="flex items-center text-slate-300"><svg class="w-5 h-5 mr-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 1 1 0 5.292M15 21H3v-1a6 6 0 0 1 12 0v1Zm0 0h6v-1a6 6 0 0 0-9-5.197M15 21a6 6 0 0 0-9-5.197m0 0A5.995 5.995 0 0 0 12 12a5.995 5.995 0 0 0-3-5.197M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path></svg><span class="${isFull ? 'text-red-400' : 'text-green-400'} font-semibold">${isFull ? 'Runde ist voll' : `${game.totalSeats - participantsCount} von ${game.totalSeats} Plätzen frei`}</span></div>
                 </div>
                 ${tagsHTML ? `<div class="flex flex-wrap mb-4">${tagsHTML}</div>` : ''}
                 <div class="border-t border-slate-700 pt-4">
                     <h4 class="font-semibold text-slate-300 mb-2">Teilnehmer (${participantsCount}/${game.totalSeats}):</h4>
                     <div class="flex flex-wrap gap-2">${participantsHTML}</div>
                 </div>
-                ${creatorActionsHTML}
+                ${isCreator ? `<div class="mt-4 text-center"><button id="edit-from-shared-modal-btn" class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-2 px-4 rounded-lg transition" data-game-id="${gameId}">${isCancelled ? 'Verwalten' : 'Bearbeiten'}</button></div>` : ''}
                 <div class="mt-6">
-                    <button class="join-leave-btn w-full font-bold py-3 px-4 rounded-lg transition ${isCancelled ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull ? 'bg-slate-700 text-slate-500 cursor-not-allowed' : 'bg-cyan-500 hover:bg-cyan-600'))}" data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>${isCancelled ? 'Abgesagt' : (isParticipant ? 'Teilnahme zurückziehen' : (isFull ? 'Voll' : 'An Quest teilnehmen'))}</button>
+                    <button class="join-leave-btn w-full font-bold py-3 px-4 rounded-lg transition ${isCancelled ? 'bg-slate-700 text-slate-500' : (isParticipant ? 'bg-amber-600 hover:bg-amber-700' : (isFull ? 'bg-slate-700 text-slate-500' : 'bg-cyan-500 hover:bg-cyan-600'))}" data-game-id="${gameId}" ${isCancelled || (isFull && !isParticipant) ? 'disabled' : ''}>${isCancelled ? 'Abgesagt' : (isParticipant ? 'Teilnahme zurückziehen' : (isFull ? 'Voll' : 'An Quest teilnehmen'))}</button>
                 </div>
             `;
         }
 
         sharedQuestModal.addEventListener('click', async (e) => {
             if (e.target.id === 'close-shared-quest-modal' || e.target === sharedQuestModal) {
-                hideModal(sharedQuestModal);
-                return;
+                hideModal(sharedQuestModal); return;
             }
-
             const removeParticipantBtn = e.target.closest('.remove-participant-btn');
             const joinLeaveBtn = e.target.closest('.join-leave-btn');
             const editFromSharedBtn = e.target.closest('#edit-from-shared-modal-btn');
@@ -1238,37 +1093,26 @@
                 const gameId = editFromSharedBtn.dataset.gameId;
                 const gameRef = doc(db, "spielrunden", gameId);
                 const docSnap = await getDoc(gameRef);
-                if (docSnap.exists()) {
-                    hideModal(sharedQuestModal);
-                    openEditModal(docSnap);
-                }
+                if (docSnap.exists()) { hideModal(sharedQuestModal); openEditModal(docSnap); }
                 return;
             }
-
+            
             if (removeParticipantBtn) {
                 const gameId = removeParticipantBtn.dataset.gameId;
                 const participantUid = removeParticipantBtn.dataset.participantUid;
-                if (confirm('Bist du sicher, dass du diesen Teilnehmer entfernen möchtest?')) {
-                    const gameRef = doc(db, "spielrunden", gameId);
-                    try {
-                        const docSnap = await getDoc(gameRef);
-                        if (docSnap.exists()) {
-                            const newParticipants = docSnap.data().participants.filter(p => p.uid !== participantUid);
-                            await updateDoc(gameRef, { participants: newParticipants });
-                            const updatedDoc = await getDoc(gameRef);
-                            renderSharedQuestModal(updatedDoc.data(), gameId);
-                        }
-                    } catch (error) {
-                        console.error("Fehler beim Entfernen des Teilnehmers:", error);
-                        alert("Der Teilnehmer konnte nicht entfernt werden.");
-                    }
-                }
+                showConfirmModal('Bist du sicher, dass du diesen Teilnehmer entfernen möchtest?', async () => {
+                     const gameRef = doc(db, "spielrunden", gameId);
+                     try {
+                         const docSnap = await getDoc(gameRef);
+                         if (docSnap.exists()) {
+                             const newParticipants = docSnap.data().participants.filter(p => p.uid !== participantUid);
+                             await updateDoc(gameRef, { participants: newParticipants });
+                             renderSharedQuestModal( (await getDoc(gameRef)).data(), gameId );
+                         }
+                     } catch (error) { console.error("Fehler beim Entfernen:", error); showToast("Fehler beim Entfernen."); }
+                });
             } else if (joinLeaveBtn) {
-                if (!currentUser) {
-                    hideModal(sharedQuestModal);
-                    showModal(authModal);
-                    return;
-                }
+                if (!currentUser) { hideModal(sharedQuestModal); showModal(authModal); return; }
                 const gameId = joinLeaveBtn.dataset.gameId;
                 joinLeaveBtn.disabled = true;
                 const gameRef = doc(db, "spielrunden", gameId);
@@ -1284,25 +1128,17 @@
                             if (gameData.participants.length < gameData.totalSeats) {
                                 newParticipants = [...gameData.participants, { uid: currentUser.uid, displayName: currentUser.displayName }];
                             } else {
-                                alert("Diese Runde ist bereits voll.");
-                                return;
+                                showToast("Diese Runde ist bereits voll."); return;
                             }
                         }
                         await updateDoc(gameRef, { participants: newParticipants });
-                        const updatedDoc = await getDoc(gameRef);
-                        renderSharedQuestModal(updatedDoc.data(), gameId);
+                        renderSharedQuestModal((await getDoc(gameRef)).data(), gameId);
                     }
-                } catch (error) {
-                    console.error("Fehler beim Beitreten/Verlassen:", error);
-                }
+                } catch (error) { console.error("Fehler beim Beitreten/Verlassen:", error); }
             }
         });
 
     </script>
 </body>
 </html>
-
-
-
-
 
